@@ -1,4 +1,5 @@
 ﻿using CloudBeat.Kit.Common.Models;
+using CloudBeat.Kit.MSTest.Attributes;
 using CloudBeat.Kit.MSTest.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -11,6 +12,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace CloudBeat.Kit.MSTest
 {
@@ -33,15 +35,20 @@ namespace CloudBeat.Kit.MSTest
         [TestInitialize]
         public void TestInitialize()
 		{
-            CbMSTest.SetMSTestContext(TestContext);
-            var fqn = $"{TestContext.FullyQualifiedTestClassName}.{TestContext.TestName}";
-            CbMSTest.StartCase(TestContext.TestName, fqn);
-        }
+            CbMSTest.SetMSTestContext(TestContext);            
+            if (!HasCbTestMethodAttribute(TestContext?.TestName))
+            {
+				var fqn = $"{TestContext.FullyQualifiedTestClassName}.{TestContext.TestName}";
+				CbMSTest.StartCase(TestContext.TestName, fqn);
+			}
+		}
+
 		[TestCleanup]
 		public void TestCleanup()
         {
 			CbMSTest.SetMSTestContext(TestContext);
-			CbMSTest.EndCase();
+			if (!HasCbTestMethodAttribute(TestContext?.TestName))
+				CbMSTest.EndCase();
         }
 
         public void AddOutputData(string name, object data)
@@ -62,6 +69,16 @@ namespace CloudBeat.Kit.MSTest
         public void Dispose()
         {
             
-        }        
-    }
+        }
+
+		private bool HasCbTestMethodAttribute(string testMethodName)
+		{
+            if (string.IsNullOrEmpty(testMethodName)) return false;
+			var methodInfo = this.GetType().GetMethod(testMethodName);
+			if (methodInfo == null) return false;
+			var cbTestMethodAttr = methodInfo.GetCustomAttribute<CbTestMethodAttribute>();
+			return cbTestMethodAttr != null;
+		}
+
+	}
 }
