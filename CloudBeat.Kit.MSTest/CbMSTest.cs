@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Xml.Linq;
 using TestResult = Microsoft.VisualStudio.TestTools.UnitTesting.TestResult;
 
 namespace CloudBeat.Kit.MSTest
@@ -152,14 +153,28 @@ namespace CloudBeat.Kit.MSTest
             Current.Reporter.StartCase(testMethod);
         }
 
-        internal static void EndCase(ITestMethod testMethod, TestResult[] results)
+		internal static void StartCase(string name, string fqn)
+		{
+			if (!Current.IsConfigured)
+				return;
+            Current.Reporter.StartCase(name, fqn, Current.MSTestContext);
+		}
+
+		internal static void EndCase(ITestMethod testMethod, TestResult[] results)
         {
             if (!Current.IsConfigured)
                 return;
             Current.Reporter.EndCase(testMethod, results, Current.MSTestContext);
         }
 
-        public static void AddOutputData(string name, object data, TestContext testContext = null)
+		internal static void EndCase()
+		{
+			if (!Current.IsConfigured)
+                return;
+			Current.Reporter.EndCase(Current.MSTestContext);
+		}
+
+		public static void AddOutputData(string name, object data, TestContext testContext = null)
 		{
             if (!Current.IsConfigured)
                 return;
@@ -184,6 +199,6 @@ namespace CloudBeat.Kit.MSTest
             if (testContext == null)
                 testContext = Current.MSTestContext;
             Current.Reporter.HasWarnings(warnings, testContext);
-        }
-    }
+        }		
+	}
 }

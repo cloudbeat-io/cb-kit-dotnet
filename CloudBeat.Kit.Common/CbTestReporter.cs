@@ -271,7 +271,7 @@ namespace CloudBeat.Kit.Common
 			return newStep;
 		}
 
-		public StepResult StartStep(string stepName)
+		public virtual StepResult StartStep(string stepName)
 		{
 			var parentSuite = _result?.Suites?.LastOrDefault();
 			var parentCase = parentSuite?.Cases?.LastOrDefault();

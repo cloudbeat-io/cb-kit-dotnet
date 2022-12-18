@@ -1,20 +1,22 @@
-﻿using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
+﻿using OpenQA.Selenium.Chrome;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace CloudBeat.Kit.MSTest
+namespace CloudBeat.Kit.Common
 {
     // following code is taken from https://stackoverflow.com/a/52063597
     // another example based on Selenium 4: https://dev.to/gdledsan/selenium-4-and-chrome-driver-take-full-page-screenthos-2j8d
-    public static class ScreenshotHelper
+    internal static class CbScreenshotHelper
     {
-        public static Screenshot TakeFullPageScreenshot(ChromeDriver driver)
+        private const string DEFAULT_SCREENSHOT_FORMAT = "Png";
+		private const int DEFAULT_SCREENSHOT_QUALITY = 80;
+
+		public static string TakeFullPageScreenshot(ChromeDriver driver)
         {
             // Evaluate this only to get the object that the
             // Emulation.setDeviceMetricsOverride command will expect.
@@ -42,7 +44,7 @@ namespace CloudBeat.Kit.MSTest
             {
                 var currentHeight = splitSSAt;
                 var startHeight = 0;
-                List<Bitmap> bitmaps = new List<Bitmap>();
+                List<SKBitmap> bitmaps = new List<SKBitmap>();
 
                 while (fullHeight > 0)
                 {
@@ -63,29 +65,29 @@ namespace CloudBeat.Kit.MSTest
                     Dictionary<string, object> splitScreenshotResult = splitScreenshotObject as Dictionary<string, object>;
                     Byte[] bitmapData = Convert.FromBase64String(FixBase64ForImage(splitScreenshotResult["data"] as string));
                     MemoryStream streamBitmap = new MemoryStream(bitmapData);
-                    bitmaps.Add(new Bitmap((Bitmap)Image.FromStream(streamBitmap)));
+                    var bitmap = SKBitmap.Decode(streamBitmap);
+
+                    //bitmaps.Add(new Bitmap((Bitmap)Image.FromStream(streamBitmap)));
+                    bitmaps.Add(bitmap);
                     fullHeight -= splitSSAt;
                     startHeight += splitSSAt;
                 }
 
-                using (var ms = new MemoryStream())
-                {
-                    using (var bitmap = new Bitmap(MergeImages(bitmaps)))
-                    {
-                        bitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                        var base64 = Convert.ToBase64String(ms.GetBuffer()); //Get Base64
-                        return new Screenshot(base64);
-                    }
-                }
-            }
+                var fullScreenBitmap = MergeImages(bitmaps);
+				var imageData = fullScreenBitmap.Encode(SKEncodedImageFormat.Png, 80);
+				return Convert.ToBase64String(imageData.ToArray()); //Get Base64
+				//return new Screenshot(base64);
+
+			}
             object screenshotObject = driver.ExecuteCdpCommand("Page.captureScreenshot", parameters);
             Dictionary<string, object> screenshotResult = screenshotObject as Dictionary<string, object>;
             string screenshotData = screenshotResult["data"] as string;
 
             driver.ExecuteCdpCommand("Emulation.clearDeviceMetricsOverride", new Dictionary<string, object>());
+            return screenshotData;
 
-            var screenshot = new Screenshot(screenshotData);
-            return screenshot;
+			//var screenshot = new Screenshot(screenshotData);
+            //return screenshot;
         }
 
         public static string FixBase64ForImage(string image)
@@ -95,31 +97,29 @@ namespace CloudBeat.Kit.MSTest
             return sbText.ToString();
         }
 
-        private static Bitmap MergeImages(IEnumerable<Bitmap> images)
+		private static SKBitmap MergeImages(IEnumerable<SKBitmap> images)
         {
-            var enumerable = images as IList<Bitmap> ?? images.ToList();
+			var totalWidth = 0;
+			var totalHeight = 0;
 
-            var width = 0;
-            var height = 0;
-
-            foreach (var image in enumerable)
+			foreach (var image in images)
+			{
+				totalWidth = image.Width;
+				totalHeight += image.Height;
+			}
+            var fullscreenBitmap = new SKBitmap(totalWidth, totalHeight);
+            using (var canvas = new SKCanvas(fullscreenBitmap))
             {
-                width = image.Width;
-                height += image.Height;
-            }
-
-            var bitmap = new Bitmap(width, height);
-            using (var g = Graphics.FromImage(bitmap))
-            {
-                var localHeight = 0;
-                foreach (var image in enumerable)
-                {
-                    g.DrawImage(image, 0, localHeight);
-                    localHeight += image.Height;
-                }
-            }
-            return bitmap;
-        }
+				float currentImageYPos = 0;
+				foreach (var image in images)
+				{
+					canvas.DrawBitmap(image, new SKPoint(0, currentImageYPos));
+					currentImageYPos += image.Height;
+				}
+				//canvas.Save();
+			}
+            return fullscreenBitmap;
+		}
 
         private static Dictionary<string, object> EvaluateDevToolsScript(ChromeDriver driver, string scriptToEvaluate)
         {

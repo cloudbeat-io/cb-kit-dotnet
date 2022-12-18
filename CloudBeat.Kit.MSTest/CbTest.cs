@@ -34,6 +34,14 @@ namespace CloudBeat.Kit.MSTest
         public void TestInitialize()
 		{
             CbMSTest.SetMSTestContext(TestContext);
+            var fqn = $"{TestContext.FullyQualifiedTestClassName}.{TestContext.TestName}";
+            CbMSTest.StartCase(TestContext.TestName, fqn);
+        }
+		[TestCleanup]
+		public void TestCleanup()
+        {
+			CbMSTest.SetMSTestContext(TestContext);
+			CbMSTest.EndCase();
         }
 
         public void AddOutputData(string name, object data)

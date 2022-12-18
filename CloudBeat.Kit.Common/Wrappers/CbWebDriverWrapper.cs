@@ -1,4 +1,6 @@
 ﻿using CloudBeat.Kit.Common.Models;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.Events;
 using OpenQA.Selenium.Support.Extensions;
 using System;
@@ -16,6 +18,7 @@ namespace CloudBeat.Kit.Common.Wrappers
             _driver = eventFiringWebDriver;
             _reporter = reporter;
             _fullPageScreenshot = fullPageScreenshot;
+            SubscribeToWebDriverEvents();
         }
 
         private void SubscribeToWebDriverEvents()
@@ -45,46 +48,37 @@ namespace CloudBeat.Kit.Common.Wrappers
             {
                 var endedStep = _reporter.EndStep(_startedStep, TestStatusEnum.Failed);
                 if (endedStep != null)
-                    endedStep.Failure = CbExceptionHelper.GetFailureFromException(e.ThrownException);
+                {
+                    endedStep.ScreenShot = TakeBase64Screenshot();
+					endedStep.Failure = CbExceptionHelper.GetFailureFromException(e.ThrownException);
+				}                    
                 _startedStep = null;
-            }
-            // TODO: fix the below
-            /*
-            try
-            {
-                var screenShotPath = $"{_context.FullyQualifiedTestClassName}_{_context.TestName}.png";
-
-                Screenshot ss = null;
-                if (TakeFullPageScreenshots && _driver.WrappedDriver is ChromeDriver)
-                {
-                    try
-                    {
-                        ss = ScreenshotHelper.TakeFullPageScreenshot(_driver.WrappedDriver as ChromeDriver);
-                    }
-                    catch (Exception sse)
-                    {
-                        TestContext.WriteLine("Error taking full-page screenshot");
-                        TestContext.WriteLine(sse.Message + "\n" + sse.StackTrace);
-                        ss = _driver.TakeScreenshot();
-                    }
-                }
-                else
-                {
-                    ss = _driver.TakeScreenshot();
-                }
-
-                ss.SaveAsFile(screenShotPath);
-
-                _context.AddResultFile(screenShotPath);
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-            */
+            }            
         }
 
-        private void OnNavigatedForward(object sender, WebDriverNavigationEventArgs e)
+        private string TakeBase64Screenshot()
+        {
+			try
+			{
+				if (_fullPageScreenshot && _driver != null && _driver.WrappedDriver is ChromeDriver)
+				{
+					try
+					{
+						return CbScreenshotHelper.TakeFullPageScreenshot(_driver.WrappedDriver as ChromeDriver);
+					}
+					catch
+					{
+					}
+				}
+				return _driver?.TakeScreenshot()?.AsBase64EncodedString;
+			}
+			catch (Exception)
+			{
+                return null;
+			}
+		}
+
+		private void OnNavigatedForward(object sender, WebDriverNavigationEventArgs e)
         {
             if (_startedStep != null)
                 _reporter.EndStep(_startedStep);
@@ -112,6 +106,8 @@ namespace CloudBeat.Kit.Common.Wrappers
 
         private void OnNavigated(object sender, WebDriverNavigationEventArgs e)
         {
+            if (_startedStep == null) return;
+			
             long? loadEvent = null;
             long? domContentLoadedEvent = null;
 
@@ -121,22 +117,19 @@ namespace CloudBeat.Kit.Common.Wrappers
                 domContentLoadedEvent = _driver.ExecuteJavaScript<long>("return (window.performance.timing.domContentLoadedEventStart - window.performance.timing.navigationStart)");
 
                 if (loadEvent < 0)
-                {
                     loadEvent = null;
-                }
 
                 if (domContentLoadedEvent < 0)
-                {
                     domContentLoadedEvent = null;
-                }
             }
             catch { }
-            if (_startedStep != null)
-            {
-                _reporter.EndStep(_startedStep);
-                // TODO: add loadEvent and domContentLoadedEvent to the step result
-            }
+            
+            if (loadEvent.HasValue && !_startedStep.Stats.ContainsKey("loadEvent"))
+                _startedStep.Stats.Add("loadEvent", loadEvent.Value);
+			if (domContentLoadedEvent.HasValue && !_startedStep.Stats.ContainsKey("domContentLoadedEvent"))
+				_startedStep.Stats.Add("domContentLoadedEvent", domContentLoadedEvent.Value);
 
+			_reporter.EndStep(_startedStep);            
             _startedStep = null;
             //EndStep($"Navigate to {e.Url}", loadEvent: loadEvent, domContentLoadedEvent: domContentLoadedEvent);
         }

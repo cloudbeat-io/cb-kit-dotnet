@@ -12,6 +12,8 @@ using static System.Net.Mime.MediaTypeNames;
 using System.Reflection;
 using System.Collections.Concurrent;
 using System.Threading;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace CloudBeat.Kit.MSTest
 {
@@ -25,21 +27,31 @@ namespace CloudBeat.Kit.MSTest
         public CbMSTestReporter(CbConfig config) : base(config)
         {
         }
-        private void WriteCaseResultToFile(CaseResult caseResult, Microsoft.VisualStudio.TestTools.UnitTesting.TestResult testResult)
+        private void WriteCaseResultToFile(CaseResult caseResult, Microsoft.VisualStudio.TestTools.UnitTesting.TestResult testResult = null)
         {
-            if (caseResult == null || testResult == null)
+			if (caseResult == null)
                 return;
-            string argsHash = string.Empty;
-            if (caseResult.Arguments != null && caseResult.Arguments.Count > 0)
-                argsHash = "-" + CbGeneralHelpers.GetHashString(string.Join("'", caseResult.Arguments));
-            string randomSuffix = CbGeneralHelpers.GenerateShortUid();
-            var cwd = System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-            var caseResultFile = $"{CbGeneralHelpers.FqnToFileName(caseResult.Fqn)}{argsHash}-{randomSuffix}_case_result.json";
-            var fullFilePath = Path.Combine(cwd, caseResultFile);
+            string caseResultFile;
+            if (testResult == null)
+                caseResultFile = $"{CbGeneralHelpers.FqnToFileName(caseResult.Fqn)}_case_result.json";
+            else
+            {
+				string argsHash = string.Empty;
+				if (caseResult.Arguments != null && caseResult.Arguments.Count > 0)
+					argsHash = "-" + CbGeneralHelpers.GetHashString(string.Join("'", caseResult.Arguments));
+				string randomSuffix = CbGeneralHelpers.GenerateShortUid();				
+				caseResultFile = $"{CbGeneralHelpers.FqnToFileName(caseResult.Fqn)}{argsHash}-{randomSuffix}_case_result.json";
+			}
+			var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
+			var cwd = System.IO.Path.GetDirectoryName(assembly.Location);
+			var fullFilePath = Path.Combine(cwd, caseResultFile);
             File.WriteAllText(fullFilePath, JsonConvert.SerializeObject(caseResult));
-            if (testResult.ResultFiles == null)
-                testResult.ResultFiles = new List<string>();
-            testResult.ResultFiles.Add(fullFilePath);
+            if (testResult != null)
+            {
+				if (testResult.ResultFiles == null)
+					testResult.ResultFiles = new List<string>();
+				testResult.ResultFiles.Add(fullFilePath);
+			}            
         }
 
         public void StartSuite(TestContext msTestContext)
@@ -61,6 +73,27 @@ namespace CloudBeat.Kit.MSTest
             if (string.IsNullOrEmpty(suiteFqn))
                 return null;
             return suiteFqn.Split('.').Last();
+        }
+
+		public void StartCase(string name, string fqn, TestContext testContext = null)
+        {
+            lock (_lock)
+            {
+                var suiteFqn = MSTestHelpers.GetSuiteFqnFromCaseFqn(fqn);
+				var suiteName = ExtractClassNameFronFqn(suiteFqn);
+				// If suite does not exist (on the first class method call)
+				// then create the suite first
+				if (_result.GetSuite(suiteFqn) == null)
+				{
+					base.StartSuite(suiteName, suiteFqn);
+				}
+                base.StartCase(name, fqn, x =>
+                {
+					var threadId = Thread.CurrentThread.ManagedThreadId.ToString();
+					if (!_startedCasePerThread.TryAdd(threadId, x))
+						_startedCasePerThread[threadId] = x;
+				});
+			}
         }
 
 		public void StartCase(ITestMethod testMethod)
@@ -106,6 +139,27 @@ namespace CloudBeat.Kit.MSTest
             return base.EndSuite(suiteFqn);
         }
 
+        public void EndCase(TestContext testContext = null)
+        {
+			// we prefer to use caches started case object if possible
+			// because multiple cases might have the same FQN (parameterized tests)
+			CaseResult startedCase = GetStartedCase(testContext), endedCase = null;
+            if (startedCase == null) return;
+			string suiteFqn = testContext?.FullyQualifiedTestClassName ?? MSTestHelpers.GetSuiteFqnFromCaseFqn(startedCase?.Fqn);
+			string caseFqn = startedCase?.Fqn ?? GetCaseFqn(testContext);
+			FailureResult failureResult = null;
+			TestStatusEnum testStatus = TestStatusEnum.Passed;
+			if (startedCase != null)
+				endedCase = base.EndCase(suiteFqn, startedCase, testStatus, failureResult);
+            else
+				endedCase = base.EndCase(caseFqn, testStatus, failureResult);
+            // Make sure to clear Failure Reason if test has not failed
+            // as the user may call SetFailureReason even on passed test
+            if (endedCase != null && (testStatus == TestStatusEnum.Passed || testStatus == TestStatusEnum.Skipped))
+                endedCase.FailureReasonId = null;
+			WriteCaseResultToFile(endedCase);
+		}
+
         public void EndCase(ITestMethod testMethod, Microsoft.VisualStudio.TestTools.UnitTesting.TestResult[] results, TestContext testContext = null)
         {
             if (testMethod == null)
@@ -141,7 +195,7 @@ namespace CloudBeat.Kit.MSTest
             WriteCaseResultToFile(endedCase, mainTestResult);
         }
 
-        public new StepResult StartStep(string stepName)
+        public override StepResult StartStep(string stepName)
         {
             CaseResult caseResult = GetStartedCase(null);
             if (caseResult == null) return null;

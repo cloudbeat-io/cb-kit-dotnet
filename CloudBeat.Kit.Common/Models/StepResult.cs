@@ -14,7 +14,6 @@ namespace CloudBeat.Kit.Common.Models
         protected readonly StepResult _parent;
         protected readonly IList<StepResult> _steps;
         protected readonly IList<LogMessage> _logs;
-        protected readonly Dictionary<string, double> _stats;
         public StepResult(StepResult parent = null) : this(Guid.NewGuid().ToString(), parent)
         {            
         }
@@ -47,7 +46,7 @@ namespace CloudBeat.Kit.Common.Models
         public FailureResult Failure { get; set; }
         public string ScreenShot { get; set; }
         public IList<StepResult> Steps => _steps;
-        public Dictionary<string, double> Stats => _stats;
+        public Dictionary<string, double> Stats { get; } = new Dictionary<string, double>();
         public IList<LogMessage> Logs => _logs;
         public bool IsFinished => EndTime.HasValue && Status.HasValue;
 

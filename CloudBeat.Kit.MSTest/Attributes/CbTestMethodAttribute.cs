@@ -18,8 +18,6 @@ namespace CloudBeat.Kit.MSTest.Attributes
             if (!CbMSTest.Current.IsConfigured)
                 return results;
             CbMSTest.EndCase(testMethod, results);
-            //results[0].ResultFiles = new List<string>();
-            //results[0].ResultFiles.Add("C:\\Users\\Administrator\\Desktop\\Code\\cb-mstest-net-example\\bin\\Debug\\net5.0\\MSTestExampleProject.UnitTest.ParameterizedMethod_case_result1.json");
             return results;
         }
     }
