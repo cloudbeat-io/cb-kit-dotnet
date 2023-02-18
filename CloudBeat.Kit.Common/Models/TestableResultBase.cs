@@ -75,6 +75,9 @@ namespace CloudBeat.Kit.Common.Models
 				if (currentStep == targetStep)
 					break;
 			}
+			// if step has failed, then mark case as failed
+			if (status != null && status.Value == TestStatusEnum.Failed)
+				this.Status = TestStatusEnum.Failed;
 			return targetStep;
 		}
 		public void End()

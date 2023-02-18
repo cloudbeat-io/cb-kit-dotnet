@@ -148,7 +148,7 @@ namespace CloudBeat.Kit.MSTest
 			string suiteFqn = testContext?.FullyQualifiedTestClassName ?? MSTestHelpers.GetSuiteFqnFromCaseFqn(startedCase?.Fqn);
 			string caseFqn = startedCase?.Fqn ?? GetCaseFqn(testContext);
 			FailureResult failureResult = null;
-			TestStatusEnum testStatus = TestStatusEnum.Passed;
+            TestStatusEnum testStatus = MSTestHelpers.DetermineTestStatus(testContext.CurrentTestOutcome);
 			if (startedCase != null)
 				endedCase = base.EndCase(suiteFqn, startedCase, testStatus, failureResult);
             else

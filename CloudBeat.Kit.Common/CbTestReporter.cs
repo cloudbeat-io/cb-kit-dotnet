@@ -122,7 +122,7 @@ namespace CloudBeat.Kit.Common
 			return true;
 		}
 
-		public CaseResult EndCase(string fqn, TestStatusEnum status, FailureResult failure)
+		public CaseResult EndCase(string fqn, TestStatusEnum? status, FailureResult failure = null)
 		{
 			if (_result == null)
 				return null;
@@ -132,7 +132,7 @@ namespace CloudBeat.Kit.Common
 			var endedCase = parentSuite.EndCase(fqn, status, failure);
 			return endedCase;
 		}
-		public CaseResult EndCase(string suiteFqn, CaseResult caseResult, TestStatusEnum status, FailureResult failure)
+		public CaseResult EndCase(string suiteFqn, CaseResult caseResult, TestStatusEnum? status, FailureResult failure = null)
 		{
 			if (_result == null)
 				return null;
