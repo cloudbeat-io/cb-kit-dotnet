@@ -80,6 +80,13 @@ namespace CloudBeat.Kit.NUnit
             return CbConfig.ParseCsvStringAsObjectArray(csvDataAsString);
         }
 
+        public static string GetParameter(string name)
+        {
+            if (!Current.IsConfigured || !TestContext.Parameters.Exists(name))
+                return null;
+            return TestContext.Parameters.Get(name);
+        }
+
         private static CbNUnitContext CreateCloudBeatNUnitContext()
         {
             CbConfig config = new CbConfig();
