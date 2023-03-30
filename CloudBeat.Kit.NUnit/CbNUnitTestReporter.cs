@@ -8,11 +8,16 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.IO;
 using CbExceptionHelper = CloudBeat.Kit.Common.CbExceptionHelper;
+using System.Collections.Concurrent;
+using System.Threading;
 
 namespace CloudBeat.Kit.NUnit
 {
     public class CbNUnitTestReporter : CbTestReporter
     {
+        protected readonly ConcurrentDictionary<string, CaseResult> _startedCasePerThread = new ConcurrentDictionary<string, CaseResult>();
+        private static readonly object _lock = new object();
+
         public CbNUnitTestReporter(CbConfig config) : base(config)
         {
         }
@@ -76,17 +81,24 @@ namespace CloudBeat.Kit.NUnit
         public void StartCase(Test test)
         {
             var categoryAttributes = test.GetCustomAttributes<CategoryAttribute>(true);
-            base.StartCase(test.Name, test.FullName, x =>
+            lock (_lock)
             {
-                var testParams = NUnitHelpers.GenerateTestParametersContext(test.Method, test.Arguments);
-				x.Arguments = test.Arguments?.Select(a => a.ToString()).ToArray();
-                if (x.Context.ContainsKey("params"))
-                    x.Context["params"] = testParams;
-                else
-                    x.Context.Add("params", testParams);
+                base.StartCase(test.Name, test.FullName, x =>
+                {
+                    var testParams = NUnitHelpers.GenerateTestParametersContext(test.Method, test.Arguments);
+                    x.Arguments = test.Arguments?.Select(a => a.ToString()).ToArray();
+                    if (x.Context.ContainsKey("params"))
+                        x.Context["params"] = testParams;
+                    else
+                        x.Context.Add("params", testParams);
 
-				AddCategoriesAsTagsAndTestAttributes(x, categoryAttributes);
-            });
+                    AddCategoriesAsTagsAndTestAttributes(x, categoryAttributes);
+                    // store for later use the current test case result object (per thread)
+                    var threadId = Thread.CurrentThread.ManagedThreadId.ToString();
+                    if (!_startedCasePerThread.TryAdd(threadId, x))
+                        _startedCasePerThread[threadId] = x;
+                });
+            }
         }
 
         public bool EndSuite(TestSuite suite)
@@ -100,9 +112,20 @@ namespace CloudBeat.Kit.NUnit
             // generate failure object, if relevant
             FailureResult failure = GetFailureFromResult(nuTestResult);
             var status = NUnitHelpers.DetermineTestStatus(nuTestResult.Outcome);
-            var fqn = test.FullName; // NUnitHelpers.GetTestCaseFqn(test);
-            var endedCase = base.EndCase(fqn, status, failure);
-            WriteCaseResultToFile(endedCase);
+            lock (_lock)
+            {
+                var startedCase = GetStartedCase();
+                var fqn = test.FullName; // NUnitHelpers.GetTestCaseFqn(test);
+                CaseResult endedCase;
+                // remove ended case from current case per-thread storage
+                if (startedCase != null)
+                {
+                    var threadId = Thread.CurrentThread.ManagedThreadId.ToString();
+                    _startedCasePerThread.Remove(threadId, out startedCase);
+                }
+                endedCase = base.EndCase(fqn, status, failure);
+                WriteCaseResultToFile(endedCase);
+            }
         }
         private static FailureResult GetFailureFromResult(TestContext.ResultAdapter result)
 		{
@@ -139,6 +162,33 @@ namespace CloudBeat.Kit.NUnit
         {
             var testFqn = NUnitHelpers.GetFqn(TestContext.CurrentContext.Test);
             return base.Step(testFqn, name, action);
+        }
+        public override StepResult StartStep(string name)
+        {
+            var testFqn = NUnitHelpers.GetFqn(TestContext.CurrentContext.Test);
+            return base.StartStep(testFqn, name);
+        }
+        public StepResult EndStep(string name)
+        {
+            var testFqn = NUnitHelpers.GetFqn(TestContext.CurrentContext.Test);
+            return base.EndStep(testFqn, name);
+        }
+
+        public override StepResult EndStep(StepResult stepResult, TestStatusEnum? status = null)
+        {
+            var testFqn = NUnitHelpers.GetFqn(TestContext.CurrentContext.Test);
+            var startedCase = GetStartedCase();
+            if (startedCase.Fqn != testFqn)
+                return null;
+            return base.EndStep(stepResult, startedCase, status);
+        }
+
+        private CaseResult GetStartedCase()
+        {
+            CaseResult caseResult = null;
+            var threadId = Thread.CurrentThread.ManagedThreadId.ToString();
+            _startedCasePerThread.TryGetValue(threadId, out caseResult);
+            return caseResult;
         }
     }
 }

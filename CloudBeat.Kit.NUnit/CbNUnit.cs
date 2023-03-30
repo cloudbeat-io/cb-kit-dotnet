@@ -1,5 +1,7 @@
 ﻿using CloudBeat.Kit.Common;
+using CloudBeat.Kit.Common.Wrappers;
 using NUnit.Framework;
+using OpenQA.Selenium.Support.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +10,7 @@ using System.Threading;
 
 namespace CloudBeat.Kit.NUnit
 {
-	public static class CbNUnit
+    public static class CbNUnit
     {
         private const string TEST_DATA_PARAM_NAME = "testData";
 
@@ -23,7 +25,7 @@ namespace CloudBeat.Kit.NUnit
             get
             {
                 if (currentCbContext == null)
-				{
+                {
                     currentCbContext = CreateCloudBeatNUnitContext();
                 }
                 return currentCbContext;
@@ -31,9 +33,9 @@ namespace CloudBeat.Kit.NUnit
         }
 
         public static Dictionary<string, object> GetCapabilities()
-		{
+        {
             Dictionary<string, object> caps = new Dictionary<string, object>();
-            var deviceName = TestContext.Parameters["deviceName"]?.ToString();            
+            var deviceName = TestContext.Parameters["deviceName"]?.ToString();
             var platformName = TestContext.Parameters["platformName"]?.ToString();
             var browserName = TestContext.Parameters["browserName"]?.ToString();
             var platformVersion = TestContext.Parameters["platformVersion"]?.ToString();
@@ -47,6 +49,20 @@ namespace CloudBeat.Kit.NUnit
             return caps;
         }
 
+        public static void StartStep(string name)
+        {
+            if (!Current.IsConfigured)
+                return;
+            Current.Reporter.StartStep(name);
+        }
+
+        public static void EndStep(string name)
+        {
+            if (!Current.IsConfigured)
+                return;
+            Current.Reporter.EndStep(name);
+        }
+
         public static void Step(string name, Action action)
 		{
             if (!Current.IsConfigured)
@@ -54,6 +70,14 @@ namespace CloudBeat.Kit.NUnit
             else
                 Current.Reporter.Step(name, action);
 		}
+
+        public static T Step<T>(string name, Func<T> func)
+        {
+            if (!Current.IsConfigured)
+                return func.Invoke();
+            else
+                return Current.Reporter.Step(name, func);
+        }
 
         public static void Transaction(string name, Action action)
         {
@@ -85,6 +109,13 @@ namespace CloudBeat.Kit.NUnit
             if (!Current.IsConfigured || !TestContext.Parameters.Exists(name))
                 return null;
             return TestContext.Parameters.Get(name);
+        }
+
+        public static void WrapWebDriver(EventFiringWebDriver driver, bool takeFullPageScreenshots = true)
+        {
+            if (!Current.IsConfigured)
+                return;
+            new CbWebDriverWrapper(driver, Current.Reporter, takeFullPageScreenshots);
         }
 
         private static CbNUnitContext CreateCloudBeatNUnitContext()
