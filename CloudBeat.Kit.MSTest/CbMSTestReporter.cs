@@ -144,7 +144,8 @@ namespace CloudBeat.Kit.MSTest
 			// we prefer to use caches started case object if possible
 			// because multiple cases might have the same FQN (parameterized tests)
 			CaseResult startedCase = GetStartedCase(testContext), endedCase = null;
-            if (startedCase == null) return;
+
+			if (startedCase == null) return;
 			string suiteFqn = testContext?.FullyQualifiedTestClassName ?? MSTestHelpers.GetSuiteFqnFromCaseFqn(startedCase?.Fqn);
 			string caseFqn = startedCase?.Fqn ?? GetCaseFqn(testContext);
 			FailureResult failureResult = null;

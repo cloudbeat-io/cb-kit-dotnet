@@ -1,5 +1,6 @@
 ﻿using CloudBeat.Kit.Common.Models;
 using System;
+using System.Diagnostics;
 using System.Linq;
 
 namespace CloudBeat.Kit.Common
@@ -10,6 +11,7 @@ namespace CloudBeat.Kit.Common
 		public const string ERROR_TYPE_GENERAL = "GENERAL_ERROR";
 		public const string ERROR_TYPE_ASSERT = "ASSERT_ERROR";
 		public const string ERROR_TYPE_NUNIT = "NUNIT_ERROR";
+		public const string ERROR_TYPE_MSTEST = "MSTEST_ERROR";
 		private const string ERROR_TYPE_UNKOWN = "UNKOWN_ERROR";
 		private static readonly string[] ASSERT_EXCEPTIONS = { "AssertFailedException" };
 
@@ -31,6 +33,13 @@ namespace CloudBeat.Kit.Common
 					return ERROR_TYPE_ASSERT;
 				else
 					return ERROR_TYPE_NUNIT;
+			}
+			else if (e.Source == "Microsoft.VisualStudio.TestPlatform.TestFramework")
+			{
+				if (e.GetType().Name == "AssertFailedException")
+					return ERROR_TYPE_ASSERT;
+				else
+					return ERROR_TYPE_MSTEST;
 			}
 			else if (e.Source == "WebDriver")
 				return ERROR_TYPE_WEBDRIVER;
