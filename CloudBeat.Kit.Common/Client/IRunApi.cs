@@ -1,13 +1,9 @@
 ﻿using CloudBeat.Kit.Common.Models;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CloudBeat.Kit.Common.Client
 {
-	public interface IRunApi
+    public interface IRunApi
 	{
 		void UpdateRunStatus(string runId, RunStatusEnum status);
 		void UpdateInstanceStatus(string instanceId, RunStatusEnum status);

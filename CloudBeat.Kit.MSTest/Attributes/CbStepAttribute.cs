@@ -1,8 +1,6 @@
 ﻿using AspectInjector.Broker;
 using CloudBeat.Kit.MSTest.Aspects;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CloudBeat.Kit.MSTest.Attributes
 {

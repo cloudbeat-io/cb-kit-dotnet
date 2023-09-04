@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using CloudBeat.Kit.Common;
-using CloudBeat.Kit.Common.Models;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestResult = Microsoft.VisualStudio.TestTools.UnitTesting.TestResult;
 
 namespace CloudBeat.Kit.MSTest.Attributes
 {
-	public class CbTestMethodAttribute : TestMethodAttribute
+    public class CbTestMethodAttribute : TestMethodAttribute
     {
         public override TestResult[] Execute(ITestMethod testMethod)
         {

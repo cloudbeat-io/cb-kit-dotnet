@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CloudBeat.Kit.Common
 {
-	public class CbTestContext
+    public class CbTestContext
 	{
 		public const string CB_ENV_ENABLED = "CB_ENABLED";
 

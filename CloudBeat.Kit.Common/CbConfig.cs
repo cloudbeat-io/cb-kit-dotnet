@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CloudBeat.Kit.Common
 {
-	public class CbConfig
+    public class CbConfig
 	{
         public const string DEFAULT_WEBDRIVER_URL = "http://localhost:4444/wd/hub";
         public const string CB_API_KEY = "CB_API_KEY";

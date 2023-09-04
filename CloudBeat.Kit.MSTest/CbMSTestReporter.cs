@@ -7,13 +7,9 @@ using Newtonsoft.Json;
 using System.IO;
 using CbExceptionHelper = CloudBeat.Kit.Common.CbExceptionHelper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.ComponentModel;
-using static System.Net.Mime.MediaTypeNames;
 using System.Reflection;
 using System.Collections.Concurrent;
 using System.Threading;
-using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace CloudBeat.Kit.MSTest
 {

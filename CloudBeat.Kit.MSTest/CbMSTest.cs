@@ -7,12 +7,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Xml.Linq;
 using TestResult = Microsoft.VisualStudio.TestTools.UnitTesting.TestResult;
 
 namespace CloudBeat.Kit.MSTest
 {
-	public static class CbMSTest
+    public static class CbMSTest
     {
         private const string TEST_DATA_PARAM_NAME = "testData";
         public const string FRAMEWORK_NAME = "MSTest";

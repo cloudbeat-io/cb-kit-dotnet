@@ -1,6 +1,5 @@
 ﻿using CloudBeat.Kit.Common;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 using System.Threading;
 
 namespace CloudBeat.Kit.MSTest

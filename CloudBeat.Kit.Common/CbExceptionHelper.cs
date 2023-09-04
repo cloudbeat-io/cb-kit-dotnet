@@ -1,6 +1,5 @@
 ﻿using CloudBeat.Kit.Common.Models;
 using System;
-using System.Diagnostics;
 using System.Linq;
 
 namespace CloudBeat.Kit.Common

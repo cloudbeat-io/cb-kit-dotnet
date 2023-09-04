@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CloudBeat.Kit.Common.Models
 {
-	public class TestInstance
+    public class TestInstance
 	{
 		private readonly TestRun _run;
 		private readonly string _id;

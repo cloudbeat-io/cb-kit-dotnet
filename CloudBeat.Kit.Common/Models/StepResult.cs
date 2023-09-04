@@ -3,12 +3,10 @@ using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CloudBeat.Kit.Common.Models
 {
-	public class StepResult
+    public class StepResult
 	{
         protected readonly string _id;
         protected readonly StepResult _parent;
