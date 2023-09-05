@@ -95,7 +95,10 @@ namespace CloudBeat.Kit.Common.Models
         {
 			if (_steps != null && _steps.Any(x => x.Status == TestStatusEnum.Failed || x.Status == TestStatusEnum.Broken))
 				return TestStatusEnum.Failed;
-			return TestStatusEnum.Passed;
+            else if (_steps != null && _steps.Any(x => x.Status == TestStatusEnum.Warning))
+                return TestStatusEnum.Warning;
+
+            return TestStatusEnum.Passed;
         }
     }
 }

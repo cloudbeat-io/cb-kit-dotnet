@@ -233,6 +233,7 @@ namespace CloudBeat.Kit.MSTest
             if (caseResult == null)
                 return;
             caseResult.HasWarnings = warnings;
+            caseResult.Status = TestStatusEnum.Warning;
         }
 
 

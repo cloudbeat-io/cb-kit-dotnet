@@ -79,9 +79,21 @@ namespace CloudBeat.Kit.Common.Models
                 return;
             }
             // if Status property has not been previously set, calculate status based on sub-steps
-            if (!Status.HasValue)                
-                Status = _steps.Any(x => x.Status == TestStatusEnum.Failed || x.Status == TestStatusEnum.Broken)
-                    ? TestStatusEnum.Failed : TestStatusEnum.Passed;
+            if (!Status.HasValue)
+            {
+                if (_steps.Any(x => x.Status == TestStatusEnum.Failed || x.Status == TestStatusEnum.Broken))
+                {
+                    Status = TestStatusEnum.Failed;
+                }
+                else if (_steps.Any(x => x.Status == TestStatusEnum.Warning))
+                {
+                    Status = TestStatusEnum.Warning;
+                }
+                else
+                {
+                    Status = TestStatusEnum.Passed;
+                }
+            }
         }
         #endregion
     }

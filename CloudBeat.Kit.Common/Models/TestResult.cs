@@ -75,8 +75,18 @@ namespace CloudBeat.Kit.Common.Models
 			if (Status.HasValue)
 				return;
 
-			var hasFailedSuite = _suites.Any(x => x.Status.HasValue && (x.Status.Value == TestStatusEnum.Failed || x.Status.Value == TestStatusEnum.Broken));
-			Status = hasFailedSuite ? TestStatusEnum.Failed : TestStatusEnum.Passed;
+			if (_suites.Any(x => x.Status.HasValue && (x.Status.Value == TestStatusEnum.Failed || x.Status.Value == TestStatusEnum.Broken)))
+			{
+				Status = TestStatusEnum.Failed;
+            }
+			else if (_suites.Any(x => x.Status.HasValue && x.Status.Value == TestStatusEnum.Warning))
+			{
+                Status = TestStatusEnum.Warning;
+            }
+            else
+			{
+                Status = TestStatusEnum.Passed;
+            }
 		}
     }
 }
