@@ -1,6 +1,9 @@
 ﻿using AspectInjector.Broker;
 using CloudBeat.Kit.NUnit.Aspects;
+using NUnit.Framework;
 using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace CloudBeat.Kit.NUnit.Attributes
 {

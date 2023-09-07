@@ -115,6 +115,7 @@ namespace CloudBeat.Kit.NUnit
         {
             if (!Current.IsConfigured)
                 return;
+            Current.Reporter?.SetCurrentWebDriver(driver?.WrappedDriver);
             new CbWebDriverWrapper(driver, Current.Reporter, takeFullPageScreenshots);
         }
 

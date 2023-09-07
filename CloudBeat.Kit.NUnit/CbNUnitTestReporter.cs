@@ -10,6 +10,7 @@ using System.IO;
 using CbExceptionHelper = CloudBeat.Kit.Common.CbExceptionHelper;
 using System.Collections.Concurrent;
 using System.Threading;
+using OpenQA.Selenium;
 
 namespace CloudBeat.Kit.NUnit
 {
