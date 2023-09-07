@@ -1,8 +1,12 @@
 ﻿using CloudBeat.Kit.Common.Client;
 using CloudBeat.Kit.Common.Models;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Support.Extensions;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace CloudBeat.Kit.Common
 {
@@ -15,6 +19,8 @@ namespace CloudBeat.Kit.Common
 		protected readonly CbConfig _config;
 		protected bool _syncWithCb = false;
 		protected readonly IList<IDisposable> _wrappers = new List<IDisposable>();
+        protected readonly ConcurrentDictionary<string, IWebDriver> _currentWebDriverPerThread = new ConcurrentDictionary<string, IWebDriver>();
+
 		public CbTestReporter(CbConfig config)
 		{
 			_config = config;
@@ -204,7 +210,7 @@ namespace CloudBeat.Kit.Common
 			}
 			catch (Exception e)
 			{
-				parentCase.EndStep(newStep, TestStatusEnum.Failed);
+				parentCase.EndStep(newStep, TestStatusEnum.Failed, GetScreenshotForException(newStep, e));
 				var failure = CbExceptionHelper.GetFailureFromException(e);
 				newStep.Failure = failure;
 				throw;
@@ -341,7 +347,41 @@ namespace CloudBeat.Kit.Common
 			return parentCase.EndStep(step, status);
 		}
 
-		private void AddSystemAttributesToResult()
+        public void SetCurrentWebDriver(IWebDriver driver)
+        {
+            var threadId = Thread.CurrentThread.ManagedThreadId.ToString();
+            if (_currentWebDriverPerThread.ContainsKey(threadId))
+                _currentWebDriverPerThread[threadId] = driver;
+            else
+                _currentWebDriverPerThread.TryAdd(threadId, driver);
+        }
+
+        public IWebDriver GetCurrentWebDriver()
+        {
+            var threadId = Thread.CurrentThread.ManagedThreadId.ToString();
+            if (_currentWebDriverPerThread.ContainsKey(threadId))
+                return _currentWebDriverPerThread[threadId];
+            return null;
+        }
+
+		public string GetScreenshotForException(StepResult stepResult, Exception e)
+		{
+			// check if we need to take a screenshot or it has been already taken in the child step
+			if (stepResult.Steps?.Count > 0) {
+				var firstSimilarFailedChildStep = stepResult.Steps.FirstOrDefault(x => x.Status == TestStatusEnum.Failed && x.Failure?.Subtype == e.GetType().Name);
+				if (firstSimilarFailedChildStep != null && firstSimilarFailedChildStep.ScreenShot != null)
+					return null;
+            }
+			var driver = GetCurrentWebDriver();
+			try
+			{
+                return driver?.TakeScreenshot()?.AsBase64EncodedString;
+            }
+			catch { }
+			return null;
+		}
+
+        private void AddSystemAttributesToResult()
 		{
 			//throw new NotImplementedException();
 		}

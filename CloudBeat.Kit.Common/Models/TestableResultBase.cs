@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Linq;
 
 namespace CloudBeat.Kit.Common.Models
@@ -61,7 +62,7 @@ namespace CloudBeat.Kit.Common.Models
 				return targetStep;
 			return EndStep(targetStep, status);
 		}
-		public StepResult EndStep(StepResult step, TestStatusEnum? status = null)
+		public StepResult EndStep(StepResult step, TestStatusEnum? status = null, string screenshot = null)
 		{
 			if (step == null)
 				return null;
@@ -77,6 +78,8 @@ namespace CloudBeat.Kit.Common.Models
 			// if step has failed, then mark case as failed
 			if (status != null && status.Value == TestStatusEnum.Failed)
 				this.Status = TestStatusEnum.Failed;
+			if (targetStep.ScreenShot == null)
+				targetStep.ScreenShot = screenshot;
 			return targetStep;
 		}
 		public void End()
