@@ -1,4 +1,4 @@
-﻿using CloudBeat.Kit.Common;
+using CloudBeat.Kit.Common;
 using CloudBeat.Kit.Common.Wrappers;
 using NUnit.Framework;
 using OpenQA.Selenium.Support.Events;
@@ -111,12 +111,15 @@ namespace CloudBeat.Kit.NUnit
             return TestContext.Parameters.Get(name);
         }
 
-        public static void WrapWebDriver(EventFiringWebDriver driver, bool takeFullPageScreenshots = true)
+        public static void WrapWebDriver(EventFiringWebDriver driver, bool takeFullPageScreenshots = true, bool ignoreFindElement = true)
         {
             if (!Current.IsConfigured)
                 return;
             Current.Reporter?.SetCurrentWebDriver(driver?.WrappedDriver);
-            new CbWebDriverWrapper(driver, Current.Reporter, takeFullPageScreenshots);
+            new CbWebDriverWrapper(
+                driver,
+                Current.Reporter,
+                new CbWebDriverWrapper.Options { FullPageScreenshot = takeFullPageScreenshots, IgnoreFindElement = ignoreFindElement });
         }
 
         private static CbNUnitContext CreateCloudBeatNUnitContext()

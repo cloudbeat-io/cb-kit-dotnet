@@ -12,12 +12,16 @@ namespace CloudBeat.Kit.Common.Wrappers
         EventFiringWebDriver _driver;
         CbTestReporter _reporter;
         StepResult _startedStep;
-        bool _fullPageScreenshot;
-        public CbWebDriverWrapper(EventFiringWebDriver eventFiringWebDriver, CbTestReporter reporter, bool fullPageScreenshot = true)
+        readonly bool _fullPageScreenshot;
+        readonly bool _ignoreFindElement;
+
+        public CbWebDriverWrapper(EventFiringWebDriver eventFiringWebDriver, CbTestReporter reporter, Options options = null)
         {
             _driver = eventFiringWebDriver;
             _reporter = reporter;
-            _fullPageScreenshot = fullPageScreenshot;
+            _fullPageScreenshot = options?.FullPageScreenshot ?? true;
+            _ignoreFindElement = options?.IgnoreFindElement ?? true;
+
             SubscribeToWebDriverEvents();
         }
 
@@ -26,8 +30,11 @@ namespace CloudBeat.Kit.Common.Wrappers
             _driver.ElementValueChanging += OnElementValueChanging;
             _driver.ElementValueChanged += OnElementValueChanged;
 
-            _driver.FindingElement += OnFindingElement;
-            _driver.FindElementCompleted += OnFindElementCompleted;
+            if (!_ignoreFindElement)
+            {
+                _driver.FindingElement += OnFindingElement;
+                _driver.FindElementCompleted += OnFindElementCompleted;
+            }
 
             _driver.Navigating += OnNavigating;
             _driver.Navigated += OnNavigated;
@@ -39,6 +46,21 @@ namespace CloudBeat.Kit.Common.Wrappers
             _driver.NavigatedForward += OnNavigatedForward;
 
             _driver.ExceptionThrown += OnExceptionThrown;
+
+            _driver.ElementClicking += OnElementClicking;
+            _driver.ElementClicked += OnElementClicked;
+        }
+
+        private void OnElementClicked(object sender, WebElementEventArgs e)
+        {
+            if (_startedStep != null)
+                _reporter.EndStep(_startedStep);
+            _startedStep = null;
+        }
+
+        private void OnElementClicking(object sender, WebElementEventArgs e)
+        {
+            _startedStep = _reporter.StartStep($"Click on {e.Element}");
         }
 
         private void OnExceptionThrown(object sender, WebDriverExceptionEventArgs e)
@@ -53,7 +75,7 @@ namespace CloudBeat.Kit.Common.Wrappers
 					endedStep.Failure = CbExceptionHelper.GetFailureFromException(e.ThrownException);
 				}                    
                 _startedStep = null;
-            }            
+            }
         }
 
         private string TakeBase64Screenshot()
@@ -163,6 +185,12 @@ namespace CloudBeat.Kit.Common.Wrappers
         private void OnElementValueChanging(object sender, WebElementValueEventArgs e)
         {
             _startedStep = _reporter.StartStep($"Changing element value to {e.Value}");
+        }
+
+        public class Options
+        {
+            public bool FullPageScreenshot { get; set; } = true;
+            public bool IgnoreFindElement { get; set; } = true;
         }
     }
 }
