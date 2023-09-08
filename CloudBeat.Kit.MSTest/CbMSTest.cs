@@ -111,7 +111,7 @@ namespace CloudBeat.Kit.MSTest
         {
             if (!Current.IsConfigured)
                 return;
-            new CbWebDriverWrapper(driver, Current.Reporter, takeFullPageScreenshots);
+            new CbWebDriverWrapper(driver, Current.Reporter, new CbWebDriverWrapper.Options { FullPageScreenshot = takeFullPageScreenshots });
             //Current.Reporter.WrapWebDriver(driver);
         }
 
