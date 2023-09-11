@@ -9,16 +9,18 @@ namespace CloudBeat.Kit.Common.Models
     public class StepResult
 	{
         protected readonly string _id;
-        protected readonly StepResult _parent;
+        protected readonly StepResult _parentStep;
+        protected readonly TestableResultBase _parentContainer;
         protected readonly IList<StepResult> _steps;
         protected readonly IList<LogMessage> _logs;
-        public StepResult(StepResult parent = null) : this(Guid.NewGuid().ToString(), parent)
+        public StepResult(TestableResultBase parentContainer, StepResult parentStep = null) : this(Guid.NewGuid().ToString(), parentContainer, parentStep)
         {            
         }
-        public StepResult(string id, StepResult parent = null)
+        public StepResult(string id, TestableResultBase parentContainer, StepResult parentStep = null)
         {
             _id = id;
-            _parent = parent;
+            _parentStep = parentStep;
+            _parentContainer = parentContainer;
             _steps = new List<StepResult>();
             _logs = new List<LogMessage>();
             StartTime = DateTime.UtcNow;
@@ -33,7 +35,9 @@ namespace CloudBeat.Kit.Common.Models
         public IList<string> Arguments { get; set; }
         
         [JsonIgnore]
-        public StepResult Parent => _parent;
+        public StepResult Parent => _parentStep;
+        [JsonIgnore]
+        public TestableResultBase ParentContainer => _parentContainer;
         public string Fqn { get; set; }
         [JsonConverter(typeof(StringEnumConverter))]
         public StepTypeEnum Type { get; set; }
@@ -51,9 +55,9 @@ namespace CloudBeat.Kit.Common.Models
         #endregion
 
         #region Methods
-        public StepResult AddNewStep(string name)
+        public StepResult AddNewStep(string name, StepTypeEnum type = StepTypeEnum.General)
 		{
-            var newStep = new StepResult(this) { Name = name };
+            var newStep = new StepResult(this._parentContainer, this) { Name = name, Type = type };
             _steps.Add(newStep);
             return newStep;
         }
@@ -64,12 +68,18 @@ namespace CloudBeat.Kit.Common.Models
             Failure = failure;
 		}
 
-		public void End(TestStatusEnum? status = null)
+		public void End(TestStatusEnum? status = null, Exception exception = null, string screenshot = null)
 		{
             EndTime = DateTime.UtcNow;
             Duration = ModelHelpers.CalculateDuration(StartTime, EndTime);
+            ScreenShot = screenshot;
+            if (exception != null) {
+                Failure = CbExceptionHelper.GetFailureFromException(exception);
+                if (!status.HasValue)
+                    status = TestStatusEnum.Failed;
+            }
             UpdateStatus(status);
-		}
+        }
 
         private void UpdateStatus(TestStatusEnum? status = null)
         {

@@ -10,7 +10,6 @@ using System.IO;
 using CbExceptionHelper = CloudBeat.Kit.Common.CbExceptionHelper;
 using System.Collections.Concurrent;
 using System.Threading;
-using OpenQA.Selenium;
 
 namespace CloudBeat.Kit.NUnit
 {
@@ -164,31 +163,26 @@ namespace CloudBeat.Kit.NUnit
             var testFqn = NUnitHelpers.GetFqn(TestContext.CurrentContext.Test);
             return base.Step(testFqn, name, action);
         }
-        public override StepResult StartStep(string name)
+        public override StepResult StartStep(string stepName, StepTypeEnum type = StepTypeEnum.General, CaseResult parentCase = null)
         {
-            var testFqn = NUnitHelpers.GetFqn(TestContext.CurrentContext.Test);
-            return base.StartStep(testFqn, name);
-        }
-        public StepResult EndStep(string name)
-        {
-            var testFqn = NUnitHelpers.GetFqn(TestContext.CurrentContext.Test);
-            return base.EndStep(testFqn, name);
+            // var testFqn = NUnitHelpers.GetFqn(TestContext.CurrentContext.Test);
+            // return base.StartStep(testFqn, name);
+            return base.StartStep(stepName, type, GetStartedCase());
         }
 
-        public override StepResult EndStep(StepResult stepResult, TestStatusEnum? status = null)
+        public override StepResult EndStep(
+            StepResult stepResult,
+            TestStatusEnum? status = null,
+            Exception exception = null,
+            string screenshot = null)
         {
-            var testFqn = NUnitHelpers.GetFqn(TestContext.CurrentContext.Test);
-            var startedCase = GetStartedCase();
-            if (startedCase.Fqn != testFqn)
-                return null;
-            return base.EndStep(stepResult, startedCase, status);
+            return base.EndStep(stepResult, status, exception, screenshot);
         }
 
         private CaseResult GetStartedCase()
         {
-            CaseResult caseResult = null;
             var threadId = Thread.CurrentThread.ManagedThreadId.ToString();
-            _startedCasePerThread.TryGetValue(threadId, out caseResult);
+            _startedCasePerThread.TryGetValue(threadId, out CaseResult caseResult);
             return caseResult;
         }
     }

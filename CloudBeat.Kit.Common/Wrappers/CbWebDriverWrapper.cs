@@ -60,7 +60,8 @@ namespace CloudBeat.Kit.Common.Wrappers
 
         private void OnElementClicking(object sender, WebElementEventArgs e)
         {
-            _startedStep = _reporter.StartStep($"Click on {e.Element}");
+            string displayName = CbSeleniumHelper.GetElementDisplayName(e.Element, e.Driver);
+            _startedStep = _reporter.StartStep($"Click on {displayName}");
         }
 
         private void OnExceptionThrown(object sender, WebDriverExceptionEventArgs e)
@@ -105,7 +106,6 @@ namespace CloudBeat.Kit.Common.Wrappers
             if (_startedStep != null)
                 _reporter.EndStep(_startedStep);
             _startedStep = null;
-            //EndStep($"Navigate forward to {e.Url}");
         }
 
         private void OnNavigatingForward(object sender, WebDriverNavigationEventArgs e)
@@ -118,7 +118,6 @@ namespace CloudBeat.Kit.Common.Wrappers
             if (_startedStep != null)
                 _reporter.EndStep(_startedStep);
             _startedStep = null;
-            //EndStep($"Navigate back to {e.Url}");
         }
 
         private void OnNavigatingBack(object sender, WebDriverNavigationEventArgs e)
@@ -153,7 +152,6 @@ namespace CloudBeat.Kit.Common.Wrappers
 
 			_reporter.EndStep(_startedStep);            
             _startedStep = null;
-            //EndStep($"Navigate to {e.Url}", loadEvent: loadEvent, domContentLoadedEvent: domContentLoadedEvent);
         }
 
         private void OnNavigating(object sender, WebDriverNavigationEventArgs e)
@@ -166,12 +164,12 @@ namespace CloudBeat.Kit.Common.Wrappers
             if (_startedStep != null)
                 _reporter.EndStep(_startedStep);
             _startedStep = null;
-            //EndStep($"Finding element {e.FindMethod}");
         }
 
         private void OnFindingElement(object sender, FindElementEventArgs e)
         {
-            _startedStep = _reporter.StartStep($"Finding element {e.FindMethod}");
+            string displayName = CbSeleniumHelper.GetElementDisplayName(e.Element, e.Driver);
+            _startedStep = _reporter.StartStep($"Finding {displayName}");
         }
 
         private void OnElementValueChanged(object sender, WebElementValueEventArgs e)
@@ -179,12 +177,12 @@ namespace CloudBeat.Kit.Common.Wrappers
             if (_startedStep != null)
                 _reporter.EndStep(_startedStep);
             _startedStep = null;
-            //EndStep($"Changing element value to {e.Value}");
         }
 
         private void OnElementValueChanging(object sender, WebElementValueEventArgs e)
         {
-            _startedStep = _reporter.StartStep($"Changing element value to {e.Value}");
+            string displayName = CbSeleniumHelper.GetElementDisplayName(e.Element, e.Driver);
+            _startedStep = _reporter.StartStep($"Set value \"{e.Value}\" of {displayName}");
         }
 
         public class Options

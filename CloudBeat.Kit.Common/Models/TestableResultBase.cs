@@ -37,50 +37,67 @@ namespace CloudBeat.Kit.Common.Models
 		public long? FailureReasonId { get; set; }
 		public bool HasWarnings { get; set; } = false;
 
-		public StepResult AddNewStep(string name)
+		public StepResult AddNewStep(string name, StepTypeEnum type = StepTypeEnum.General)
 		{
 			StepResult newStep;
 			if (_openSteps.Count > 0)
-				newStep = _openSteps.Last().AddNewStep(name);
+				newStep = _openSteps.Peek().AddNewStep(name, type);
 			else
 			{
-				newStep = new StepResult()
+				newStep = new StepResult(this)
 				{
-					Name = name
+					Name = name,
+					Type = type
 				};
 				_steps.Add(newStep);
 			}
 			_openSteps.Push(newStep);
 			return newStep;
 		}
-		public StepResult EndStep(string name = null, TestStatusEnum? status = null)
+		public StepResult LastOpenStep => _openSteps.Count > 0 ? _openSteps.Peek() : null;
+        /*public StepResult EndStep(string name = null, TestStatusEnum? status = null)
 		{
 			var targetStep = name != null ?
 				_openSteps.Reverse().Where(x => x.Name == name).FirstOrDefault() :
-				_openSteps.LastOrDefault();
+				_openSteps.Peek();
 			if (targetStep == null || targetStep.EndTime.HasValue)
 				return targetStep;
 			return EndStep(targetStep, status);
-		}
-		public StepResult EndStep(StepResult step, TestStatusEnum? status = null, string screenshot = null)
-		{
+		}*/
+        public StepResult EndStep(
+			StepResult step = null,
+			TestStatusEnum? status = null,
+			Exception exception = null,
+			string screenshot = null)
+        {
+			if (_openSteps.Count == 0)
+				return null;
+			step ??= _openSteps.Peek();
 			if (step == null)
 				return null;
-			var targetStep = step;
-			// close the target step and any other step above it in the stack
-			while (_openSteps.Count != 0)
-			{
-				var currentStep = _openSteps.Pop();
-				currentStep.End(status);
-				if (currentStep == targetStep)
-					break;
-			}
-			// if step has failed, then mark case as failed
-			if (status != null && status.Value == TestStatusEnum.Failed)
-				this.Status = TestStatusEnum.Failed;
-			if (targetStep.ScreenShot == null)
-				targetStep.ScreenShot = screenshot;
-			return targetStep;
+            // if the step to be ended is not the last one that has been started
+            // then end all the steps in the stack that were started after the specified step (e.g. stepResult)
+            while (_openSteps.Count > 0 && _openSteps.Peek() != step)
+            {
+                StepResult stepToBeEnded = _openSteps.Pop();
+                if (stepToBeEnded.EndTime != null)
+                    stepToBeEnded.End();
+            }
+			if (_openSteps.Count > 0 && _openSteps.Peek() == step)
+				_openSteps.Pop();
+			if (exception != null && status == null)
+				status = TestStatusEnum.Failed;
+			// end the step
+            step.End(status, exception, screenshot);
+            // if step has failed, then mark case as failed
+            if (status != null && status.Value == TestStatusEnum.Failed)
+				Status = TestStatusEnum.Failed;
+			else if (status == null)
+				CalculateStatus();
+
+            if (step.ScreenShot == null && screenshot != null)
+                step.ScreenShot = screenshot;
+			return step;
 		}
 		public void End()
         {
@@ -92,6 +109,11 @@ namespace CloudBeat.Kit.Common.Models
 			Duration = ModelHelpers.CalculateDuration(StartTime, EndTime);
 			Status = status.HasValue ? status.Value : CalculateStatus();
 			Failure = failure;
+		}
+
+		public StepResult FindOpenStepByName(string name)
+		{
+			return _openSteps.Reverse().FirstOrDefault(x => x.Name == name);
 		}
 
         private TestStatusEnum CalculateStatus()
