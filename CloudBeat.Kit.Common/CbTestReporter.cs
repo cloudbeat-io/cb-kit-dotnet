@@ -133,7 +133,19 @@ namespace CloudBeat.Kit.Common
 			var endedCase = parentSuite.EndCase(fqn, status, failure);
 			return endedCase;
 		}
-		/*
+
+        public CaseResult EndCase(CaseResult caseResult, TestStatusEnum? status, FailureResult failure = null)
+		{
+			if (caseResult == null)
+				return null;
+			var parentSuite = caseResult.ParentSuite;
+			if (parentSuite != null)
+				parentSuite.EndCase(caseResult, status, failure);
+			else
+				caseResult.End(status, failure);
+			return caseResult;
+        }
+        /*
 		public CaseResult EndCase(string suiteFqn, CaseResult caseResult, TestStatusEnum? status, FailureResult failure = null)
 		{
 			if (_result == null)
@@ -144,7 +156,7 @@ namespace CloudBeat.Kit.Common
 			var endedCase = parentSuite.EndCase(caseResult, status, failure);
 			return endedCase;
 		}*/
-		public TResult Step<TResult>(string name, StepTypeEnum type, Func<TResult> func, Action<StepResult> updateStepAction = null)
+        public TResult Step<TResult>(string name, StepTypeEnum type, Func<TResult> func, Action<StepResult> updateStepAction = null)
 		{
 			if (_result == null)
 				return func.Invoke();

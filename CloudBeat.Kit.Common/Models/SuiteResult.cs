@@ -40,7 +40,7 @@ namespace CloudBeat.Kit.Common.Models
 		internal CaseResult AddNewCase(string name, string fqn)
 		{
 			CaseResult newCase;
-			_cases.Add(newCase = new CaseResult()
+			_cases.Add(newCase = new CaseResult(this)
 			{
 				Name = name,
 				Fqn = fqn,

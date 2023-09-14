@@ -147,7 +147,7 @@ namespace CloudBeat.Kit.MSTest
 			FailureResult failureResult = null;
             TestStatusEnum testStatus = MSTestHelpers.DetermineTestStatus(testContext.CurrentTestOutcome);
 			if (startedCase != null)
-				endedCase = base.EndCase(suiteFqn, startedCase, testStatus, failureResult);
+				endedCase = base.EndCase(startedCase, testStatus, failureResult);
             else
 				endedCase = base.EndCase(caseFqn, testStatus, failureResult);
             // Make sure to clear Failure Reason if test has not failed
@@ -182,7 +182,7 @@ namespace CloudBeat.Kit.MSTest
             string suiteFqn = testContext?.FullyQualifiedTestClassName ?? MSTestHelpers.GetSuiteFqnFromCaseFqn(startedCase?.Fqn);
             string caseFqn = startedCase?.Fqn ?? GetCaseFqn(testContext);
             if (startedCase != null)
-                endedCase = base.EndCase(suiteFqn, startedCase, testStatus, failureResult);
+                endedCase = base.EndCase(startedCase, testStatus, failureResult);
             else 
                 endedCase = base.EndCase(caseFqn, testStatus, failureResult);
             // Make sure to clear Failure Reason if test has not failed
@@ -192,19 +192,20 @@ namespace CloudBeat.Kit.MSTest
             WriteCaseResultToFile(endedCase, mainTestResult);
         }
 
-        public override StepResult StartStep(string stepName)
+        public StepResult StartStep(string stepName)
         {
             CaseResult caseResult = GetStartedCase(null);
             if (caseResult == null) return null;
-            return base.StartStep(caseResult, stepName);
+            return base.StartStep(stepName);
+            // return base.StartStep(caseResult, stepName);
         }
 
-        public override StepResult EndStep(StepResult stepResult, TestStatusEnum? status = null)
+        /*public StepResult EndStep(StepResult stepResult, TestStatusEnum? status = null)
         {
             CaseResult caseResult = GetStartedCase(null);
             if (caseResult == null) return null;
             return base.EndStep(stepResult, caseResult, status);
-        }
+        }*/
 
         public void AddOutputData(string entryName, object entyData, TestContext msTestContext = null)
         {

@@ -8,9 +8,16 @@ namespace CloudBeat.Kit.Common.Models
 {
 	public class CaseResult : TestableResultBase
 	{
-		public CaseResult() : base()
+        public CaseResult() : base()
         {
 
-        }        
+        }
+
+        public CaseResult(SuiteResult parentSuite) : base()
+        {
+            ParentSuite = parentSuite;
+        }
+
+        public SuiteResult ParentSuite { get; private set; }
     }
 }
