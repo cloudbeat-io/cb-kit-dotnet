@@ -386,6 +386,38 @@ namespace CloudBeat.Kit.Common
 			return null;
 		}
 
+        public void AddOutputData(string name, object data)
+        {
+            CaseResult caseResult = _lastCaseResult.Value;
+            if (caseResult == null)
+                return;
+            var dataEntry = new OutputDataEntry(name, data);
+            List<OutputDataEntry> outputDataList = caseResult.Context.ContainsKey("resultData") ?
+                caseResult.Context["resultData"] as List<OutputDataEntry> : new List<OutputDataEntry>();
+            outputDataList.Add(dataEntry);
+            if (!caseResult.Context.ContainsKey("resultData"))
+                caseResult.Context.Add("resultData", outputDataList);
+        }
+
+        public void AddTestAttribute(string name, object value)
+        {
+            CaseResult caseResult = _lastCaseResult.Value;
+            if (caseResult == null)
+                return;
+            if (!caseResult.TestAttributes.ContainsKey(name))
+                caseResult.TestAttributes.Add(name, value);
+            else
+                caseResult.TestAttributes[name] = value;
+        }
+
+        public void SetCaseFailureReason(FailureReasonEnum reason)
+        {
+            CaseResult caseResult = _lastCaseResult.Value;
+            if (caseResult == null)
+                return;
+            caseResult.FailureReasonId = (long)reason;
+        }
+
         private void AddSystemAttributesToResult()
 		{
 			//throw new NotImplementedException();

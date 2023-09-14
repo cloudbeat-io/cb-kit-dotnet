@@ -1,4 +1,5 @@
 using CloudBeat.Kit.Common;
+using CloudBeat.Kit.Common.Models;
 using CloudBeat.Kit.Common.Wrappers;
 using NUnit.Framework;
 using OpenQA.Selenium.Support.Events;
@@ -120,6 +121,27 @@ namespace CloudBeat.Kit.NUnit
                 driver,
                 Current.Reporter,
                 new CbWebDriverWrapper.Options { FullPageScreenshot = takeFullPageScreenshots, IgnoreFindElement = ignoreFindElement });
+        }
+
+        public static void AddOutputData(string name, object data)
+        {
+            if (!Current.IsConfigured)
+                return;
+            Current.Reporter?.AddOutputData(name, data);
+        }
+
+        public static void AddTestAttribute(string name, object value)
+        {
+            if (!Current.IsConfigured)
+                return;
+            Current.Reporter?.AddTestAttribute(name, value);
+        }
+
+        public static void SetFailureReason(FailureReasonEnum reason)
+        {
+            if (!Current.IsConfigured)
+                return;
+            Current.Reporter.SetCaseFailureReason(reason);
         }
 
         private static CbNUnitContext CreateCloudBeatNUnitContext()
