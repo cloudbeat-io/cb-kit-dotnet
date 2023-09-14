@@ -69,12 +69,8 @@ namespace CloudBeat.Kit.Common.Wrappers
             // close step opened by webdriver events because if exception occurs they won't be closed
             if (_startedStep != null && !_startedStep.IsFinished)
             {
-                var endedStep = _reporter.EndStep(_startedStep, TestStatusEnum.Failed);
-                if (endedStep != null)
-                {
-                    endedStep.ScreenShot = TakeBase64Screenshot();
-					endedStep.Failure = CbExceptionHelper.GetFailureFromException(e.ThrownException);
-				}                    
+                var screenshot = TakeBase64Screenshot();
+				var endedStep = _reporter.EndStep(_startedStep, TestStatusEnum.Failed, e.ThrownException, screenshot);
                 _startedStep = null;
             }
         }

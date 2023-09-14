@@ -275,13 +275,11 @@ namespace CloudBeat.Kit.Common
 			try
 			{
 				action();
-				parentCase.EndStep(newStep);
+				EndStep(newStep);
 			}
 			catch (Exception e)
 			{
-				var failure = CbExceptionHelper.GetFailureFromException(e);
-				parentCase.EndStep(newStep, TestStatusEnum.Failed);
-				newStep.Failure = failure;
+				EndStep(newStep, TestStatusEnum.Failed, e);
 				throw;
 			}
 			return newStep;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,7 +18,7 @@ namespace CloudBeat.Kit.Common.Models
         {
             ParentSuite = parentSuite;
         }
-
+        [JsonIgnore]
         public SuiteResult ParentSuite { get; private set; }
     }
 }
