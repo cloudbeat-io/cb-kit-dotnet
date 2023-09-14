@@ -2,6 +2,7 @@
 using CloudBeat.Kit.MSTest.Attributes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace CloudBeat.Kit.MSTest
@@ -9,7 +10,7 @@ namespace CloudBeat.Kit.MSTest
     [TestClass]
     public abstract class CbTest : IDisposable
     {
-        public TestContext TestContext { get; set; }        
+		public TestContext TestContext { get; set; }        
 
         public bool TakeFullPageScreenshots { get; set; } = true;
         public bool IsRunningFromCB() 
@@ -44,6 +45,11 @@ namespace CloudBeat.Kit.MSTest
         public void AddOutputData(string name, object data)
         {
             CbMSTest.AddOutputData(name, data, TestContext);
+        }
+
+        public void AddTestAttribute(string name, object value)
+        {
+            CbMSTest.AddTestAttribute(name, value, TestContext);
         }
 
         public void SetFailureReason(FailureReasonEnum reason)

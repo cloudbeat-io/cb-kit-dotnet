@@ -220,7 +220,18 @@ namespace CloudBeat.Kit.MSTest
                 caseResult.Context.Add("resultData", outputDataList);
         }
 
-        public void SetFailureReason(FailureReasonEnum reason, TestContext testContext = null)
+		public void AddTestAttribute(string name, object value, TestContext msTestContext = null)
+		{
+			CaseResult caseResult = GetStartedCase(msTestContext);
+			if (caseResult == null)
+				return;
+			if (!caseResult.TestAttributes.ContainsKey(name))
+				caseResult.TestAttributes.Add(name, value);
+            else
+                caseResult.TestAttributes[name] = value;
+		}
+
+		public void SetFailureReason(FailureReasonEnum reason, TestContext testContext = null)
         {
             CaseResult caseResult = GetStartedCase(testContext);
             if (caseResult == null)

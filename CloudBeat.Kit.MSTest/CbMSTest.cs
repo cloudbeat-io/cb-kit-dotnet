@@ -189,7 +189,16 @@ namespace CloudBeat.Kit.MSTest
             Current.Reporter.AddOutputData(name, data, testContext);
         }
 
-        public static void SetFailureReason(FailureReasonEnum reason, TestContext testContext = null)
+		public static void AddTestAttribute(string name, object value, TestContext testContext = null)
+		{
+			if (!Current.IsConfigured)
+				return;
+			if (testContext == null)
+				testContext = Current.MSTestContext;
+			Current.Reporter.AddTestAttribute(name, value, testContext);
+		}
+
+		public static void SetFailureReason(FailureReasonEnum reason, TestContext testContext = null)
         {
             if (!Current.IsConfigured)
                 return;
