@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace CloudBeat.Kit.Common.Models
 {
-    public abstract class TestableResultBase
+    public abstract class TestableResultBase : IResultWithAttachment
     {
 		protected readonly string _id;
 		protected readonly IList<StepResult> _steps;
@@ -13,6 +13,7 @@ namespace CloudBeat.Kit.Common.Models
 		protected readonly Stack<StepResult> _openSteps = new Stack<StepResult>();
 		protected readonly Dictionary<string, object> _testAttributes = new Dictionary<string, object>();
 		protected readonly Dictionary<string, object> _context = new Dictionary<string, object>();
+
 		public TestableResultBase() : this(Guid.NewGuid().ToString()) { }
 		public TestableResultBase(string id)
 		{
@@ -36,8 +37,9 @@ namespace CloudBeat.Kit.Common.Models
 		public long? Duration { get; set; }
 		public long? FailureReasonId { get; set; }
 		public bool HasWarnings { get; set; } = false;
+        public IList<Attachment> Attachments { get; set; } = new List<Attachment>();
 
-		public StepResult AddNewStep(string name, StepTypeEnum type = StepTypeEnum.General)
+        public StepResult AddNewStep(string name, StepTypeEnum type = StepTypeEnum.General)
 		{
 			StepResult newStep;
 			if (_openSteps.Count > 0)
@@ -55,15 +57,7 @@ namespace CloudBeat.Kit.Common.Models
 			return newStep;
 		}
 		public StepResult LastOpenStep => _openSteps.Count > 0 ? _openSteps.Peek() : null;
-        /*public StepResult EndStep(string name = null, TestStatusEnum? status = null)
-		{
-			var targetStep = name != null ?
-				_openSteps.Reverse().Where(x => x.Name == name).FirstOrDefault() :
-				_openSteps.Peek();
-			if (targetStep == null || targetStep.EndTime.HasValue)
-				return targetStep;
-			return EndStep(targetStep, status);
-		}*/
+
         public StepResult EndStep(
 			StepResult step = null,
 			TestStatusEnum? status = null,

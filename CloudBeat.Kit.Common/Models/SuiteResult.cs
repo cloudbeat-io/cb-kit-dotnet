@@ -5,8 +5,8 @@ using System.Linq;
 
 namespace CloudBeat.Kit.Common.Models
 {
-	public class SuiteResult
-	{
+    public class SuiteResult : IResultWithAttachment
+    {
 		private readonly string _id;
 		private readonly ConcurrentBag<CaseResult> _cases;
 		private readonly IList<LogMessage> _logs;
@@ -31,7 +31,9 @@ namespace CloudBeat.Kit.Common.Models
 		public DateTime StartTime { get; set; }
 		public DateTime? EndTime { get; set; }
 		public long? Duration { get; set; }
-		public CaseResult GetCaseByFqn(string fqn)
+		public IList<Attachment> Attachments { get; set; } = new List<Attachment>();
+
+        public CaseResult GetCaseByFqn(string fqn)
 		{
 			// Search from last to first (the latest added case first)
 			return _cases.Reverse().Where(x => x.Fqn == fqn).FirstOrDefault();

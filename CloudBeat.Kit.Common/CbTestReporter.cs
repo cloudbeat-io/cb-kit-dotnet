@@ -5,6 +5,7 @@ using OpenQA.Selenium.Support.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mail;
 using System.Threading;
 
 namespace CloudBeat.Kit.Common
@@ -416,6 +417,28 @@ namespace CloudBeat.Kit.Common
             if (caseResult == null)
                 return;
             caseResult.FailureReasonId = (long)reason;
+        }
+
+        public void AddScreenRecordingAttachment(string base64Data, bool addToStep = false)
+        {
+            IResultWithAttachment resultWithAttachment;
+            if (addToStep && _lastCaseResult.Value != null && _lastCaseResult.Value.LastOpenStep != null)
+                resultWithAttachment = _lastCaseResult.Value.LastOpenStep;
+            else if (!addToStep)
+            {
+                if (_lastCaseResult.Value != null)
+                    resultWithAttachment = _lastCaseResult.Value;
+                else if (_lastSuiteResult != null)
+                    resultWithAttachment = _lastSuiteResult.Value;
+                else
+                    return;
+            }
+            else
+                return;
+            var attachment = CbAttachmentHelper.PrepareScreenRecordingAttachment(base64Data);
+			// attachment might be null in case of IO exception
+			if (attachment != null)
+				resultWithAttachment.Attachments.Add(attachment);
         }
 
         private void AddSystemAttributesToResult()

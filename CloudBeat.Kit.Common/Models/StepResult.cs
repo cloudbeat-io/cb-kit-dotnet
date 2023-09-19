@@ -6,8 +6,8 @@ using System.Linq;
 
 namespace CloudBeat.Kit.Common.Models
 {
-    public class StepResult
-	{
+    public class StepResult : IResultWithAttachment
+    {
         protected readonly string _id;
         protected readonly StepResult _parentStep;
         protected readonly TestableResultBase _parentContainer;
@@ -51,6 +51,7 @@ namespace CloudBeat.Kit.Common.Models
         public Dictionary<string, double> Stats { get; } = new Dictionary<string, double>();
         public IList<LogMessage> Logs => _logs;
         public bool IsFinished => EndTime.HasValue && Status.HasValue;
+        public IList<Attachment> Attachments { get; set; } = new List<Attachment>();
 
         #endregion
 

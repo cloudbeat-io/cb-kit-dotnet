@@ -185,10 +185,5 @@ namespace CloudBeat.Kit.NUnit
             _startedCasePerThread.TryGetValue(threadId, out CaseResult caseResult);
             return caseResult;
         }
-
-        internal void AddOutputData(string name, object data)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

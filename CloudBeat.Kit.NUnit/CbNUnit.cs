@@ -141,7 +141,14 @@ namespace CloudBeat.Kit.NUnit
         {
             if (!Current.IsConfigured)
                 return;
-            Current.Reporter.SetCaseFailureReason(reason);
+            Current.Reporter?.SetCaseFailureReason(reason);
+        }
+
+        public static void AddScreenRecording(string videoBase64Data)
+        {
+            if (!Current.IsConfigured)
+                return;
+            Current.Reporter?.AddScreenRecordingAttachment(videoBase64Data);
         }
 
         private static CbNUnitContext CreateCloudBeatNUnitContext()
