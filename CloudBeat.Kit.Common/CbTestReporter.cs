@@ -419,6 +419,14 @@ namespace CloudBeat.Kit.Common
             caseResult.FailureReasonId = (long)reason;
         }
 
+        public void SetCaseHasWarnings(bool hasWarnings = true)
+		{
+            CaseResult caseResult = _lastCaseResult.Value;
+            if (caseResult == null)
+                return;
+			caseResult.HasWarnings = hasWarnings;
+        }
+
         public void AddScreenRecordingAttachment(string base64Data, bool addToStep = false)
         {
             IResultWithAttachment resultWithAttachment;

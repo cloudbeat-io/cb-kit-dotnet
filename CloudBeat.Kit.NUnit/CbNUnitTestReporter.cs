@@ -179,6 +179,11 @@ namespace CloudBeat.Kit.NUnit
             return base.EndStep(stepResult, status, exception, screenshot);
         }
 
+        public void HasWarnings(bool hasWarnings = true)
+        {
+            SetCaseHasWarnings(hasWarnings);
+        }
+
         private CaseResult GetStartedCase()
         {
             var threadId = Thread.CurrentThread.ManagedThreadId.ToString();

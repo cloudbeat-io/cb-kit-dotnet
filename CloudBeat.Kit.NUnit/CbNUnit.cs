@@ -151,6 +151,13 @@ namespace CloudBeat.Kit.NUnit
             Current.Reporter?.AddScreenRecordingAttachment(videoBase64Data);
         }
 
+        public static void HasWarnings(bool hasWarnings = true)
+        {
+            if (!Current.IsConfigured)
+                return;
+            Current.Reporter?.HasWarnings(hasWarnings);
+        }
+
         private static CbNUnitContext CreateCloudBeatNUnitContext()
         {
             CbConfig config = new CbConfig();
