@@ -30,8 +30,12 @@ namespace CloudBeat.Kit.MSTest
                 if (currentCbContext == null)
 				{
                     currentCbContext = CreateCloudBeatMSTestContext();
-                    currentCbContext.Reporter.StartInstance();
-                    currentCbContext.Reporter.SetFramework(FRAMEWORK_NAME, FRAMEWORK_VERSION);
+
+                    if (currentCbContext.Reporter != null)
+                    {
+                        currentCbContext.Reporter.StartInstance();
+                        currentCbContext.Reporter.SetFramework(FRAMEWORK_NAME, FRAMEWORK_VERSION);
+                    }
                 }
                 return currentCbContext;
             }

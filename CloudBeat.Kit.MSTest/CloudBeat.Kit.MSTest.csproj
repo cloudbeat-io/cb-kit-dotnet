@@ -28,6 +28,7 @@
     <ProjectReference Include="..\CloudBeat.Kit.Common\CloudBeat.Kit.Common.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove=".DS_Store" />
     <None Remove="Attributes\" />
   </ItemGroup>
 </Project>

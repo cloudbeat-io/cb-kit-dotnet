@@ -1,5 +1,6 @@
 ﻿using CloudBeat.Kit.Common.Models;
 using OpenQA.Selenium;
+using OpenQA.Selenium.DevTools;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.Events;
 using OpenQA.Selenium.Support.Extensions;
@@ -18,11 +19,11 @@ namespace CloudBeat.Kit.Common.Wrappers
         public CbWebDriverWrapper(EventFiringWebDriver eventFiringWebDriver, CbTestReporter reporter, Options options = null)
         {
             _driver = eventFiringWebDriver;
-            _reporter = reporter;
             _fullPageScreenshot = options?.FullPageScreenshot ?? true;
             _ignoreFindElement = options?.IgnoreFindElement ?? true;
-
-            SubscribeToWebDriverEvents();
+            _reporter = reporter;
+            if (_reporter != null)
+                SubscribeToWebDriverEvents();
         }
 
         private void SubscribeToWebDriverEvents()

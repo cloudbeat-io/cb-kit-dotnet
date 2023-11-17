@@ -11,6 +11,7 @@ namespace CloudBeat.Kit.Common
         public const string CB_API_URL = "CB_API_URL";
         public const string CB_PROJECT_ID = "CB_PROJECT_ID";
         public const string CB_RUN_ID = "CB_RUN_ID";
+        public const string CB_AGENT = "CB_AGENT";
         public const string CB_INSTANCE_ID = "CB_INSTANCE_ID";
         public const string CB_CAPS_PREFIX = "CB_CAPS.";
         public const string CB_META_PREFIX = "CB_META.";
@@ -22,6 +23,7 @@ namespace CloudBeat.Kit.Common
         string _projectId;
         string _apiKey;
         string _apiUrl;
+        bool _isCbAgent;
         string seleniumUrl;
         string appiumUrl;
         Dictionary<string, string> _metadata;
@@ -38,15 +40,19 @@ namespace CloudBeat.Kit.Common
             _runId = Environment.GetEnvironmentVariable(CB_RUN_ID);
             _instanceId = Environment.GetEnvironmentVariable(CB_INSTANCE_ID);
             _projectId = Environment.GetEnvironmentVariable(CB_PROJECT_ID);
+            _isCbAgent = parseBool(Environment.GetEnvironmentVariable(CB_AGENT));
+        }
+
+        private static bool parseBool(string str)
+        {
+            if (string.IsNullOrEmpty(str)) return false;
+            bool.TryParse(str, out bool result);
+            return result;
         }
 
         public bool HasMandatory()
 		{
-            return true;
-            //return !string.IsNullOrEmpty(_projectId);
-            /*return !string.IsNullOrEmpty(_projectId)
-                && !string.IsNullOrEmpty(_runId)
-                && !string.IsNullOrEmpty(_instanceId);*/
+            return _isCbAgent;
         }
 
         public string RunId => _runId;
