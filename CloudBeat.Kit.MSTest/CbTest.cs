@@ -37,9 +37,16 @@ namespace CloudBeat.Kit.MSTest
 		[TestCleanup]
 		public void TestCleanup()
         {
-			CbMSTest.SetMSTestContext(TestContext);
-			if (!HasCbTestMethodAttribute(TestContext?.TestName))
-				CbMSTest.EndCase();
+            try 
+            {
+                CbMSTest.SetMSTestContext(TestContext);
+                if (!HasCbTestMethodAttribute(TestContext?.TestName))
+                    CbMSTest.EndCase();
+            }
+            catch (Exception ex) 
+            {
+                TestContext?.WriteLine("Error in TestCleanup: " + ex);
+            }
         }
 
         public void AddOutputData(string name, object data)
