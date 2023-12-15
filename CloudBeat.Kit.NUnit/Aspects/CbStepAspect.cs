@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 using AspectInjector.Broker;
 using CloudBeat.Kit.NUnit.Attributes;
 using NUnit.Framework;
@@ -28,13 +27,43 @@ namespace CloudBeat.Kit.NUnit.Aspects
             bool isHook = isSetUpHook || isTearDownHook || isOneTimeSetUpHook || isOneTimeTearDownHook;
             string hookName = GetHookName(isSetUpHook, isTearDownHook, isOneTimeSetUpHook, isOneTimeTearDownHook);
             var reporter = CbNUnit.Current.Reporter;
-            /*var stepResult = string.IsNullOrEmpty(stepName)
-                ? new StepResult { name = name, parameters = AllureStepParameterHelper.CreateParameters(arguments) }
-                : new StepResult { name = stepName, parameters = AllureStepParameterHelper.CreateParameters(arguments) };
-            */
             if (isHook)
                 return reporter.Hook(stepName ?? hookName, methodName, method, arguments);
-            return reporter.Step(stepName ?? methodName, method, arguments);
+            return reporter.Step(
+                ParameterizeStepName(stepName, methodBase.GetParameters(), arguments) ?? methodName, method, arguments);
+        }
+
+        private static string ParameterizeStepName(
+            string stepName,
+            ParameterInfo[] parameterInfos,
+            object[] arguments)
+        {
+            if (string.IsNullOrEmpty(stepName))
+                return stepName;
+            string parameterizedStepName = stepName;
+            for (int i = 0; i < parameterInfos.Length; i++)
+            {
+                var paramInfo = parameterInfos[i];
+                if (string.IsNullOrEmpty(paramInfo.Name) || i >= arguments.Length)
+                    continue;
+                if (arguments[i].GetType().IsPrimitive || arguments[i] is string)
+                    parameterizedStepName = parameterizedStepName
+                        .Replace("{" + paramInfo.Name + "}", arguments[i].ToString());
+                // Try to parametrize complex object (e.g. with public properties)
+                IList<PropertyInfo> objProps = new List<PropertyInfo>(arguments[i].GetType().GetProperties());
+                foreach (PropertyInfo objProp in objProps)
+                {
+                    var complexParamNameWithBraces = "{" + paramInfo.Name + "." + objProp.Name + "}";
+                    if (!parameterizedStepName.Contains(complexParamNameWithBraces))
+                        continue;
+                    var objPropVal = objProp.GetValue(arguments[i]);
+                    if (objPropVal == null)
+                        continue;
+                    parameterizedStepName = parameterizedStepName
+                        .Replace(complexParamNameWithBraces, objPropVal.ToString());
+                }
+            }
+            return parameterizedStepName;
         }
 
         private string GetHookName(bool isSetUpHook, bool isTearDownHook, bool isOneTimeSetUpHook, bool isOneTimeTearDownHook)
