@@ -2,14 +2,16 @@
 
   <PropertyGroup>
     <TargetFrameworks>net6.0;</TargetFrameworks>
-	<Version>2.0.2</Version>
     <RootNamespace>$(MSBuildProjectName)</RootNamespace>
 	<PackageProjectUrl>https://cloudbeat.io</PackageProjectUrl>
 	<Company>CBNR Cloud Solutions Ltd.</Company>
 	<Authors>CBNR Cloud Solutions Ltd.</Authors>
-	<PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
-	<AssemblyVersion>2.0.2.0</AssemblyVersion>
+	<AssemblyVersion>3.0.0.0</AssemblyVersion>
+	<FileVersion>3.0.0.0</FileVersion>
+	<Version>3.0.0</Version>
+	<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	<RepositoryUrl>https://github.com/cloudbeat-io/cb-kit-dotnet</RepositoryUrl>
+	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
