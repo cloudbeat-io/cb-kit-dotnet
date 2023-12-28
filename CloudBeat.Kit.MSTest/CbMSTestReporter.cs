@@ -253,21 +253,28 @@ namespace CloudBeat.Kit.MSTest
             var startedCase = GetStartedCase(testContext);
             if (startedCase == null)
                 return func.Invoke(arg);
-            return base.Step(startedCase, hookName, StepTypeEnum.Hook, func, arg, x => x.MethodName = methodName);
+            return Step(startedCase, hookName, StepTypeEnum.Hook, func, arg, x => x.MethodName = methodName);
         }
         public TResult Step<T, TResult>(string name, Func<T, TResult> func, T arg, TestContext testContext = null)
         {
             var startedCase = GetStartedCase(testContext);
             if (startedCase == null)
                 return func.Invoke(arg);
-            return base.Step(startedCase, name, StepTypeEnum.General, func, arg);
+            return Step(startedCase, name, StepTypeEnum.General, func, arg);
+        }
+        public TResult Step<T, TResult>(string stepName, string methodName, Func<T, TResult> func, T arg, TestContext testContext = null)
+        {
+            var startedCase = GetStartedCase(testContext);
+            if (startedCase == null)
+                return func.Invoke(arg);
+            return Step(startedCase, stepName, StepTypeEnum.General, func, arg, x => x.MethodName = methodName);
         }
         public TResult Step<TResult>(string name, Func<TResult> func, TestContext testContext = null)
         {
             var startedCase = GetStartedCase(testContext);
             if (startedCase == null)
                 return func.Invoke();
-            return base.Step(startedCase, name, StepTypeEnum.General, func);
+            return Step(startedCase, name, StepTypeEnum.General, func);
         }
         public StepResult Step(string name, Action action, TestContext testContext = null)
         {

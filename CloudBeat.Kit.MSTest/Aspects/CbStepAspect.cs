@@ -29,7 +29,46 @@ namespace CloudBeat.Kit.MSTest.Aspects
             var reporter = CbMSTest.Current.Reporter;
             if (isHook)
                 return reporter.Hook(stepName ?? hookName, methodName, method, arguments);
-            return reporter.Step(stepName ?? methodName, method, arguments);
+            string fullMethodName = $"{methodBase.DeclaringType}.{methodName}";
+            return reporter.Step(
+                ParameterizeStepName(stepName, methodBase.GetParameters(), arguments) ?? methodName,
+                fullMethodName,
+                method,
+                arguments
+            );
+        }
+
+        private static string ParameterizeStepName(
+            string stepName,
+            ParameterInfo[] parameterInfos,
+            object[] arguments)
+        {
+            if (string.IsNullOrEmpty(stepName))
+                return stepName;
+            string parameterizedStepName = stepName;
+            for (int i = 0; i < parameterInfos.Length; i++)
+            {
+                var paramInfo = parameterInfos[i];
+                if (string.IsNullOrEmpty(paramInfo.Name) || i >= arguments.Length)
+                    continue;
+                if (arguments[i].GetType().IsPrimitive || arguments[i] is string)
+                    parameterizedStepName = parameterizedStepName
+                        .Replace("{" + paramInfo.Name + "}", arguments[i].ToString());
+                // Try to parametrize complex object (e.g. with public properties)
+                IList<PropertyInfo> objProps = new List<PropertyInfo>(arguments[i].GetType().GetProperties());
+                foreach (PropertyInfo objProp in objProps)
+                {
+                    var complexParamNameWithBraces = "{" + paramInfo.Name + "." + objProp.Name + "}";
+                    if (!parameterizedStepName.Contains(complexParamNameWithBraces))
+                        continue;
+                    var objPropVal = objProp.GetValue(arguments[i]);
+                    if (objPropVal == null)
+                        continue;
+                    parameterizedStepName = parameterizedStepName
+                        .Replace(complexParamNameWithBraces, objPropVal.ToString());
+                }
+            }
+            return parameterizedStepName;
         }
 
         private string GetHookName(bool isTestSetUpHook, bool isTestTearDownHook, bool isClassSetUpHook, bool isClassTearDownHook)

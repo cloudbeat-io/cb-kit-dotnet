@@ -2,7 +2,6 @@
 using CloudBeat.Kit.MSTest.Attributes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Diagnostics;
 using System.Reflection;
 
 namespace CloudBeat.Kit.MSTest

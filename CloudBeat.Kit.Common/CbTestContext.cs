@@ -4,7 +4,7 @@ namespace CloudBeat.Kit.Common
 {
     public class CbTestContext
 	{
-		public const string CB_ENV_ENABLED = "CB_ENABLED";
+		public const string CB_ENV_AGENT = "CB_AGENT";
 
 		protected readonly CbTestReporter _reporter;
 		protected readonly CbConfig _config;
@@ -24,14 +24,19 @@ namespace CloudBeat.Kit.Common
 		{
 			get
 			{
-				var isEnabled = Environment.GetEnvironmentVariable(CB_ENV_ENABLED);
-				if (string.IsNullOrEmpty(isEnabled))
-					return false;
-				return isEnabled.ToLower() == "true";
+				var isEnabled = parseBool(Environment.GetEnvironmentVariable(CB_ENV_AGENT));
+				return isEnabled;
 			}
 		}
 		public bool IsConfigured => _reporter != null;
-		public CbTestReporter Reporter => this._reporter;
+		public CbTestReporter Reporter => _reporter;
 		public CbConfig Config => _config;
-	}
+
+        private static bool parseBool(string str)
+        {
+            if (string.IsNullOrEmpty(str)) return false;
+            bool.TryParse(str, out bool result);
+            return result;
+        }
+    }
 }

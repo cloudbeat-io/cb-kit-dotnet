@@ -5,6 +5,14 @@ namespace CloudBeat.Kit.MSTest.Attributes
 {
     public class CbTestMethodAttribute : TestMethodAttribute
     {
+        public CbTestMethodAttribute() : base()
+        {
+        }
+
+        public CbTestMethodAttribute(string displayName) : base(displayName)
+        {
+        }
+
         public override TestResult[] Execute(ITestMethod testMethod)
         {
             if (CbMSTest.Current.IsConfigured)
