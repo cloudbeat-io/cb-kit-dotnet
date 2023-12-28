@@ -1,6 +1,5 @@
 ﻿using System;
 using OpenQA.Selenium;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace CloudBeat.Kit.Common
 {
@@ -45,9 +44,25 @@ namespace CloudBeat.Kit.Common
             {
                 elmTypeLabel = "button ";
             }
+            else if (tagName == "input" && elmType != null && elmType == "text")
+            {
+                elmTypeLabel = "field ";
+            }
+            else if (tagName == "input" && elmType != null && elmType == "password")
+            {
+                elmTypeLabel = "password field ";
+            }
             else if (tagName == "input" && elmType != null && elmType == "url")
             {
                 elmTypeLabel = "link ";
+            }
+
+            // try to retrieve element's display text or caption
+            if (string.IsNullOrEmpty(text))
+            {
+                text = GetElementAttribute("placeholder", elm);
+                if (string.IsNullOrEmpty(text))
+                    text = GetElementAttribute("value", elm);
             }
 
             if (!string.IsNullOrEmpty(text))

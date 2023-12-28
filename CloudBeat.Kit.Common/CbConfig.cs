@@ -24,14 +24,10 @@ namespace CloudBeat.Kit.Common
         string _apiKey;
         string _apiUrl;
         bool _isCbAgent;
-        string seleniumUrl;
-        string appiumUrl;
         Dictionary<string, string> _metadata;
         Dictionary<string, string> _capabilities;
         Dictionary<string, string> _envVars;
         Dictionary<string, string> _options;
-        IList<string> tags;
-        IList<string> cases;
 
         public void loadFromEnvironment()
 		{
