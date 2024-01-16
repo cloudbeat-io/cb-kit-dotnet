@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CloudBeat.Kit.Common;
 using Microsoft.Playwright;
+using static System.Net.Mime.MediaTypeNames;
+using static CloudBeat.Kit.Common.Wrappers.CbWebDriverWrapper;
 
 namespace CloudBeat.Kit.Playwright
 {
@@ -319,6 +322,7 @@ namespace CloudBeat.Kit.Playwright
             return page.CheckAsync(selector, options);
         }
 
+        // FIXME: ClickAsync is DISCOURAGED
         Task IPage.ClickAsync(string selector, PageClickOptions options)
         {
             var step = reporter.StartStep($"Click on {selector}");
@@ -480,7 +484,7 @@ namespace CloudBeat.Kit.Playwright
 
         IFrame IPage.Frame(string name)
         {
-            throw new NotImplementedException();
+            return page.Frame(name);
         }
 
         IFrame IPage.FrameByUrl(string url)
@@ -510,67 +514,67 @@ namespace CloudBeat.Kit.Playwright
 
         ILocator IPage.GetByAltText(string text, PageGetByAltTextOptions options)
         {
-            throw new NotImplementedException();
+            return new CbLocatorWrapper(page.GetByAltText(text, options), reporter);
         }
 
         ILocator IPage.GetByAltText(Regex text, PageGetByAltTextOptions options)
         {
-            throw new NotImplementedException();
+            return new CbLocatorWrapper(page.GetByAltText(text, options), reporter);
         }
 
         ILocator IPage.GetByLabel(string text, PageGetByLabelOptions options)
         {
-            throw new NotImplementedException();
+            return new CbLocatorWrapper(page.GetByLabel(text, options), reporter);
         }
 
         ILocator IPage.GetByLabel(Regex text, PageGetByLabelOptions options)
         {
-            throw new NotImplementedException();
+            return new CbLocatorWrapper(page.GetByLabel(text, options), reporter);
         }
 
         ILocator IPage.GetByPlaceholder(string text, PageGetByPlaceholderOptions options)
         {
-            throw new NotImplementedException();
+            return new CbLocatorWrapper(page.GetByPlaceholder(text, options), reporter);
         }
 
         ILocator IPage.GetByPlaceholder(Regex text, PageGetByPlaceholderOptions options)
         {
-            throw new NotImplementedException();
+            return new CbLocatorWrapper(page.GetByPlaceholder(text, options), reporter);
         }
 
         ILocator IPage.GetByRole(AriaRole role, PageGetByRoleOptions options)
         {
-            throw new NotImplementedException();
+            return new CbLocatorWrapper(page.GetByRole(role, options), reporter);
         }
 
         ILocator IPage.GetByTestId(string testId)
         {
-            throw new NotImplementedException();
+            return new CbLocatorWrapper(page.GetByTestId(testId), reporter);
         }
 
         ILocator IPage.GetByTestId(Regex testId)
         {
-            throw new NotImplementedException();
+            return new CbLocatorWrapper(page.GetByTestId(testId), reporter);
         }
 
         ILocator IPage.GetByText(string text, PageGetByTextOptions options)
         {
-            throw new NotImplementedException();
+            return new CbLocatorWrapper(page.GetByText(text, options), reporter);
         }
 
         ILocator IPage.GetByText(Regex text, PageGetByTextOptions options)
         {
-            throw new NotImplementedException();
+            return new CbLocatorWrapper(page.GetByText(text, options), reporter);
         }
 
         ILocator IPage.GetByTitle(string text, PageGetByTitleOptions options)
         {
-            throw new NotImplementedException();
+            return new CbLocatorWrapper(page.GetByTitle(text, options), reporter);
         }
 
         ILocator IPage.GetByTitle(Regex text, PageGetByTitleOptions options)
         {
-            throw new NotImplementedException();
+            return new CbLocatorWrapper(page.GetByTitle(text, options), reporter);
         }
 
         Task<IResponse> IPage.GoBackAsync(PageGoBackOptions options)
@@ -849,32 +853,32 @@ namespace CloudBeat.Kit.Playwright
 
         Task IPage.SetInputFilesAsync(string selector, string files, PageSetInputFilesOptions options)
         {
-            throw new NotImplementedException();
+            return page.SetInputFilesAsync(selector, files, options);
         }
 
         Task IPage.SetInputFilesAsync(string selector, IEnumerable<string> files, PageSetInputFilesOptions options)
         {
-            throw new NotImplementedException();
+            return page.SetInputFilesAsync(selector, files, options);
         }
 
         Task IPage.SetInputFilesAsync(string selector, FilePayload files, PageSetInputFilesOptions options)
         {
-            throw new NotImplementedException();
+            return page.SetInputFilesAsync(selector, files, options);
         }
 
         Task IPage.SetInputFilesAsync(string selector, IEnumerable<FilePayload> files, PageSetInputFilesOptions options)
         {
-            throw new NotImplementedException();
+            return page.SetInputFilesAsync(selector, files, options);
         }
 
         Task IPage.SetViewportSizeAsync(int width, int height)
         {
-            throw new NotImplementedException();
+            return page.SetViewportSizeAsync(width, height);
         }
 
         Task IPage.TapAsync(string selector, PageTapOptions options)
         {
-            throw new NotImplementedException();
+            return page.TapAsync(selector, options);
         }
 
         Task<string> IPage.TextContentAsync(string selector, PageTextContentOptions options)

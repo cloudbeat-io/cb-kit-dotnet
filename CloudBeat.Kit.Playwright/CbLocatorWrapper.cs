@@ -375,6 +375,7 @@ namespace CloudBeat.Kit.Playwright
             return locator.TextContentAsync(options);
         }
 
+        [Obsolete]
         public Task TypeAsync(string text, LocatorTypeOptions options = null)
         {
             return locator.TypeAsync(text, options);
