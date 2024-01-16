@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudBeat.Kit.MSTest", "Clo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudBeat.Kit.NUnit", "CloudBeat.Kit.NUnit\CloudBeat.Kit.NUnit.csproj", "{EB8DC21C-1F10-4CB9-A609-008460D1274B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudBeat.Kit.Playwright", "CloudBeat.Kit.Playwright\CloudBeat.Kit.Playwright.csproj", "{D886C62C-A362-4138-BE77-23F934DAC1B9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{EB8DC21C-1F10-4CB9-A609-008460D1274B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EB8DC21C-1F10-4CB9-A609-008460D1274B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EB8DC21C-1F10-4CB9-A609-008460D1274B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D886C62C-A362-4138-BE77-23F934DAC1B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D886C62C-A362-4138-BE77-23F934DAC1B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D886C62C-A362-4138-BE77-23F934DAC1B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D886C62C-A362-4138-BE77-23F934DAC1B9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
