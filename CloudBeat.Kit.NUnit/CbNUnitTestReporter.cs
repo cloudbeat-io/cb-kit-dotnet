@@ -10,6 +10,7 @@ using System.IO;
 using CbExceptionHelper = CloudBeat.Kit.Common.CbExceptionHelper;
 using System.Collections.Concurrent;
 using System.Threading;
+using System.Reflection;
 
 namespace CloudBeat.Kit.NUnit
 {
@@ -150,6 +151,12 @@ namespace CloudBeat.Kit.NUnit
         {
             var testFqn = NUnitHelpers.GetFqn(TestContext.CurrentContext.Test);
             return base.Step(testFqn, name, func, arg);
+        }
+        public TResult StepWithFqn<T, TResult>(string name, string fqn, Func<T, TResult> func, T arg)
+        {
+            var testFqn = NUnitHelpers.GetFqn(TestContext.CurrentContext.Test);
+            var step = base.Step(testFqn, name, func, arg);
+            return base.Step(testFqn, name, StepTypeEnum.General, func, arg, x => x.Fqn = fqn);
         }
         public TResult Step<TResult>(string name, Func<TResult> func)
         {

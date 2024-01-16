@@ -30,7 +30,7 @@ namespace CloudBeat.Kit.NUnit.Aspects
             if (isHook)
                 return reporter.Hook(stepName ?? hookName, methodName, method, arguments);
             string fullMethodName = $"{methodBase.DeclaringType}.{methodName}";
-            return reporter.Step(
+            return reporter.StepWithFqn(
                 ParameterizeStepName(stepName, methodBase.GetParameters(), arguments) ?? methodName,
                 fullMethodName,
                 method,

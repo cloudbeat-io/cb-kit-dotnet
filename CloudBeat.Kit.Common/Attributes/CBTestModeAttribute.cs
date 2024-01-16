@@ -3,13 +3,13 @@ using System;
 
 namespace CloudBeat.Kit.Common.Attributes
 {
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = true)]
-    public class CBTestModeAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = false)]
+    public class CbTestModeAttribute : Attribute
     {
-        public CBTestModeAttribute(CBTestModeEnum testMode)
+        public CbTestModeAttribute(CbTestModeEnum testMode)
         {
             TestMode = testMode;
         }
-        public CBTestModeEnum TestMode { get; internal set; }
+        public CbTestModeEnum TestMode { get; internal set; }
     }
 }
