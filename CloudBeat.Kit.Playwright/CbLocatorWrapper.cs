@@ -9,7 +9,7 @@ using Microsoft.Playwright;
 namespace CloudBeat.Kit.Playwright
 {
 	public class CbLocatorWrapper : ILocator
-	{
+    {
 		readonly ILocator locator;
 		readonly CbTestReporter reporter;
 
@@ -18,6 +18,11 @@ namespace CloudBeat.Kit.Playwright
 			this.locator = locator;
 			this.reporter = reporter;
 		}
+
+        public ILocator GetBaseLocator()
+        {
+            return locator;
+        }
 
         public ILocator First => locator.First;
 
