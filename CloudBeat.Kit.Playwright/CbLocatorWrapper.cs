@@ -67,12 +67,24 @@ namespace CloudBeat.Kit.Playwright
 
         public Task ClearAsync(LocatorClearOptions options = null)
         {
-            return locator.ClearAsync(options);
+            var step = reporter?.StartStep($"Clear {locator}");
+            var task = locator.ClearAsync(options);
+            task.GetAwaiter().OnCompleted(() =>
+            {
+                step?.End();
+            });
+            return task;
         }
 
         public Task ClickAsync(LocatorClickOptions options = null)
         {
-            return locator.ClickAsync(options);
+            var step = reporter?.StartStep($"Click {locator}");
+            var task = locator.ClickAsync(options);
+            task.GetAwaiter().OnCompleted(() =>
+            {
+                step?.End();
+            });
+            return task;
         }
 
         public Task<int> CountAsync()
@@ -82,7 +94,13 @@ namespace CloudBeat.Kit.Playwright
 
         public Task DblClickAsync(LocatorDblClickOptions options = null)
         {
-            return locator.DblClickAsync(options);
+            var step = reporter?.StartStep($"Double click {locator}");
+            var task = locator.DblClickAsync(options);
+            task.GetAwaiter().OnCompleted(() =>
+            {
+                step?.End();
+            });
+            return task;
         }
 
         public Task DispatchEventAsync(string type, object eventInit = null, LocatorDispatchEventOptions options = null)
@@ -127,7 +145,13 @@ namespace CloudBeat.Kit.Playwright
 
         public Task FillAsync(string value, LocatorFillOptions options = null)
         {
-            return locator.FillAsync(value, options);
+            var step = reporter?.StartStep($"Fill {locator} with {value}");
+            var task = locator.FillAsync(value, options);
+            task.GetAwaiter().OnCompleted(() =>
+            {
+                step?.End();
+            });
+            return task;
         }
 
         public ILocator Filter(LocatorFilterOptions options = null)
@@ -383,7 +407,13 @@ namespace CloudBeat.Kit.Playwright
         [Obsolete]
         public Task TypeAsync(string text, LocatorTypeOptions options = null)
         {
-            return locator.TypeAsync(text, options);
+            var step = reporter?.StartStep($"Type {text} into {locator}");
+            var task = locator.TypeAsync(text, options);
+            task.GetAwaiter().OnCompleted(() =>
+            {
+                step?.End();
+            });
+            return task;
         }
 
         public Task UncheckAsync(LocatorUncheckOptions options = null)
