@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CloudBeat.Kit.Common;
 using Microsoft.Playwright;
-using static System.Net.Mime.MediaTypeNames;
-using static CloudBeat.Kit.Common.Wrappers.CbWebDriverWrapper;
+
 
 namespace CloudBeat.Kit.Playwright
 {
@@ -325,11 +323,11 @@ namespace CloudBeat.Kit.Playwright
         // FIXME: ClickAsync is DISCOURAGED
         Task IPage.ClickAsync(string selector, PageClickOptions options)
         {
-            var step = reporter.StartStep($"Click on {selector}");
+            var step = reporter?.StartStep($"Click on {selector}");
             var task = page.ClickAsync(selector, options);
             task.GetAwaiter().OnCompleted(() =>
             {
-                step.End();
+                step?.End();
             });
             return task;
         }
@@ -384,102 +382,102 @@ namespace CloudBeat.Kit.Playwright
 
         Task<JsonElement?> IPage.EvaluateAsync(string expression, object arg)
         {
-            throw new NotImplementedException();
+            return page.EvaluateAsync(expression, arg);
         }
 
         Task<IJSHandle> IPage.EvaluateHandleAsync(string expression, object arg)
         {
-            throw new NotImplementedException();
+            return page.EvaluateHandleAsync(expression, arg);
         }
 
         Task IPage.ExposeBindingAsync(string name, Action callback, PageExposeBindingOptions options)
         {
-            throw new NotImplementedException();
+            return page.ExposeBindingAsync(name, callback, options);
         }
 
         Task IPage.ExposeBindingAsync(string name, Action<BindingSource> callback)
         {
-            throw new NotImplementedException();
+            return page.ExposeBindingAsync(name, callback);
         }
 
         Task IPage.ExposeBindingAsync<T>(string name, Action<BindingSource, T> callback)
         {
-            throw new NotImplementedException();
+            return page.ExposeBindingAsync<T>(name, callback);
         }
 
         Task IPage.ExposeBindingAsync<TResult>(string name, Func<BindingSource, TResult> callback)
         {
-            throw new NotImplementedException();
+            return page.ExposeBindingAsync<TResult>(name, callback);
         }
 
         Task IPage.ExposeBindingAsync<TResult>(string name, Func<BindingSource, IJSHandle, TResult> callback)
         {
-            throw new NotImplementedException();
+            return page.ExposeBindingAsync<TResult>(name, callback);
         }
 
         Task IPage.ExposeBindingAsync<T, TResult>(string name, Func<BindingSource, T, TResult> callback)
         {
-            throw new NotImplementedException();
+            return page.ExposeBindingAsync<T, TResult>(name, callback);
         }
 
         Task IPage.ExposeBindingAsync<T1, T2, TResult>(string name, Func<BindingSource, T1, T2, TResult> callback)
         {
-            throw new NotImplementedException();
+            return page.ExposeBindingAsync<T1, T2, TResult>(name, callback);
         }
 
         Task IPage.ExposeBindingAsync<T1, T2, T3, TResult>(string name, Func<BindingSource, T1, T2, T3, TResult> callback)
         {
-            throw new NotImplementedException();
+            return page.ExposeBindingAsync<T1, T2, T3, TResult>(name, callback);
         }
 
         Task IPage.ExposeBindingAsync<T1, T2, T3, T4, TResult>(string name, Func<BindingSource, T1, T2, T3, T4, TResult> callback)
         {
-            throw new NotImplementedException();
+            return page.ExposeBindingAsync<T1, T2, T3, T4, TResult>(name, callback);
         }
 
         Task IPage.ExposeFunctionAsync(string name, Action callback)
         {
-            throw new NotImplementedException();
+            return page.ExposeFunctionAsync(name, callback);
         }
 
         Task IPage.ExposeFunctionAsync<T>(string name, Action<T> callback)
         {
-            throw new NotImplementedException();
+            return page.ExposeFunctionAsync<T>(name, callback);
         }
 
         Task IPage.ExposeFunctionAsync<TResult>(string name, Func<TResult> callback)
         {
-            throw new NotImplementedException();
+            return page.ExposeFunctionAsync<TResult>(name, callback);
         }
 
         Task IPage.ExposeFunctionAsync<T, TResult>(string name, Func<T, TResult> callback)
         {
-            throw new NotImplementedException();
+            return page.ExposeFunctionAsync<T, TResult>(name, callback);
         }
 
         Task IPage.ExposeFunctionAsync<T1, T2, TResult>(string name, Func<T1, T2, TResult> callback)
         {
-            throw new NotImplementedException();
+            return page.ExposeFunctionAsync<T1, T2, TResult>(name, callback);
         }
 
         Task IPage.ExposeFunctionAsync<T1, T2, T3, TResult>(string name, Func<T1, T2, T3, TResult> callback)
         {
-            throw new NotImplementedException();
+            return page.ExposeFunctionAsync<T1, T2, T3, TResult>(name, callback);
         }
 
         Task IPage.ExposeFunctionAsync<T1, T2, T3, T4, TResult>(string name, Func<T1, T2, T3, T4, TResult> callback)
         {
-            throw new NotImplementedException();
+            return page.ExposeFunctionAsync<T1, T2, T3, T4, TResult>(name, callback);
         }
 
         Task IPage.FillAsync(string selector, string value, PageFillOptions options)
         {
-            throw new NotImplementedException();
+            return page.FillAsync(selector, value, options);
         }
 
         Task IPage.FocusAsync(string selector, PageFocusOptions options)
         {
-            throw new NotImplementedException();
+            return page.FocusAsync(selector, options);
         }
 
         IFrame IPage.Frame(string name)
@@ -489,27 +487,27 @@ namespace CloudBeat.Kit.Playwright
 
         IFrame IPage.FrameByUrl(string url)
         {
-            throw new NotImplementedException();
+            return page.FrameByUrl(url);
         }
 
         IFrame IPage.FrameByUrl(Regex url)
         {
-            throw new NotImplementedException();
+            return page.FrameByUrl(url);
         }
 
         IFrame IPage.FrameByUrl(Func<string, bool> url)
         {
-            throw new NotImplementedException();
+            return page.FrameByUrl(url);
         }
 
         IFrameLocator IPage.FrameLocator(string selector)
         {
-            throw new NotImplementedException();
+            return page.FrameLocator(selector);
         }
 
         Task<string> IPage.GetAttributeAsync(string selector, string name, PageGetAttributeOptions options)
         {
-            throw new NotImplementedException();
+            return page.GetAttributeAsync(selector, name, options);
         }
 
         ILocator IPage.GetByAltText(string text, PageGetByAltTextOptions options)
@@ -579,67 +577,85 @@ namespace CloudBeat.Kit.Playwright
 
         Task<IResponse> IPage.GoBackAsync(PageGoBackOptions options)
         {
-            throw new NotImplementedException();
+            var step = reporter?.StartStep("Navigate back");
+            var task = page.GoBackAsync(options);
+            task.GetAwaiter().OnCompleted(() =>
+            {
+                step?.End();
+            });
+            return task;
         }
 
         Task<IResponse> IPage.GoForwardAsync(PageGoForwardOptions options)
         {
-            throw new NotImplementedException();
+            var step = reporter?.StartStep("Navigate forward");
+            var task = page.GoForwardAsync(options);
+            task.GetAwaiter().OnCompleted(() =>
+            {
+                step?.End();
+            });
+            return task;
         }
 
         Task<IResponse> IPage.GotoAsync(string url, PageGotoOptions options)
         {
-            throw new NotImplementedException();
+            var step = reporter?.StartStep($"Navigate to {url}");
+            var task = page.GotoAsync(url, options);
+            task.GetAwaiter().OnCompleted(() =>
+            {
+                step?.End();
+            });
+            return task;
         }
 
         Task IPage.HoverAsync(string selector, PageHoverOptions options)
         {
-            throw new NotImplementedException();
+            return page.HoverAsync(selector, options);
         }
 
         Task<string> IPage.InnerHTMLAsync(string selector, PageInnerHTMLOptions options)
         {
-            throw new NotImplementedException();
+            return page.InnerHTMLAsync(selector, options);
         }
 
         Task<string> IPage.InnerTextAsync(string selector, PageInnerTextOptions options)
         {
-            throw new NotImplementedException();
+            return page.InnerTextAsync(selector, options);
         }
 
         Task<string> IPage.InputValueAsync(string selector, PageInputValueOptions options)
         {
-            throw new NotImplementedException();
+            return page.InputValueAsync(selector, options);
         }
 
         Task<bool> IPage.IsCheckedAsync(string selector, PageIsCheckedOptions options)
         {
-            throw new NotImplementedException();
+            return page.IsCheckedAsync(selector, options);
         }
 
         Task<bool> IPage.IsDisabledAsync(string selector, PageIsDisabledOptions options)
         {
-            throw new NotImplementedException();
+            return page.IsDisabledAsync(selector, options);
         }
 
         Task<bool> IPage.IsEditableAsync(string selector, PageIsEditableOptions options)
         {
-            throw new NotImplementedException();
+            return page.IsEditableAsync(selector, options);
         }
 
         Task<bool> IPage.IsEnabledAsync(string selector, PageIsEnabledOptions options)
         {
-            throw new NotImplementedException();
+            return page.IsEnabledAsync(selector, options);
         }
 
         Task<bool> IPage.IsHiddenAsync(string selector, PageIsHiddenOptions options)
         {
-            throw new NotImplementedException();
+            return page.IsHiddenAsync(selector, options);
         }
 
         Task<bool> IPage.IsVisibleAsync(string selector, PageIsVisibleOptions options)
         {
-            throw new NotImplementedException();
+            return page.IsVisibleAsync(selector, options);
         }
 
         ILocator IPage.Locator(string selector, PageLocatorOptions options)
@@ -653,202 +669,215 @@ namespace CloudBeat.Kit.Playwright
 
         Task<IPage> IPage.OpenerAsync()
         {
-            throw new NotImplementedException();
+            return page.OpenerAsync();
         }
 
         Task IPage.PauseAsync()
         {
-            throw new NotImplementedException();
+            return page.PauseAsync();
         }
 
         Task<byte[]> IPage.PdfAsync(PagePdfOptions options)
         {
-            throw new NotImplementedException();
+            return page.PdfAsync(options);
         }
 
         Task IPage.PressAsync(string selector, string key, PagePressOptions options)
         {
-            throw new NotImplementedException();
+            return page.PressAsync(selector, key, options);
         }
 
         Task<IReadOnlyList<IElementHandle>> IPage.QuerySelectorAllAsync(string selector)
         {
-            throw new NotImplementedException();
+            return page.QuerySelectorAllAsync(selector);
         }
 
         Task<IElementHandle> IPage.QuerySelectorAsync(string selector, PageQuerySelectorOptions options)
         {
-            throw new NotImplementedException();
+            return page.QuerySelectorAsync(selector, options);
         }
 
         Task<IResponse> IPage.ReloadAsync(PageReloadOptions options)
         {
-            throw new NotImplementedException();
+            return page.ReloadAsync(options);
         }
 
         Task IPage.RouteAsync(string url, Action<IRoute> handler, PageRouteOptions options)
         {
-            throw new NotImplementedException();
+            return page.RouteAsync(url, handler, options);
         }
 
         Task IPage.RouteAsync(Regex url, Action<IRoute> handler, PageRouteOptions options)
         {
-            throw new NotImplementedException();
+            return page.RouteAsync(url, handler, options);
         }
 
         Task IPage.RouteAsync(Func<string, bool> url, Action<IRoute> handler, PageRouteOptions options)
         {
-            throw new NotImplementedException();
+            return page.RouteAsync(url, handler, options);
         }
 
         Task IPage.RouteAsync(string url, Func<IRoute, Task> handler, PageRouteOptions options)
         {
-            throw new NotImplementedException();
+            return page.RouteAsync(url, handler, options);
         }
 
         Task IPage.RouteAsync(Regex url, Func<IRoute, Task> handler, PageRouteOptions options)
         {
-            throw new NotImplementedException();
+            return page.RouteAsync(url, handler, options);
         }
 
         Task IPage.RouteAsync(Func<string, bool> url, Func<IRoute, Task> handler, PageRouteOptions options)
         {
-            throw new NotImplementedException();
+            return page.RouteAsync(url, handler, options);
         }
 
         Task IPage.RouteFromHARAsync(string har, PageRouteFromHAROptions options)
         {
-            throw new NotImplementedException();
+            return page.RouteFromHARAsync(har, options);
         }
 
         Task<IConsoleMessage> IPage.RunAndWaitForConsoleMessageAsync(Func<Task> action, PageRunAndWaitForConsoleMessageOptions options)
         {
-            throw new NotImplementedException();
+            return page.RunAndWaitForConsoleMessageAsync(action, options);
         }
 
         Task<IDownload> IPage.RunAndWaitForDownloadAsync(Func<Task> action, PageRunAndWaitForDownloadOptions options)
         {
-            throw new NotImplementedException();
+            return page.RunAndWaitForDownloadAsync(action, options);
         }
 
         Task<IFileChooser> IPage.RunAndWaitForFileChooserAsync(Func<Task> action, PageRunAndWaitForFileChooserOptions options)
         {
-            throw new NotImplementedException();
+            var step = reporter?.StartStep("Run and wait for file chooser");
+            var task = page.RunAndWaitForFileChooserAsync(action, options);
+            task.GetAwaiter().OnCompleted(() =>
+            {
+                step?.End();
+            });
+            return task;
         }
 
+        [Obsolete]
         Task<IResponse> IPage.RunAndWaitForNavigationAsync(Func<Task> action, PageRunAndWaitForNavigationOptions options)
         {
-            throw new NotImplementedException();
+            return page.RunAndWaitForNavigationAsync(action, options);
         }
 
         Task<IPage> IPage.RunAndWaitForPopupAsync(Func<Task> action, PageRunAndWaitForPopupOptions options)
         {
-            throw new NotImplementedException();
+            return page.RunAndWaitForPopupAsync(action, options);
         }
 
         Task<IRequest> IPage.RunAndWaitForRequestAsync(Func<Task> action, string urlOrPredicate, PageRunAndWaitForRequestOptions options)
         {
-            throw new NotImplementedException();
+            return page.RunAndWaitForRequestAsync(action, urlOrPredicate, options);
         }
 
         Task<IRequest> IPage.RunAndWaitForRequestAsync(Func<Task> action, Regex urlOrPredicate, PageRunAndWaitForRequestOptions options)
         {
-            throw new NotImplementedException();
+            return page.RunAndWaitForRequestAsync(action, urlOrPredicate, options);
         }
 
         Task<IRequest> IPage.RunAndWaitForRequestAsync(Func<Task> action, Func<IRequest, bool> urlOrPredicate, PageRunAndWaitForRequestOptions options)
         {
-            throw new NotImplementedException();
+            return page.RunAndWaitForRequestAsync(action, urlOrPredicate, options);
         }
 
         Task<IRequest> IPage.RunAndWaitForRequestFinishedAsync(Func<Task> action, PageRunAndWaitForRequestFinishedOptions options)
         {
-            throw new NotImplementedException();
+            return page.RunAndWaitForRequestFinishedAsync(action, options);
         }
 
         Task<IResponse> IPage.RunAndWaitForResponseAsync(Func<Task> action, string urlOrPredicate, PageRunAndWaitForResponseOptions options)
         {
-            throw new NotImplementedException();
+            return page.RunAndWaitForResponseAsync(action, urlOrPredicate, options);
         }
 
         Task<IResponse> IPage.RunAndWaitForResponseAsync(Func<Task> action, Regex urlOrPredicate, PageRunAndWaitForResponseOptions options)
         {
-            throw new NotImplementedException();
+            return page.RunAndWaitForResponseAsync(action, urlOrPredicate, options);
         }
 
         Task<IResponse> IPage.RunAndWaitForResponseAsync(Func<Task> action, Func<IResponse, bool> urlOrPredicate, PageRunAndWaitForResponseOptions options)
         {
-            throw new NotImplementedException();
+            var step = reporter?.StartStep("Run and wait for response");
+            var task = page.RunAndWaitForResponseAsync(action, urlOrPredicate, options);
+            task.GetAwaiter().OnCompleted(() =>
+            {
+                step?.End();
+            });
+            return task;
         }
 
         Task<IWebSocket> IPage.RunAndWaitForWebSocketAsync(Func<Task> action, PageRunAndWaitForWebSocketOptions options)
         {
-            throw new NotImplementedException();
+            return page.RunAndWaitForWebSocketAsync(action, options);
         }
 
         Task<IWorker> IPage.RunAndWaitForWorkerAsync(Func<Task> action, PageRunAndWaitForWorkerOptions options)
         {
-            throw new NotImplementedException();
+            return page.RunAndWaitForWorkerAsync(action, options);
         }
 
         Task<byte[]> IPage.ScreenshotAsync(PageScreenshotOptions options)
         {
-            throw new NotImplementedException();
+            return page.ScreenshotAsync(options);
         }
 
         Task<IReadOnlyList<string>> IPage.SelectOptionAsync(string selector, string values, PageSelectOptionOptions options)
         {
-            throw new NotImplementedException();
+            return page.SelectOptionAsync(selector, values, options);
         }
 
         Task<IReadOnlyList<string>> IPage.SelectOptionAsync(string selector, IElementHandle values, PageSelectOptionOptions options)
         {
-            throw new NotImplementedException();
+            return page.SelectOptionAsync(selector, values, options);
         }
 
         Task<IReadOnlyList<string>> IPage.SelectOptionAsync(string selector, IEnumerable<string> values, PageSelectOptionOptions options)
         {
-            throw new NotImplementedException();
+            return page.SelectOptionAsync(selector, values, options);
         }
 
         Task<IReadOnlyList<string>> IPage.SelectOptionAsync(string selector, SelectOptionValue values, PageSelectOptionOptions options)
         {
-            throw new NotImplementedException();
+            return page.SelectOptionAsync(selector, values, options);
         }
 
         Task<IReadOnlyList<string>> IPage.SelectOptionAsync(string selector, IEnumerable<IElementHandle> values, PageSelectOptionOptions options)
         {
-            throw new NotImplementedException();
+            return page.SelectOptionAsync(selector, values, options);
         }
 
         Task<IReadOnlyList<string>> IPage.SelectOptionAsync(string selector, IEnumerable<SelectOptionValue> values, PageSelectOptionOptions options)
         {
-            throw new NotImplementedException();
+            return page.SelectOptionAsync(selector, values, options);
         }
 
         Task IPage.SetCheckedAsync(string selector, bool checkedState, PageSetCheckedOptions options)
         {
-            throw new NotImplementedException();
+            return page.SetCheckedAsync(selector, checkedState, options);
         }
 
         Task IPage.SetContentAsync(string html, PageSetContentOptions options)
         {
-            throw new NotImplementedException();
+            return page.SetContentAsync(html, options);
         }
 
         void IPage.SetDefaultNavigationTimeout(float timeout)
         {
-            throw new NotImplementedException();
+            page.SetDefaultNavigationTimeout(timeout);
         }
 
         void IPage.SetDefaultTimeout(float timeout)
         {
-            throw new NotImplementedException();
+            page.SetDefaultTimeout(timeout);
         }
 
         Task IPage.SetExtraHTTPHeadersAsync(IEnumerable<KeyValuePair<string, string>> headers)
         {
-            throw new NotImplementedException();
+            return page.SetExtraHTTPHeadersAsync(headers);
         }
 
         Task IPage.SetInputFilesAsync(string selector, string files, PageSetInputFilesOptions options)
@@ -883,157 +912,165 @@ namespace CloudBeat.Kit.Playwright
 
         Task<string> IPage.TextContentAsync(string selector, PageTextContentOptions options)
         {
-            throw new NotImplementedException();
+            return page.TextContentAsync(selector, options);
         }
 
         Task<string> IPage.TitleAsync()
         {
-            throw new NotImplementedException();
+            return page.TitleAsync();
         }
 
+        [Obsolete]
         Task IPage.TypeAsync(string selector, string text, PageTypeOptions options)
         {
-            throw new NotImplementedException();
+            var step = reporter?.StartStep($"Type \"{text}\" into {selector}");
+            var task = page.TypeAsync(selector, text, options);
+            task.GetAwaiter().OnCompleted(() =>
+            {
+                step?.End();
+            });
+            return task;
         }
 
         Task IPage.UncheckAsync(string selector, PageUncheckOptions options)
         {
-            throw new NotImplementedException();
+            return page.UncheckAsync(selector, options);
         }
 
         Task IPage.UnrouteAsync(string url, Action<IRoute> handler)
         {
-            throw new NotImplementedException();
+            return page.UnrouteAsync(url, handler);
         }
 
         Task IPage.UnrouteAsync(Regex url, Action<IRoute> handler)
         {
-            throw new NotImplementedException();
+            return page.UnrouteAsync(url, handler);
         }
 
         Task IPage.UnrouteAsync(Func<string, bool> url, Action<IRoute> handler)
         {
-            throw new NotImplementedException();
+            return page.UnrouteAsync(url, handler);
         }
 
         Task IPage.UnrouteAsync(string url, Func<IRoute, Task> handler)
         {
-            throw new NotImplementedException();
+            return page.UnrouteAsync(url, handler);
         }
 
         Task IPage.UnrouteAsync(Regex url, Func<IRoute, Task> handler)
         {
-            throw new NotImplementedException();
+            return page.UnrouteAsync(url, handler);
         }
 
         Task IPage.UnrouteAsync(Func<string, bool> url, Func<IRoute, Task> handler)
         {
-            throw new NotImplementedException();
+            return page.UnrouteAsync(url, handler);
         }
 
         Task<IConsoleMessage> IPage.WaitForConsoleMessageAsync(PageWaitForConsoleMessageOptions options)
         {
-            throw new NotImplementedException();
+            return page.WaitForConsoleMessageAsync(options);
         }
 
         Task<IDownload> IPage.WaitForDownloadAsync(PageWaitForDownloadOptions options)
         {
-            throw new NotImplementedException();
+            return page.WaitForDownloadAsync(options);
         }
 
         Task<IFileChooser> IPage.WaitForFileChooserAsync(PageWaitForFileChooserOptions options)
         {
-            throw new NotImplementedException();
+            return page.WaitForFileChooserAsync(options);
         }
 
         Task<IJSHandle> IPage.WaitForFunctionAsync(string expression, object arg, PageWaitForFunctionOptions options)
         {
-            throw new NotImplementedException();
+            return page.WaitForFunctionAsync(expression, arg, options);
         }
 
         Task IPage.WaitForLoadStateAsync(LoadState? state, PageWaitForLoadStateOptions options)
         {
-            throw new NotImplementedException();
+            return page.WaitForLoadStateAsync(state, options);
         }
 
+        [Obsolete]
         Task<IResponse> IPage.WaitForNavigationAsync(PageWaitForNavigationOptions options)
         {
-            throw new NotImplementedException();
+            return page.WaitForNavigationAsync(options);
         }
 
         Task<IPage> IPage.WaitForPopupAsync(PageWaitForPopupOptions options)
         {
-            throw new NotImplementedException();
+            return page.WaitForPopupAsync(options);
         }
 
         Task<IRequest> IPage.WaitForRequestAsync(string urlOrPredicate, PageWaitForRequestOptions options)
         {
-            throw new NotImplementedException();
+            return page.WaitForRequestAsync(urlOrPredicate, options);
         }
 
         Task<IRequest> IPage.WaitForRequestAsync(Regex urlOrPredicate, PageWaitForRequestOptions options)
         {
-            throw new NotImplementedException();
+            return page.WaitForRequestAsync(urlOrPredicate, options);
         }
 
         Task<IRequest> IPage.WaitForRequestAsync(Func<IRequest, bool> urlOrPredicate, PageWaitForRequestOptions options)
         {
-            throw new NotImplementedException();
+            return page.WaitForRequestAsync(urlOrPredicate, options);
         }
 
         Task<IRequest> IPage.WaitForRequestFinishedAsync(PageWaitForRequestFinishedOptions options)
         {
-            throw new NotImplementedException();
+            return page.WaitForRequestFinishedAsync(options);
         }
 
         Task<IResponse> IPage.WaitForResponseAsync(string urlOrPredicate, PageWaitForResponseOptions options)
         {
-            throw new NotImplementedException();
+            return page.WaitForResponseAsync(urlOrPredicate, options);
         }
 
         Task<IResponse> IPage.WaitForResponseAsync(Regex urlOrPredicate, PageWaitForResponseOptions options)
         {
-            throw new NotImplementedException();
+            return page.WaitForResponseAsync(urlOrPredicate, options);
         }
 
         Task<IResponse> IPage.WaitForResponseAsync(Func<IResponse, bool> urlOrPredicate, PageWaitForResponseOptions options)
         {
-            throw new NotImplementedException();
+            return page.WaitForResponseAsync(urlOrPredicate, options);
         }
 
         Task<IElementHandle> IPage.WaitForSelectorAsync(string selector, PageWaitForSelectorOptions options)
         {
-            throw new NotImplementedException();
+            return page.WaitForSelectorAsync(selector, options);
         }
 
         Task IPage.WaitForTimeoutAsync(float timeout)
         {
-            throw new NotImplementedException();
+            return page.WaitForTimeoutAsync(timeout);
         }
 
         Task IPage.WaitForURLAsync(string url, PageWaitForURLOptions options)
         {
-            throw new NotImplementedException();
+            return page.WaitForURLAsync(url, options);
         }
 
         Task IPage.WaitForURLAsync(Regex url, PageWaitForURLOptions options)
         {
-            throw new NotImplementedException();
+            return page.WaitForURLAsync(url, options);
         }
 
         Task IPage.WaitForURLAsync(Func<string, bool> url, PageWaitForURLOptions options)
         {
-            throw new NotImplementedException();
+            return page.WaitForURLAsync(url, options);
         }
 
         Task<IWebSocket> IPage.WaitForWebSocketAsync(PageWaitForWebSocketOptions options)
         {
-            throw new NotImplementedException();
+            return page.WaitForWebSocketAsync(options);
         }
 
         Task<IWorker> IPage.WaitForWorkerAsync(PageWaitForWorkerOptions options)
         {
-            throw new NotImplementedException();
+            return page.WaitForWorkerAsync(options);
         }
     }
 }
