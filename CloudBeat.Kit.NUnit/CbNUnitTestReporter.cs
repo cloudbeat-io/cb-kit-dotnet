@@ -25,9 +25,11 @@ namespace CloudBeat.Kit.NUnit
         
         private void WriteCaseResultToFile(CaseResult caseResult)
         {
+            /*
             string technologyName = TestContext.Parameters["technologyName"]?.ToString();
             if (string.IsNullOrEmpty(technologyName))
                 return;
+            */
             // if no direct API access details were defined, then write case result to local file
             // so CB Logger can pick it up and send it indirectly to CB server
             var cwd = TestContext.CurrentContext.WorkDirectory;
