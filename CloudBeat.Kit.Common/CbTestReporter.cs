@@ -5,8 +5,8 @@ using OpenQA.Selenium.Support.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Mail;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace CloudBeat.Kit.Common
 {
@@ -19,11 +19,16 @@ namespace CloudBeat.Kit.Common
 		protected readonly CbConfig _config;
 		protected bool _syncWithCb = false;
 		protected readonly IList<IDisposable> _wrappers = new List<IDisposable>();
+		/*
 		protected readonly ThreadLocal<CaseResult> _lastCaseResult = new ThreadLocal<CaseResult>();
 		protected readonly ThreadLocal<SuiteResult> _lastSuiteResult = new ThreadLocal<SuiteResult>();
 		protected readonly ThreadLocal<IWebDriver> _currentWebDriver = new ThreadLocal<IWebDriver>();
+		*/
+		protected readonly AsyncLocal<CaseResult> _lastCaseResult = new();
+		protected readonly AsyncLocal<SuiteResult> _lastSuiteResult = new();
+		protected readonly AsyncLocal<IWebDriver> _currentWebDriver = new();
 
-		public CbTestReporter(CbConfig config)
+        public CbTestReporter(CbConfig config)
 		{
 			_config = config;
 		}
@@ -215,8 +220,18 @@ namespace CloudBeat.Kit.Common
 			try
 			{
 				var result = func.Invoke(arg);
-				EndStep(newStep);
-				return result;
+				if (result is Task task)
+				{
+					task.Wait();
+                    EndStep(newStep);
+                    /*task.GetAwaiter().OnCompleted(() =>
+					{
+                        EndStep(newStep);
+                    });*/
+				}
+				else
+                    EndStep(newStep);
+                return result;
 			}
 			catch (Exception e)
 			{
@@ -363,9 +378,9 @@ namespace CloudBeat.Kit.Common
 
         public IWebDriver GetCurrentWebDriver()
         {
-			if (_currentWebDriver.IsValueCreated)
+			//if (_currentWebDriver.IsValueCreated)
 				return _currentWebDriver.Value;
-            return null;
+            //return null;
         }
 
 		public string GetScreenshotForException(StepResult stepResult, Exception e)
@@ -445,9 +460,11 @@ namespace CloudBeat.Kit.Common
                 return;
             var attachment = CbAttachmentHelper.PrepareScreenRecordingAttachment(base64Data);
 			// attachment might be null in case of IO exception
-			if (attachment != null)
+			if (attachment != null && resultWithAttachment != null)
 				resultWithAttachment.Attachments.Add(attachment);
         }
+
+		public CaseResult LastCaseResult => _lastCaseResult.Value;
 
         private void AddSystemAttributesToResult()
 		{

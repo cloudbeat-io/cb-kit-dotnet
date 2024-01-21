@@ -36,7 +36,7 @@ namespace CloudBeat.Kit.Common
             _runId = Environment.GetEnvironmentVariable(CB_RUN_ID);
             _instanceId = Environment.GetEnvironmentVariable(CB_INSTANCE_ID);
             _projectId = Environment.GetEnvironmentVariable(CB_PROJECT_ID);
-            _isCbAgent = parseBool(Environment.GetEnvironmentVariable(CB_AGENT));
+            _isCbAgent = true; // parseBool(Environment.GetEnvironmentVariable(CB_AGENT));
         }
 
         private static bool parseBool(string str)

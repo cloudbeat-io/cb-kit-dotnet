@@ -4,19 +4,16 @@ using NUnit.Framework;
 using NUnit.Framework.Internal;
 using System.Linq;
 using System;
-using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.IO;
 using CbExceptionHelper = CloudBeat.Kit.Common.CbExceptionHelper;
 using System.Collections.Concurrent;
 using System.Threading;
-using System.Reflection;
 
 namespace CloudBeat.Kit.NUnit
 {
     public class CbNUnitTestReporter : CbTestReporter
     {
-        protected readonly ConcurrentDictionary<string, CaseResult> _startedCasePerThread = new ConcurrentDictionary<string, CaseResult>();
         private static readonly object _lock = new object();
 
         public CbNUnitTestReporter(CbConfig config) : base(config)
@@ -30,7 +27,7 @@ namespace CloudBeat.Kit.NUnit
             if (string.IsNullOrEmpty(technologyName))
                 return;
             */
-            // if no direct API access details were defined, then write case result to local file
+            // If no direct API access details were defined, then write case result to local file
             // so CB Logger can pick it up and send it indirectly to CB server
             var cwd = TestContext.CurrentContext.WorkDirectory;
             var caseResultFile = $"{CbGeneralHelpers.FqnToFileName(caseResult.Fqn)}_case_result.json";
@@ -42,7 +39,7 @@ namespace CloudBeat.Kit.NUnit
         public void StartSuite(TestSuite suite)
         {
             var categoryAttributes = suite.GetCustomAttributes<CategoryAttribute>(true);
-            base.StartSuite(suite.Name, suite.FullName, x =>    // NUnitHelpers.GetTestSuiteFqn(
+            StartSuite(suite.Name, suite.FullName, x =>    // NUnitHelpers.GetTestSuiteFqn(
             {
                 x.Arguments = suite.Arguments?.Select(a => a.ToString()).ToArray();
                 AddCategoriesAsTagsAndTestAttributes(x, categoryAttributes);
@@ -96,17 +93,13 @@ namespace CloudBeat.Kit.NUnit
                         x.Context.Add("params", testParams);
 
                     AddCategoriesAsTagsAndTestAttributes(x, categoryAttributes);
-                    // store for later use the current test case result object (per thread)
-                    var threadId = Thread.CurrentThread.ManagedThreadId.ToString();
-                    if (!_startedCasePerThread.TryAdd(threadId, x))
-                        _startedCasePerThread[threadId] = x;
                 });
             }
         }
 
         public bool EndSuite(TestSuite suite)
         {
-            return base.EndSuite(suite.FullName); // NUnitHelpers.GetTestSuiteFqn(
+            return EndSuite(suite.FullName); // NUnitHelpers.GetTestSuiteFqn(
         }
 
         public void EndCase(Test test)
@@ -117,16 +110,10 @@ namespace CloudBeat.Kit.NUnit
             var status = NUnitHelpers.DetermineTestStatus(nuTestResult.Outcome);
             lock (_lock)
             {
-                var startedCase = GetStartedCase();
                 var fqn = test.FullName; // NUnitHelpers.GetTestCaseFqn(test);
                 CaseResult endedCase;
                 // remove ended case from current case per-thread storage
-                if (startedCase != null)
-                {
-                    var threadId = Thread.CurrentThread.ManagedThreadId.ToString();
-                    _startedCasePerThread.Remove(threadId, out startedCase);
-                }
-                endedCase = base.EndCase(fqn, status, failure);
+                endedCase = EndCase(fqn, status, failure);
                 WriteCaseResultToFile(endedCase);
             }
         }
@@ -157,7 +144,6 @@ namespace CloudBeat.Kit.NUnit
         public TResult StepWithFqn<T, TResult>(string name, string fqn, Func<T, TResult> func, T arg)
         {
             var testFqn = NUnitHelpers.GetFqn(TestContext.CurrentContext.Test);
-            var step = base.Step(testFqn, name, func, arg);
             return base.Step(testFqn, name, StepTypeEnum.General, func, arg, x => x.Fqn = fqn);
         }
         public TResult Step<TResult>(string name, Func<TResult> func)
@@ -174,9 +160,7 @@ namespace CloudBeat.Kit.NUnit
         }
         public override StepResult StartStep(string stepName, StepTypeEnum type = StepTypeEnum.General, CaseResult parentCase = null)
         {
-            // var testFqn = NUnitHelpers.GetFqn(TestContext.CurrentContext.Test);
-            // return base.StartStep(testFqn, name);
-            return base.StartStep(stepName, type, GetStartedCase());
+            return base.StartStep(stepName, type);
         }
 
         public override StepResult EndStep(
@@ -191,13 +175,6 @@ namespace CloudBeat.Kit.NUnit
         public void HasWarnings(bool hasWarnings = true)
         {
             SetCaseHasWarnings(hasWarnings);
-        }
-
-        private CaseResult GetStartedCase()
-        {
-            var threadId = Thread.CurrentThread.ManagedThreadId.ToString();
-            _startedCasePerThread.TryGetValue(threadId, out CaseResult caseResult);
-            return caseResult;
         }
     }
 }

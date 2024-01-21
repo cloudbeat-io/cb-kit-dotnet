@@ -327,7 +327,7 @@ namespace CloudBeat.Kit.Playwright
             var task = page.ClickAsync(selector, options);
             task.GetAwaiter().OnCompleted(() =>
             {
-                step?.End();
+                Helper.EndTaskStep(task, step, reporter);
             });
             return task;
         }
@@ -512,67 +512,67 @@ namespace CloudBeat.Kit.Playwright
 
         ILocator IPage.GetByAltText(string text, PageGetByAltTextOptions options)
         {
-            return new CbLocatorWrapper(page.GetByAltText(text, options), reporter);
+            return WrapLocator(page.GetByAltText(text, options));
         }
 
         ILocator IPage.GetByAltText(Regex text, PageGetByAltTextOptions options)
         {
-            return new CbLocatorWrapper(page.GetByAltText(text, options), reporter);
+            return WrapLocator(page.GetByAltText(text, options));
         }
 
         ILocator IPage.GetByLabel(string text, PageGetByLabelOptions options)
         {
-            return new CbLocatorWrapper(page.GetByLabel(text, options), reporter);
+            return WrapLocator(page.GetByLabel(text, options));
         }
 
         ILocator IPage.GetByLabel(Regex text, PageGetByLabelOptions options)
         {
-            return new CbLocatorWrapper(page.GetByLabel(text, options), reporter);
+            return WrapLocator(page.GetByLabel(text, options));
         }
 
         ILocator IPage.GetByPlaceholder(string text, PageGetByPlaceholderOptions options)
         {
-            return new CbLocatorWrapper(page.GetByPlaceholder(text, options), reporter);
+            return WrapLocator(page.GetByPlaceholder(text, options));
         }
 
         ILocator IPage.GetByPlaceholder(Regex text, PageGetByPlaceholderOptions options)
         {
-            return new CbLocatorWrapper(page.GetByPlaceholder(text, options), reporter);
+            return WrapLocator(page.GetByPlaceholder(text, options));
         }
 
         ILocator IPage.GetByRole(AriaRole role, PageGetByRoleOptions options)
         {
-            return new CbLocatorWrapper(page.GetByRole(role, options), reporter);
+            return WrapLocator(page.GetByRole(role, options));
         }
 
         ILocator IPage.GetByTestId(string testId)
         {
-            return new CbLocatorWrapper(page.GetByTestId(testId), reporter);
+            return WrapLocator(page.GetByTestId(testId));
         }
 
         ILocator IPage.GetByTestId(Regex testId)
         {
-            return new CbLocatorWrapper(page.GetByTestId(testId), reporter);
+            return WrapLocator(page.GetByTestId(testId));
         }
 
         ILocator IPage.GetByText(string text, PageGetByTextOptions options)
         {
-            return new CbLocatorWrapper(page.GetByText(text, options), reporter);
+            return WrapLocator(page.GetByText(text, options));
         }
 
         ILocator IPage.GetByText(Regex text, PageGetByTextOptions options)
         {
-            return new CbLocatorWrapper(page.GetByText(text, options), reporter);
+            return WrapLocator(page.GetByText(text, options));
         }
 
         ILocator IPage.GetByTitle(string text, PageGetByTitleOptions options)
         {
-            return new CbLocatorWrapper(page.GetByTitle(text, options), reporter);
+            return WrapLocator(page.GetByTitle(text, options));
         }
 
         ILocator IPage.GetByTitle(Regex text, PageGetByTitleOptions options)
         {
-            return new CbLocatorWrapper(page.GetByTitle(text, options), reporter);
+            return WrapLocator(page.GetByTitle(text, options));
         }
 
         Task<IResponse> IPage.GoBackAsync(PageGoBackOptions options)
@@ -581,7 +581,7 @@ namespace CloudBeat.Kit.Playwright
             var task = page.GoBackAsync(options);
             task.GetAwaiter().OnCompleted(() =>
             {
-                step?.End();
+                Helper.EndTaskStep(task, step, reporter);
             });
             return task;
         }
@@ -592,18 +592,20 @@ namespace CloudBeat.Kit.Playwright
             var task = page.GoForwardAsync(options);
             task.GetAwaiter().OnCompleted(() =>
             {
-                step?.End();
+                Helper.EndTaskStep(task, step, reporter);
             });
             return task;
         }
 
         Task<IResponse> IPage.GotoAsync(string url, PageGotoOptions options)
         {
-            var step = reporter?.StartStep($"Navigate to {url}");
+            if (reporter == null)
+                return page.GotoAsync(url, options);
+            var step = Helper.StartStepAsync("Navigate to", url, page, reporter).Result;
             var task = page.GotoAsync(url, options);
             task.GetAwaiter().OnCompleted(() =>
             {
-                step?.End();
+                Helper.EndTaskStep(task, step, reporter);
             });
             return task;
         }
@@ -661,10 +663,7 @@ namespace CloudBeat.Kit.Playwright
         ILocator IPage.Locator(string selector, PageLocatorOptions options)
         {
             // TODO: shall we add this as "find element" step or ignore it?
-            var locator = page.Locator(selector, options);
-            if (locator != null)
-                return new CbLocatorWrapper(locator, reporter);
-            return null;
+            return WrapLocator(page.Locator(selector, options));
         }
 
         Task<IPage> IPage.OpenerAsync()
@@ -753,7 +752,7 @@ namespace CloudBeat.Kit.Playwright
             var task = page.RunAndWaitForFileChooserAsync(action, options);
             task.GetAwaiter().OnCompleted(() =>
             {
-                step?.End();
+                Helper.EndTaskStep(task, step, reporter);
             });
             return task;
         }
@@ -805,7 +804,7 @@ namespace CloudBeat.Kit.Playwright
             var task = page.RunAndWaitForResponseAsync(action, urlOrPredicate, options);
             task.GetAwaiter().OnCompleted(() =>
             {
-                step?.End();
+                Helper.EndTaskStep(task, step, reporter);
             });
             return task;
         }
@@ -927,7 +926,7 @@ namespace CloudBeat.Kit.Playwright
             var task = page.TypeAsync(selector, text, options);
             task.GetAwaiter().OnCompleted(() =>
             {
-                step?.End();
+                Helper.EndTaskStep(task, step, reporter);
             });
             return task;
         }
@@ -1071,6 +1070,13 @@ namespace CloudBeat.Kit.Playwright
         Task<IWorker> IPage.WaitForWorkerAsync(PageWaitForWorkerOptions options)
         {
             return page.WaitForWorkerAsync(options);
+        }
+
+        private ILocator WrapLocator(ILocator locator)
+        {
+            if (locator == null)
+                return null;
+            return new CbLocatorWrapper(locator, page, reporter);
         }
     }
 }

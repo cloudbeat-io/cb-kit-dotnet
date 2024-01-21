@@ -13,14 +13,18 @@ namespace CloudBeat.Kit.Common.Models
         protected readonly TestableResultBase _parentContainer;
         protected readonly IList<StepResult> _steps;
         protected readonly IList<LogMessage> _logs;
+        private static object _lock = new object();
+
         public StepResult(TestableResultBase parentContainer, StepResult parentStep = null) : this(Guid.NewGuid().ToString(), parentContainer, parentStep)
         {            
         }
+
         public StepResult(string id, TestableResultBase parentContainer, StepResult parentStep = null)
         {
             _id = id;
             _parentStep = parentStep;
             _parentContainer = parentContainer;
+            // _steps = new BlockingCollection<StepResult>();
             _steps = new List<StepResult>();
             _logs = new List<LogMessage>();
             StartTime = DateTime.UtcNow;
@@ -58,9 +62,12 @@ namespace CloudBeat.Kit.Common.Models
         #region Methods
         public StepResult AddNewStep(string name, StepTypeEnum type = StepTypeEnum.General)
 		{
-            var newStep = new StepResult(this._parentContainer, this) { Name = name, Type = type };
-            _steps.Add(newStep);
-            return newStep;
+            lock (_lock)
+            {
+                var newStep = new StepResult(this._parentContainer, this) { Name = name, Type = type };
+                _steps.Add(newStep);
+                return newStep;
+            }
         }
 
 		public void End(FailureResult failure)
@@ -71,15 +78,19 @@ namespace CloudBeat.Kit.Common.Models
 
 		public void End(TestStatusEnum? status = null, Exception exception = null, string screenshot = null)
 		{
-            EndTime = DateTime.UtcNow;
-            Duration = ModelHelpers.CalculateDuration(StartTime, EndTime);
-            ScreenShot = screenshot;
-            if (exception != null) {
-                Failure = CbExceptionHelper.GetFailureFromException(exception);
-                if (!status.HasValue)
-                    status = TestStatusEnum.Failed;
+            lock (_lock)
+            {
+                EndTime = DateTime.UtcNow;
+                Duration = ModelHelpers.CalculateDuration(StartTime, EndTime);
+                ScreenShot = screenshot;
+                if (exception != null)
+                {
+                    Failure = CbExceptionHelper.GetFailureFromException(exception);
+                    if (!status.HasValue)
+                        status = TestStatusEnum.Failed;
+                }
+                UpdateStatus(status);
             }
-            UpdateStatus(status);
         }
 
         private void UpdateStatus(TestStatusEnum? status = null)

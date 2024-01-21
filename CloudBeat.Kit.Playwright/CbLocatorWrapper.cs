@@ -10,14 +10,24 @@ namespace CloudBeat.Kit.Playwright
 {
 	public class CbLocatorWrapper : ILocator
     {
-		readonly ILocator locator;
-		readonly CbTestReporter reporter;
+        protected readonly ILocator locator;
+        protected readonly IPage page;
+        protected readonly CbTestReporter reporter;
+        protected readonly string label;
 
-        public CbLocatorWrapper(ILocator locator, CbTestReporter reporter)
+        public CbLocatorWrapper(ILocator locator, IPage page, CbTestReporter reporter)
 		{
 			this.locator = locator;
 			this.reporter = reporter;
-		}
+            try
+            {
+                label = Helper.GetLocatorLabel(locator, page).Result;
+            }
+            catch
+            {
+                label = ToString();
+            }
+        }
 
         public ILocator GetBaseLocator()
         {
@@ -67,22 +77,26 @@ namespace CloudBeat.Kit.Playwright
 
         public Task ClearAsync(LocatorClearOptions options = null)
         {
+            if (reporter == null)
+                return locator.ClearAsync(options);
             var step = reporter?.StartStep($"Clear {locator}");
             var task = locator.ClearAsync(options);
             task.GetAwaiter().OnCompleted(() =>
             {
-                step?.End();
+                Helper.EndTaskStep(task, step, reporter);
             });
             return task;
         }
 
         public Task ClickAsync(LocatorClickOptions options = null)
         {
-            var step = reporter?.StartStep($"Click {locator}");
+            if (reporter == null)
+                return locator.ClickAsync();
+            var step = reporter.StartStep($"Click on {label}");
             var task = locator.ClickAsync(options);
             task.GetAwaiter().OnCompleted(() =>
             {
-                step?.End();
+                Helper.EndTaskStep(task, step, reporter);
             });
             return task;
         }
@@ -94,11 +108,13 @@ namespace CloudBeat.Kit.Playwright
 
         public Task DblClickAsync(LocatorDblClickOptions options = null)
         {
-            var step = reporter?.StartStep($"Double click {locator}");
+            if (reporter == null)
+                return locator.DblClickAsync();
+            var step = reporter.StartStep($"Double click on {label}");
             var task = locator.DblClickAsync(options);
             task.GetAwaiter().OnCompleted(() =>
             {
-                step?.End();
+                Helper.EndTaskStep(task, step, reporter);
             });
             return task;
         }
@@ -145,11 +161,13 @@ namespace CloudBeat.Kit.Playwright
 
         public Task FillAsync(string value, LocatorFillOptions options = null)
         {
-            var step = reporter?.StartStep($"Fill {locator} with {value}");
+            if (reporter == null)
+                return locator.FillAsync(value, options);
+            var step = reporter.StartStep($"Fill {label} with \"{value}\"");
             var task = locator.FillAsync(value, options);
             task.GetAwaiter().OnCompleted(() =>
             {
-                step?.End();
+                Helper.EndTaskStep(task, step, reporter);
             });
             return task;
         }
@@ -407,11 +425,13 @@ namespace CloudBeat.Kit.Playwright
         [Obsolete]
         public Task TypeAsync(string text, LocatorTypeOptions options = null)
         {
-            var step = reporter?.StartStep($"Type {text} into {locator}");
+            if (reporter == null)
+                return locator.TypeAsync(text, options);
+            var step = reporter.StartStep($"Type \"{text}\" into {label}");
             var task = locator.TypeAsync(text, options);
             task.GetAwaiter().OnCompleted(() =>
             {
-                step?.End();
+                Helper.EndTaskStep(task, step, reporter);
             });
             return task;
         }
