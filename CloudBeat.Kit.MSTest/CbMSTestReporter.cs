@@ -15,14 +15,13 @@ namespace CloudBeat.Kit.MSTest
 {
     public class CbMSTestReporter : CbTestReporter
     {
-        private const string DEFAULT_TECHNOLOGY_NAME = "MSTest";
-        private const string ASSERTION_FAILURE_TYPE = "ASSERTION_ERROR";
-        private const string UNKOWN_FAILURE_TYPE = "UNKOWN_ERROR";
         protected readonly ConcurrentDictionary<string, CaseResult> _startedCasePerThread = new ConcurrentDictionary<string, CaseResult>();
         private static readonly object _lock = new object();
+
         public CbMSTestReporter(CbConfig config) : base(config)
         {
         }
+
         private void WriteCaseResultToFile(CaseResult caseResult, Microsoft.VisualStudio.TestTools.UnitTesting.TestResult testResult = null)
         {
 			if (caseResult == null)
@@ -39,7 +38,7 @@ namespace CloudBeat.Kit.MSTest
 				caseResultFile = $"{CbGeneralHelpers.FqnToFileName(caseResult.Fqn)}{argsHash}-{randomSuffix}_case_result.json";
 			}
 			var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
-			var cwd = System.IO.Path.GetDirectoryName(assembly.Location);
+			var cwd = Path.GetDirectoryName(assembly.Location);
 			var fullFilePath = Path.Combine(cwd, caseResultFile);
             File.WriteAllText(fullFilePath, JsonConvert.SerializeObject(caseResult));
             if (testResult != null)
@@ -337,7 +336,6 @@ namespace CloudBeat.Kit.MSTest
                         caseResult.TestAttributes.Add(keyVal[0], keyVal[1]);
                     }
                 }
-                
             }
         }
     }

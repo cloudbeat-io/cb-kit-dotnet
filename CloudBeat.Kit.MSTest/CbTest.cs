@@ -70,7 +70,6 @@ namespace CloudBeat.Kit.MSTest
         
         public void Dispose()
         {
-            
         }
 
 		private bool HasCbTestMethodAttribute(string testMethodName)
@@ -81,6 +80,5 @@ namespace CloudBeat.Kit.MSTest
 			var cbTestMethodAttr = methodInfo.GetCustomAttribute<CbTestMethodAttribute>();
 			return cbTestMethodAttr != null;
 		}
-
 	}
 }
