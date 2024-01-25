@@ -1,5 +1,4 @@
-﻿using System;
-namespace CloudBeat.Kit.Common.Models
+﻿namespace CloudBeat.Kit.Common.Models
 {
     public class OutputDataEntry
     {

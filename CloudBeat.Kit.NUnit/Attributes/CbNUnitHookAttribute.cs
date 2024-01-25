@@ -2,8 +2,6 @@
 using NUnit.Framework.Interfaces;
 using NUnit.Framework.Internal.Commands;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CloudBeat.Kit.NUnit.Attributes
 {

@@ -7,8 +7,6 @@ using System;
 using Newtonsoft.Json;
 using System.IO;
 using CbExceptionHelper = CloudBeat.Kit.Common.CbExceptionHelper;
-using System.Collections.Concurrent;
-using System.Threading;
 
 namespace CloudBeat.Kit.NUnit
 {

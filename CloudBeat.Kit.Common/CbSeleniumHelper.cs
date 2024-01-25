@@ -1,9 +1,8 @@
-﻿using System;
-using OpenQA.Selenium;
+﻿using OpenQA.Selenium;
 
 namespace CloudBeat.Kit.Common
 {
-	public static class CbSeleniumHelper
+    public static class CbSeleniumHelper
 	{
         public static string GetElementDisplayName(IWebElement elm, IWebDriver driver)
         {

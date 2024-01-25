@@ -84,7 +84,7 @@ namespace CloudBeat.Kit.MSTest
 				}
                 base.StartCase(name, fqn, x =>
                 {
-					var threadId = Thread.CurrentThread.ManagedThreadId.ToString();
+					var threadId = Environment.CurrentManagedThreadId.ToString();
 					if (!_startedCasePerThread.TryAdd(threadId, x))
 						_startedCasePerThread[threadId] = x;
 				});
@@ -118,7 +118,7 @@ namespace CloudBeat.Kit.MSTest
                         x.Context.Add("params", contextParams);
                     AddCategoriesAsTagsAndTestAttributes(x, categoryAttributes);
                     // cache last started case per execution thread
-                    var threadId = Thread.CurrentThread.ManagedThreadId.ToString();
+                    var threadId = Environment.CurrentManagedThreadId.ToString();
                     if (!_startedCasePerThread.TryAdd(threadId, x))
                         _startedCasePerThread[threadId] = x;
                 });
@@ -141,7 +141,7 @@ namespace CloudBeat.Kit.MSTest
 			CaseResult startedCase = GetStartedCase(testContext), endedCase = null;
 
 			if (startedCase == null) return;
-			string suiteFqn = testContext?.FullyQualifiedTestClassName ?? MSTestHelpers.GetSuiteFqnFromCaseFqn(startedCase?.Fqn);
+			//string suiteFqn = testContext?.FullyQualifiedTestClassName ?? MSTestHelpers.GetSuiteFqnFromCaseFqn(startedCase?.Fqn);
 			string caseFqn = startedCase?.Fqn ?? GetCaseFqn(testContext);
 			FailureResult failureResult = null;
             TestStatusEnum testStatus = MSTestHelpers.DetermineTestStatus(testContext.CurrentTestOutcome);
@@ -308,7 +308,7 @@ namespace CloudBeat.Kit.MSTest
         private CaseResult GetStartedCase(TestContext testContext)
         {
             CaseResult caseResult = null;
-            var threadId = Thread.CurrentThread.ManagedThreadId.ToString();
+            var threadId = Environment.CurrentManagedThreadId.ToString();
             _startedCasePerThread.TryGetValue(threadId, out caseResult);
             if (caseResult == null && testContext != null)
             {
@@ -328,7 +328,7 @@ namespace CloudBeat.Kit.MSTest
                     continue;
                 foreach (var testCategoryName in categoryAttr.TestCategories)
                 {
-                    if (testCategoryName.Contains(":"))
+                    if (testCategoryName.Contains(':'))
                     {
                         var keyVal = testCategoryName.Split(':');
                         if (keyVal.Length < 2) continue;

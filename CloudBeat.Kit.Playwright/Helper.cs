@@ -1,13 +1,11 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using CloudBeat.Kit.Common;
 using CloudBeat.Kit.Common.Models;
 using Microsoft.Playwright;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace CloudBeat.Kit.Playwright
 {
-	public static class Helper
+    public static class Helper
 	{
         public static Task<StepResult> StartStepAsync(string namePrefix, string value, IPage page, CbTestReporter reporter)
         {

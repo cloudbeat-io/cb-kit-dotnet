@@ -1,6 +1,4 @@
 ﻿using CloudBeat.Kit.Common.Models;
-using OpenQA.Selenium;
-using OpenQA.Selenium.DevTools;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.Events;
 using OpenQA.Selenium.Support.Extensions;

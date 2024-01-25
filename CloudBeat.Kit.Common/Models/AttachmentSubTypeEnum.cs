@@ -1,7 +1,6 @@
-﻿using System;
-namespace CloudBeat.Kit.Common.Models
+﻿namespace CloudBeat.Kit.Common.Models
 {
-	public enum AttachmentSubTypeEnum
+    public enum AttachmentSubTypeEnum
 	{
 		ScreenShot,
 		ScreenRecording,
