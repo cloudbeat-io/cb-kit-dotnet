@@ -13,6 +13,8 @@
 	<RepositoryUrl>https://github.com/cloudbeat-io/cb-kit-dotnet</RepositoryUrl>
 	<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
 	<DebugType>embedded</DebugType>
+	<DebugSymbols>true</DebugSymbols>
+	<EmbedAllSources>true</EmbedAllSources>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Playwright" Version="1.39.0" />
