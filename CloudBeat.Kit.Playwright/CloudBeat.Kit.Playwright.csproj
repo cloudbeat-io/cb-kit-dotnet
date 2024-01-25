@@ -11,7 +11,8 @@
 	<Version>4.0.0</Version>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	<RepositoryUrl>https://github.com/cloudbeat-io/cb-kit-dotnet</RepositoryUrl>
-	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+	<DebugType>embedded</DebugType>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Playwright" Version="1.39.0" />

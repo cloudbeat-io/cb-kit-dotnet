@@ -12,7 +12,8 @@
     <Company>CBNR Cloud Solutions Ltd.</Company>
     <PackageProjectUrl>https://cloudbeat.io</PackageProjectUrl>
     <RepositoryUrl>https://github.com/cloudbeat-io/cb-kit-dotnet</RepositoryUrl>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+	<DebugType>embedded</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
