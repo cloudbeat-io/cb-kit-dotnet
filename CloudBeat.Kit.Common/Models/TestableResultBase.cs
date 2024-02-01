@@ -79,7 +79,7 @@ namespace CloudBeat.Kit.Common.Models
                 while (_openSteps.Count > 0 && _openSteps.Peek() != step)
                 {
                     StepResult stepToBeEnded = _openSteps.Pop();
-                    if (stepToBeEnded.EndTime != null)
+                    if (stepToBeEnded.EndTime == null)
                         stepToBeEnded.End();
                 }
                 if (_openSteps.Count > 0 && _openSteps.Peek() == step)

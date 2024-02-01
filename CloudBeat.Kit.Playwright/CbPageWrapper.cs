@@ -15,11 +15,15 @@ namespace CloudBeat.Kit.Playwright
         readonly CbTestReporter reporter;
 
 
-        public CbPageWrapper(IPage page, CbTestReporter reporter)
+        public CbPageWrapper(IPage page, CbTestReporter reporter, string uniqueTestId = null)
 		{
             this.page = page;
             this.reporter = reporter;
-		}
+            if (uniqueTestId != null)
+                reporter?.SetScreenshotProvider(uniqueTestId, new CbPwScreenshotProvider(page));
+            else
+                reporter?.SetScreenshotProvider(new CbPwScreenshotProvider(page));
+        }
 
         [Obsolete]
         IAccessibility IPage.Accessibility => page.Accessibility;
@@ -295,6 +299,11 @@ namespace CloudBeat.Kit.Playwright
             }
         }
 
+        public Task UnrouteAllAsync(PageUnrouteAllOptions options = null)
+        {
+            return page.UnrouteAllAsync(options);
+        }
+
         Task IPage.AddInitScriptAsync(string script, string scriptPath)
         {
             return page.AddInitScriptAsync(script, scriptPath);
@@ -325,16 +334,12 @@ namespace CloudBeat.Kit.Playwright
         {
             var step = reporter?.StartStep($"Click on {selector}");
             var task = page.ClickAsync(selector, options);
-            task.GetAwaiter().OnCompleted(() =>
-            {
-                Helper.EndTaskStep(task, step, reporter);
-            });
-            return task;
+            return Helper.WrapStepTask(task, step, page, reporter);
         }
 
         Task IPage.CloseAsync(PageCloseOptions options)
         {
-            return page.CloseAsync();
+            return page.CloseAsync(options);
         }
 
         Task<string> IPage.ContentAsync()
@@ -579,35 +584,23 @@ namespace CloudBeat.Kit.Playwright
         {
             var step = reporter?.StartStep("Navigate back");
             var task = page.GoBackAsync(options);
-            task.GetAwaiter().OnCompleted(() =>
-            {
-                Helper.EndTaskStep(task, step, reporter);
-            });
-            return task;
+            return Helper.WrapStepTask(task, step, page, reporter);
         }
 
         Task<IResponse> IPage.GoForwardAsync(PageGoForwardOptions options)
         {
             var step = reporter?.StartStep("Navigate forward");
             var task = page.GoForwardAsync(options);
-            task.GetAwaiter().OnCompleted(() =>
-            {
-                Helper.EndTaskStep(task, step, reporter);
-            });
-            return task;
+            return Helper.WrapStepTask(task, step, page, reporter);
         }
 
         Task<IResponse> IPage.GotoAsync(string url, PageGotoOptions options)
         {
             if (reporter == null)
                 return page.GotoAsync(url, options);
-            var step = Helper.StartStepAsync("Navigate to", url, page, reporter).Result;
+            var step = reporter.StartStep($"Navigate to \"{url}\"");
             var task = page.GotoAsync(url, options);
-            task.GetAwaiter().OnCompleted(() =>
-            {
-                Helper.EndTaskStep(task, step, reporter);
-            });
-            return task;
+            return Helper.WrapStepTask(task, step, page, reporter);
         }
 
         Task IPage.HoverAsync(string selector, PageHoverOptions options)
@@ -750,11 +743,7 @@ namespace CloudBeat.Kit.Playwright
         {
             var step = reporter?.StartStep("Run and wait for file chooser");
             var task = page.RunAndWaitForFileChooserAsync(action, options);
-            task.GetAwaiter().OnCompleted(() =>
-            {
-                Helper.EndTaskStep(task, step, reporter);
-            });
-            return task;
+            return Helper.WrapStepTask(task, step, page, reporter);
         }
 
         [Obsolete]
@@ -802,11 +791,7 @@ namespace CloudBeat.Kit.Playwright
         {
             var step = reporter?.StartStep("Run and wait for response");
             var task = page.RunAndWaitForResponseAsync(action, urlOrPredicate, options);
-            task.GetAwaiter().OnCompleted(() =>
-            {
-                Helper.EndTaskStep(task, step, reporter);
-            });
-            return task;
+            return Helper.WrapStepTask(task, step, page, reporter);
         }
 
         Task<IWebSocket> IPage.RunAndWaitForWebSocketAsync(Func<Task> action, PageRunAndWaitForWebSocketOptions options)
@@ -922,13 +907,11 @@ namespace CloudBeat.Kit.Playwright
         [Obsolete]
         Task IPage.TypeAsync(string selector, string text, PageTypeOptions options)
         {
+            if (reporter == null)
+                return page.TypeAsync(selector, text, options);
             var step = reporter?.StartStep($"Type \"{text}\" into {selector}");
             var task = page.TypeAsync(selector, text, options);
-            task.GetAwaiter().OnCompleted(() =>
-            {
-                Helper.EndTaskStep(task, step, reporter);
-            });
-            return task;
+            return Helper.WrapStepTask(task, step, page, reporter);
         }
 
         Task IPage.UncheckAsync(string selector, PageUncheckOptions options)

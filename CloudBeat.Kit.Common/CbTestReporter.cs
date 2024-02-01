@@ -1,8 +1,8 @@
 ﻿using CloudBeat.Kit.Common.Client;
 using CloudBeat.Kit.Common.Models;
 using OpenQA.Selenium;
-using OpenQA.Selenium.Support.Extensions;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -25,8 +25,13 @@ namespace CloudBeat.Kit.Common
 		protected readonly ThreadLocal<IWebDriver> _currentWebDriver = new ThreadLocal<IWebDriver>();
 		*/
 		protected readonly AsyncLocal<CaseResult> _lastCaseResult = new();
-		protected readonly AsyncLocal<SuiteResult> _lastSuiteResult = new();
+		protected readonly ThreadLocal<CaseResult> _lastCaseResultByThread = new();
+        protected readonly AsyncLocal<SuiteResult> _lastSuiteResult = new();
 		protected readonly AsyncLocal<IWebDriver> _currentWebDriver = new();
+		protected readonly AsyncLocal<ICbScreenshotProvider> _screenshotProvider = new();
+		protected readonly ThreadLocal<ICbScreenshotProvider> _screenshotProviderByThread = new();
+		protected readonly ConcurrentDictionary<string, ICbScreenshotProvider> _screenshotProviderByTestId = new();
+		protected readonly AsyncLocal<string> _currentTestId = new();
 
         public CbTestReporter(CbConfig config)
 		{
@@ -99,6 +104,7 @@ namespace CloudBeat.Kit.Common
 			var newSuite = _result.AddNewSuite(name, fqn);
 			_lastSuiteResult.Value = newSuite;
 			_lastCaseResult.Value = null;
+			_lastCaseResultByThread.Value = null;
 			if (updateAction != null)
 				updateAction.Invoke(newSuite);
 		}
@@ -115,7 +121,7 @@ namespace CloudBeat.Kit.Common
 			if (parentSuite == null)
 				throw new InvalidOperationException("Case cannot be started as no open suite was found.");
 			var newCase = parentSuite.AddNewCase(caseName, caseFqn);
-			_lastCaseResult.Value = newCase;
+			_lastCaseResult.Value = _lastCaseResultByThread.Value = newCase;
 			if (updateAction != null)
 				updateAction.Invoke(newCase);
 		}
@@ -137,6 +143,7 @@ namespace CloudBeat.Kit.Common
 			if (parentSuite == null)
 				return null;
 			var endedCase = parentSuite.EndCase(fqn, status, failure);
+			_lastCaseResult.Value = _lastCaseResultByThread.Value = endedCase;
 			return endedCase;
 		}
 
@@ -149,7 +156,8 @@ namespace CloudBeat.Kit.Common
 				parentSuite.EndCase(caseResult, status, failure);
 			else
 				caseResult.End(status, failure);
-			return caseResult;
+            _lastCaseResult.Value = _lastCaseResultByThread.Value = caseResult;
+            return caseResult;
         }
         /*
 		public CaseResult EndCase(string suiteFqn, CaseResult caseResult, TestStatusEnum? status, FailureResult failure = null)
@@ -202,8 +210,19 @@ namespace CloudBeat.Kit.Common
 			var parentCase = parentSuite?.GetCaseByFqn(caseFqn);
 			return Step(parentCase, stepName, stepType, func, arg, updateStepAction);
 		}
-
-		public TResult Step<T, TResult>(CaseResult parentCase, string stepName, StepTypeEnum stepType, Func<T, TResult> func, T arg, Action<StepResult> updateStepAction = null)
+        public Task<TResult> StepAsync<TResult>(string caseFqn, string stepName, StepTypeEnum stepType, Func<Task<TResult>> func, Action<StepResult> updateStepAction = null)
+        {
+            var parentSuite = _lastSuiteResult.Value;
+            var parentCase = parentSuite?.GetCaseByFqn(caseFqn);
+            return StepAsync(parentCase, stepName, stepType, func, updateStepAction);
+        }
+        public Task StepAsync(string caseFqn, string stepName, StepTypeEnum stepType, Func<Task> func, Action<StepResult> updateStepAction = null)
+        {
+            var parentSuite = _lastSuiteResult.Value;
+            var parentCase = parentSuite?.GetCaseByFqn(caseFqn);
+            return StepAsync(parentCase, stepName, stepType, func, updateStepAction);
+        }
+        public TResult Step<T, TResult>(CaseResult parentCase, string stepName, StepTypeEnum stepType, Func<T, TResult> func, T arg, Action<StepResult> updateStepAction = null)
 		{
 			if (parentCase == null)
 				return func.Invoke(arg);
@@ -220,7 +239,7 @@ namespace CloudBeat.Kit.Common
 			updateStepAction?.Invoke(newStep);
 			try
 			{
-				var result = func.Invoke(arg);
+                var result = func.Invoke(arg);
 				if (result is Task task)
 				{
 					task.Wait();
@@ -240,15 +259,120 @@ namespace CloudBeat.Kit.Common
 				throw;
 			}
 		}
+        public Task<TResult> StepAsync<TResult>(CaseResult parentCase, string stepName, StepTypeEnum stepType, Func<Task<TResult>> func, Action<StepResult> updateStepAction = null)
+        {
+			if (parentCase == null)
+				return func();
+            StepResult newStep = StartStep(stepName, stepType, parentCase);
+            if (newStep == null)
+                return func();
+            /*bool argIsArray = arg != null ? arg.GetType().IsArray : false;
+            newStep.Arguments = arg == null
+                ? null
+                : argIsArray
+                    ? (arg as IEnumerable<object>)?.Select(x => x.ToString()).ToArray() : new string[] { arg.ToString() };
+			*/
+            newStep.MethodName = func.Method.Name;
+            // allow the invoker to update the step properties
+            updateStepAction?.Invoke(newStep);
+			var testId = _currentTestId.Value;
+            try
+			{
+                var task = func.Invoke();
+                task.ConfigureAwait(true);
+                TaskCompletionSource<TResult> tcs = new TaskCompletionSource<TResult>();
+                task.ContinueWith(ignored =>
+                {
+					if (testId != null)
+						SetCurrentTestId(testId);
+                    switch (task.Status)
+                    {
+                        case TaskStatus.Canceled:
+                            EndStep(newStep, TestStatusEnum.Skipped);
+                            tcs.SetCanceled();
+                            break;
+                        case TaskStatus.RanToCompletion:
+                            EndStep(newStep, TestStatusEnum.Passed);
+                            tcs.SetResult(task.Result);
+                            break;
+                        case TaskStatus.Faulted:
+                            //var screenshot = GetScreenshot(page);
+                            EndStep(newStep, TestStatusEnum.Failed, task.Exception);
+                            tcs.SetException(task.Exception);
+                            break;
+                        default:
+                            break;
+                    }
+                }, new CancellationToken(), TaskContinuationOptions.AttachedToParent, TaskScheduler.Current);
 
-		public TResult Step<T, TResult>(string caseFqn, string stepName, Func<T, TResult> func, T arg)
+                return tcs.Task;
+            }
+			catch (Exception e)
+			{
+                var tcs = new TaskCompletionSource<TResult>();
+                tcs.SetException(e);
+                return tcs.Task;
+            }
+        }
+        public Task StepAsync(CaseResult parentCase, string stepName, StepTypeEnum stepType, Func<Task> func, Action<StepResult> updateStepAction = null)
+        {
+            if (parentCase == null)
+                return func();
+            StepResult newStep = StartStep(stepName, stepType, parentCase);
+            if (newStep == null)
+                return func();
+            /*bool argIsArray = arg != null ? arg.GetType().IsArray : false;
+            newStep.Arguments = arg == null
+                ? null
+                : argIsArray
+                    ? (arg as IEnumerable<object>)?.Select(x => x.ToString()).ToArray() : new string[] { arg.ToString() };
+			*/
+            newStep.MethodName = func.Method.Name;
+            // allow the invoker to update the step properties
+            updateStepAction?.Invoke(newStep);
+			string testId = _currentTestId.Value;
+            try
+            {
+                var task = func.Invoke();
+                task.ConfigureAwait(true);
+                TaskCompletionSource tcs = new TaskCompletionSource();
+                // StackCrawlMark stackMark = StackCrawlMark.LookForMyCaller;
+                task.ContinueWith(ignored =>
+                {
+					if (testId != null)
+						SetCurrentTestId(testId);
+                    switch (task.Status)
+                    {
+                        case TaskStatus.Canceled:
+                            EndStep(newStep, TestStatusEnum.Skipped);
+                            tcs.SetCanceled();
+                            break;
+                        case TaskStatus.RanToCompletion:
+                            EndStep(newStep, TestStatusEnum.Passed);
+                            tcs.SetResult();
+                            break;
+                        case TaskStatus.Faulted:
+                            //var screenshot = GetScreenshot(page);
+                            EndStep(newStep, TestStatusEnum.Failed, task.Exception);
+                            tcs.SetException(task.Exception);
+                            break;
+                        default:
+                            break;
+                    }
+                }, new CancellationToken(), TaskContinuationOptions.AttachedToParent, TaskScheduler.Current);
+
+                return tcs.Task;
+            }
+            catch (Exception e)
+            {
+                var tcs = new TaskCompletionSource();
+                tcs.SetException(e);
+                return tcs.Task;
+            }
+        }
+        public TResult Step<T, TResult>(string caseFqn, string stepName, Func<T, TResult> func, T arg)
 		{
 			return Step(caseFqn, stepName, StepTypeEnum.General, func, arg);
-		}
-
-		public TResult Step<TResult>(CaseResult caseResult, string name, StepTypeEnum general, Func<TResult> func)
-		{
-			throw new NotImplementedException();
 		}
 
 		public StepResult Step(string caseFqn, string stepName, Action action)
@@ -350,33 +474,28 @@ namespace CloudBeat.Kit.Common
             return parentCase.EndStep(stepResult, status, exception, screenshot);
         }
 
-		/*public StepResult EndStep(string caseFqn, string stepName = null, TestStatusEnum? status = null)
-        {
-			var parentSuite = _result?.GetSuiteByCaseFqn(caseFqn);
-			var parentCase = parentSuite?.GetCaseByFqn(caseFqn);
-			if (parentCase == null)
-				return null;
-			return parentCase.EndStep(stepName, status);
-		}
-
-		public StepResult EndStep(string caseFqn, TestStatusEnum? status)
-        {
-			return EndStep(caseFqn, (string)null, status);
-        }
-
-		public StepResult EndStep(string caseFqn, StepResult step, TestStatusEnum? status = null)
-		{
-			var parentSuite = _result?.GetSuiteByCaseFqn(caseFqn);
-			var parentCase = parentSuite?.GetCaseByFqn(caseFqn);
-			if (parentCase == null)
-				return null;
-			return parentCase.EndStep(step, status);
-		}*/
-
         public void SetCurrentWebDriver(IWebDriver driver)
         {
 			_currentWebDriver.Value = driver;
         }
+
+        public void SetScreenshotProvider(ICbScreenshotProvider provider)
+		{
+			_screenshotProvider.Value = provider;
+		}
+
+        public void SetScreenshotProvider(string testId, ICbScreenshotProvider provider)
+		{
+			if (_screenshotProviderByTestId.ContainsKey(testId))
+				_screenshotProviderByTestId[testId] = provider;
+			else
+				_screenshotProviderByTestId.TryAdd(testId, provider);
+		}
+
+		public void SetCurrentTestId(string testId)
+		{
+			_currentTestId.Value = testId;
+		}
 
         public IWebDriver GetCurrentWebDriver()
         {
@@ -387,18 +506,26 @@ namespace CloudBeat.Kit.Common
 
 		public string GetScreenshotForException(StepResult stepResult, Exception e)
 		{
-			if (e == null)
+            if (e == null)
 				return null;
-			// check if we need to take a screenshot or it has been already taken in the child step
-			if (stepResult.Steps?.Count > 0) {
+			ICbScreenshotProvider screenshotProvider;
+			if (_currentTestId.Value != null && _screenshotProviderByTestId.ContainsKey(_currentTestId.Value))
+				screenshotProvider = _screenshotProviderByTestId[_currentTestId.Value];
+			else
+				screenshotProvider = _screenshotProvider.Value;
+			if (screenshotProvider == null)
+				return null;
+            // check if we need to take a screenshot or it has been already taken in the child step
+            if (stepResult.Steps?.Count > 0) {
 				var firstSimilarFailedChildStep = stepResult.Steps.FirstOrDefault(x => x.Status == TestStatusEnum.Failed && x.Failure?.Subtype == e.GetType().Name);
 				if (firstSimilarFailedChildStep != null && firstSimilarFailedChildStep.ScreenShot != null)
 					return null;
             }
-			var driver = GetCurrentWebDriver();
+			//var driver = GetCurrentWebDriver();
 			try
 			{
-                return driver?.TakeScreenshot()?.AsBase64EncodedString;
+				//return driver?.TakeScreenshot()?.AsBase64EncodedString;
+				return screenshotProvider.TakeScreenshot();
             }
 			catch { }
 			return null;
@@ -466,6 +593,29 @@ namespace CloudBeat.Kit.Common
 				resultWithAttachment.Attachments.Add(attachment);
         }
 
-		public CaseResult LastCaseResult => _lastCaseResult.Value;
+        public void AddScreenRecordingAttachmentFromPath(string videoFilePath, bool addToStep = false)
+        {
+            IResultWithAttachment resultWithAttachment;
+            if (addToStep && _lastCaseResult.Value != null && _lastCaseResult.Value.LastOpenStep != null)
+                resultWithAttachment = _lastCaseResult.Value.LastOpenStep;
+            else if (!addToStep)
+            {
+                if (_lastCaseResult.Value != null)
+                    resultWithAttachment = _lastCaseResult.Value;
+				else if (_lastCaseResultByThread.Value != null)
+                    resultWithAttachment = _lastCaseResultByThread.Value;
+                else if (_lastSuiteResult != null)
+                    resultWithAttachment = _lastSuiteResult.Value;
+                else
+                    return;
+            }
+            else
+                return;
+            var attachment = CbAttachmentHelper.PrepareScreenRecordingAttachmentFromPath(videoFilePath);
+            if (attachment != null && resultWithAttachment != null)
+                resultWithAttachment.Attachments.Add(attachment);
+        }
+
+        public CaseResult LastCaseResult => _lastCaseResult.Value;
 	}
 }

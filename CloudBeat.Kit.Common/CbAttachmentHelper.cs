@@ -27,6 +27,16 @@ namespace CloudBeat.Kit.Common
             }
         }
 
+        public static Attachment PrepareScreenRecordingAttachmentFromPath(string filePath)
+        {
+            var attachment = new Attachment();
+            attachment.Type = AttachmentTypeEnum.Video;
+            attachment.Subtype = AttachmentSubTypeEnum.ScreenRecording;
+            attachment.FileName = Path.GetFileName(filePath);
+            attachment.FilePath = filePath;
+            return attachment;
+        }
+
         public static string GetAttachmentFilePath(string fileName)
         {
             var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();

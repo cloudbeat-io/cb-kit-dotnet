@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 using AspectInjector.Broker;
 using CloudBeat.Kit.NUnit.Attributes;
 using NUnit.Framework;
@@ -10,12 +11,25 @@ namespace CloudBeat.Kit.NUnit.Aspects
     [Aspect(Scope.Global)]
     public class CbStepAspect
     {
+        private static readonly MethodInfo _asyncGenericHandler =
+            typeof(CbStepAspect).GetMethod(nameof(CbStepAspect.WrapAsync), BindingFlags.NonPublic | BindingFlags.Static);
+
+        private static readonly MethodInfo _asyncVoidGenericHandler =
+            typeof(CbStepAspect).GetMethod(nameof(CbStepAspect.WrapAsyncVoid), BindingFlags.NonPublic | BindingFlags.Static);
+
+        private static readonly MethodInfo _syncGenericHandler =
+            typeof(CbStepAspect).GetMethod(nameof(CbStepAspect.WrapSync), BindingFlags.NonPublic | BindingFlags.Static);
+
+        private static readonly Type _voidTaskResult = Type.GetType("System.Threading.Tasks.VoidTaskResult");
+
+
         [Advice(Kind.Around, Targets = Target.Method)]
         public object WrapStep(
             [Argument(Source.Name)] string methodName,
             [Argument(Source.Metadata)] MethodBase methodBase,
             [Argument(Source.Arguments)] object[] arguments,
-            [Argument(Source.Target)] Func<object[], object> method)
+            [Argument(Source.Target)] Func<object[], object> method,
+            [Argument(Source.ReturnType)] Type retType)
         {
             if (!CbNUnit.Current.IsConfigured)
                 return method(arguments);
@@ -27,15 +41,118 @@ namespace CloudBeat.Kit.NUnit.Aspects
             bool isHook = isSetUpHook || isTearDownHook || isOneTimeSetUpHook || isOneTimeTearDownHook;
             string hookName = GetHookName(isSetUpHook, isTearDownHook, isOneTimeSetUpHook, isOneTimeTearDownHook);
             var reporter = CbNUnit.Current.Reporter;
+            var testId = TestContext.CurrentContext.Test.ID;
+            reporter.SetCurrentTestId(testId);
             if (isHook)
                 return reporter.Hook(stepName ?? hookName, methodName, method, arguments);
-            string fullMethodName = $"{methodBase.DeclaringType}.{methodName}";
-            return reporter.StepWithFqn(
-                ParameterizeStepName(stepName, methodBase.GetParameters(), arguments) ?? methodName,
-                fullMethodName,
-                method,
-                arguments
-            );
+            string methodFqn = $"{methodBase.DeclaringType}.{methodName}";
+            string methodDisplayName = ParameterizeStepName(stepName, methodBase.GetParameters(), arguments) ?? methodName;
+            try
+            {
+                if (typeof(Task).IsAssignableFrom(retType))
+                {
+                    if (retType.IsConstructedGenericType)
+                        return _asyncGenericHandler.MakeGenericMethod(retType.GenericTypeArguments[0]).Invoke(null, new object[] {
+                            ConvertToTaskFunc(method, arguments), methodDisplayName, methodFqn, reporter
+                        });
+                    else
+                        return WrapAsyncVoid(
+                            ConvertToVoidTaskFunc(method, arguments), methodDisplayName, methodFqn, reporter
+                        );
+                        /*return _asyncVoidGenericHandler.MakeGenericMethod(_voidTaskResult).Invoke(null, new object[] {
+                            ConvertToVoidTaskFunc(method, arguments), methodDisplayName, methodFqn, reporter
+                        });*/
+                    //var syncResultType = retType.IsConstructedGenericType ? retType.GenericTypeArguments[0] : _voidTaskResult;
+                    
+                }
+                else
+                {
+                    return _syncGenericHandler.MakeGenericMethod(retType).Invoke(null, new object[] {
+                    method, arguments, methodDisplayName, methodFqn, reporter
+                });
+                }
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
+        }
+
+        private static Func<Task<object>> ConvertToTaskFunc(Func<object[], object> func, object[] args)
+        {
+            return () => (Task<object>)func(args);
+        }
+
+        private static Func<Task> ConvertToVoidTaskFunc(Func<object[], object> func, object[] args)
+        {
+            return () => (Task)func(args);
+        }
+
+        private static T WrapSync<T>(
+            Func<object[], object> func,
+            object[] args,
+            string methodName,
+            string methodFqn,
+            CbNUnitTestReporter reporter)
+        {
+            try
+            {
+                return (T)reporter.StepWithFqn(
+                    methodName,
+                    methodFqn,
+                    func,
+                    args
+                );
+            }
+            catch (Exception e)
+            {
+                // return default(T);
+                throw;
+            }
+        }
+
+        private static async Task<T> WrapAsync<T>(
+            Func<Task<object>> func,
+            string methodName,
+            string methodFqn,
+            CbNUnitTestReporter reporter)
+        {
+            try
+            {
+                return (T)await reporter.StepWithFqnAsync(
+                    methodName,
+                    methodFqn,
+                    func
+                );
+                // return await (Task<T>)func(args);
+            }
+            catch (Exception e)
+            {
+                throw;
+                // return default(T);
+            }
+        }
+
+        private static async Task WrapAsyncVoid(
+            Func<Task> func,
+            string methodName,
+            string methodFqn,
+            CbNUnitTestReporter reporter)
+        {
+            try
+            {
+                await reporter.StepWithFqnAsync(
+                    methodName,
+                    methodFqn,
+                    func
+                );
+                // return await (Task<T>)func(args);
+            }
+            catch (Exception e)
+            {
+                throw;
+                // return default(T);
+            }
         }
 
         private static string ParameterizeStepName(

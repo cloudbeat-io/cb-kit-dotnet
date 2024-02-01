@@ -7,6 +7,9 @@ using System;
 using Newtonsoft.Json;
 using System.IO;
 using CbExceptionHelper = CloudBeat.Kit.Common.CbExceptionHelper;
+using System.Collections.Concurrent;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CloudBeat.Kit.NUnit
 {
@@ -143,6 +146,16 @@ namespace CloudBeat.Kit.NUnit
         {
             var testFqn = NUnitHelpers.GetFqn(TestContext.CurrentContext.Test);
             return base.Step(testFqn, name, StepTypeEnum.General, func, arg, x => x.Fqn = fqn);
+        }
+        public Task<TResult> StepWithFqnAsync<TResult>(string name, string fqn, Func<Task<TResult>> func)
+        {
+            var testFqn = NUnitHelpers.GetFqn(TestContext.CurrentContext.Test);
+            return StepAsync(testFqn, name, StepTypeEnum.General, func, x => x.Fqn = fqn);
+        }
+        public Task StepWithFqnAsync(string name, string fqn, Func<Task> func)
+        {
+            var testFqn = NUnitHelpers.GetFqn(TestContext.CurrentContext.Test);
+            return StepAsync(testFqn, name, StepTypeEnum.General, func, x => x.Fqn = fqn);
         }
         public TResult Step<TResult>(string name, Func<TResult> func)
         {

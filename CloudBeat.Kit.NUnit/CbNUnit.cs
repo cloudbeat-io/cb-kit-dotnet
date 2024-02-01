@@ -14,6 +14,7 @@ namespace CloudBeat.Kit.NUnit
     public static class CbNUnit
     {
         private const string TEST_DATA_PARAM_NAME = "testData";
+        private const string CB_ENVIRONMENT_PARAM_NAME = "environment";
 
         private static CbNUnitContext currentCbContext;
 
@@ -88,7 +89,7 @@ namespace CloudBeat.Kit.NUnit
 			{
                 var step = Current.Reporter.Step(name, action);
                 if (step != null)
-                    step.Type = Common.Models.StepTypeEnum.Transaction;
+                    step.Type = StepTypeEnum.Transaction;
             }
                 
         }
@@ -151,11 +152,23 @@ namespace CloudBeat.Kit.NUnit
             Current.Reporter?.AddScreenRecordingAttachment(videoBase64Data);
         }
 
+        public static void AddScreenRecordingFromPath(string videoFilePath)
+        {
+            if (!Current.IsConfigured)
+                return;
+            Current.Reporter?.AddScreenRecordingAttachmentFromPath(videoFilePath);
+        }
+
         public static void HasWarnings(bool hasWarnings = true)
         {
             if (!Current.IsConfigured)
                 return;
             Current.Reporter?.HasWarnings(hasWarnings);
+        }
+
+        public static string GetEnvironmentName()
+        {
+            return "Dev";
         }
 
         private static CbNUnitContext CreateCloudBeatNUnitContext()

@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿
+using System.Threading;
+using System.Threading.Tasks;
 using CloudBeat.Kit.Common;
 using CloudBeat.Kit.Common.Models;
 using Microsoft.Playwright;
@@ -17,8 +19,10 @@ namespace CloudBeat.Kit.Playwright
 
         public static void EndTaskStep(Task task, StepResult step, CbTestReporter reporter)
 		{
-			if (!task.IsCompleted || reporter == null)
+			if (reporter == null)
 				return;
+            if (!task.IsCompleted)
+                task.Wait();
             if (task.IsFaulted)
                 reporter.EndStep(step, TestStatusEnum.Failed, task.Exception);
 			else
@@ -117,6 +121,94 @@ namespace CloudBeat.Kit.Playwright
             // remove white space and ":" suffix if presented
             var labelText = await locator.InnerTextAsync();
             return TrimAndReplaceLastColon(labelText);
+        }
+
+        public static Task<T> WrapStepTask<T>(
+            Task<T> task,
+            StepResult step,
+            IPage page,
+            CbTestReporter reporter)
+        {
+            if (reporter == null)
+                return task;
+            task.ConfigureAwait(true);
+            reporter.SetScreenshotProvider(new CbPwScreenshotProvider(page));
+            TaskCompletionSource<T> tcs = new TaskCompletionSource<T>();
+            task.ContinueWith(ignored =>
+            {
+                switch (task.Status)
+                {
+                    case TaskStatus.Canceled:
+                        reporter.EndStep(step, TestStatusEnum.Skipped);
+                        tcs.SetCanceled();
+                        break;
+                    case TaskStatus.RanToCompletion:
+                        reporter.EndStep(step, TestStatusEnum.Passed);
+                        tcs.SetResult(task.Result);
+                        break;
+                    case TaskStatus.Faulted:
+                        string screenshot = null;// GetScreenshot(page);
+                        reporter.EndStep(step, TestStatusEnum.Failed, task.Exception, screenshot);
+                        tcs.SetException(task.Exception);
+                        break;
+                    default:
+                        break;
+                }
+            }, new CancellationToken(), TaskContinuationOptions.AttachedToParent, TaskScheduler.Current);
+
+            return tcs.Task;
+        }
+
+        public static Task WrapStepTask(
+            Task task,
+            StepResult step,
+            IPage page,
+            CbTestReporter reporter)
+        {
+            if (reporter == null)
+                return task;
+            task.ConfigureAwait(true);
+            reporter.SetScreenshotProvider(new CbPwScreenshotProvider(page));
+            TaskCompletionSource tcs = new TaskCompletionSource();
+            task.ContinueWith(ignored =>
+            {
+                switch (task.Status)
+                {
+                    case TaskStatus.Canceled:
+                        reporter.EndStep(step, TestStatusEnum.Skipped);
+                        tcs.SetCanceled();
+                        break;
+                    case TaskStatus.RanToCompletion:
+                        reporter.EndStep(step, TestStatusEnum.Passed);
+                        tcs.SetResult();
+                        break;
+                    case TaskStatus.Faulted:
+                        var screenshot = TakeScreenshot(page);
+                        reporter.EndStep(step, TestStatusEnum.Failed, task.Exception, screenshot);
+                        tcs.SetException(task.Exception);
+                        break;
+                    default:
+                        break;
+                }
+            }, new CancellationToken(), TaskContinuationOptions.AttachedToParent, TaskScheduler.Current);
+
+            return tcs.Task;
+        }
+
+        public static string TakeScreenshot(IPage page)
+        {
+            try
+            {
+                var task = page.ScreenshotAsync();
+                var success = task.Wait(30000);
+                if (!success) return null;
+                var bytes = task.Result;
+                return Convert.ToBase64String(bytes);
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }
