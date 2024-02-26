@@ -1,0 +1,104 @@
+﻿using CloudBeat.Kit.Common.Models;
+using NUnit.Framework;
+using NUnit.Framework.Interfaces;
+using NUnit.Framework.Internal;
+using System;
+using System.Collections.Generic;
+using static NUnit.Framework.TestContext;
+
+namespace CloudBeat.Kit.NUnit
+{
+    internal static class NUnitHelpers
+    {
+		private const string DEFAULT_SELENIUM_URL = "http://localhost:4437/wd/hub";
+		private const string USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36";
+
+		private static readonly Dictionary<ResultState, TestStatusEnum> TEST_OUTCOME_RESULT_STATUS_MAP =
+            new Dictionary<ResultState, TestStatusEnum>()
+            {
+                { ResultState.Failure, TestStatusEnum.Failed },
+                { ResultState.Success, TestStatusEnum.Passed },
+                { ResultState.Skipped, TestStatusEnum.Skipped },
+                { ResultState.Cancelled, TestStatusEnum.Skipped },
+                { ResultState.ChildFailure, TestStatusEnum.Failed },
+                { ResultState.ChildIgnored, TestStatusEnum.Passed },
+                { ResultState.ChildWarning, TestStatusEnum.Passed },
+                { ResultState.Error, TestStatusEnum.Failed },
+                { ResultState.Ignored, TestStatusEnum.Skipped },
+                { ResultState.SetUpError, TestStatusEnum.Failed },
+                { ResultState.SetUpFailure, TestStatusEnum.Failed },
+                { ResultState.TearDownError, TestStatusEnum.Failed },
+                { ResultState.Warning, TestStatusEnum.Warning },
+                { ResultState.Inconclusive, TestStatusEnum.Broken },
+                { ResultState.NotRunnable, TestStatusEnum.Skipped }
+                
+            };
+        public static IEnumerable<string> GetTestProperties(ITest test, string propertyName)
+        {
+            var list = new List<string>();
+            var currentTest = test;
+            while (currentTest.GetType() != typeof(TestSuite) && currentTest.GetType() != typeof(TestAssembly))
+            {
+                if (currentTest.Properties.ContainsKey(propertyName))
+                    if (currentTest.Properties[propertyName].Count > 0)
+                        for (var i = 0; i < currentTest.Properties[propertyName].Count; i++)
+                            list.Add(currentTest.Properties[propertyName][i].ToString());
+
+                currentTest = currentTest.Parent;
+            }
+
+            return list;
+        }
+
+        public static TestStatusEnum DetermineTestStatus(ResultState outcome)
+        {
+            return TEST_OUTCOME_RESULT_STATUS_MAP.ContainsKey(outcome) ?
+                TEST_OUTCOME_RESULT_STATUS_MAP[outcome] : TestStatusEnum.Passed;
+        }
+
+        internal static bool IsFailure(ResultState outcome)
+        {
+            return outcome == ResultState.Failure
+                || outcome == ResultState.SetUpFailure
+                || outcome == ResultState.ChildFailure;
+        }
+        internal static bool IsError(ResultState outcome)
+        {
+            return outcome == ResultState.Error
+                || outcome == ResultState.SetUpError
+                || outcome == ResultState.TearDownError;
+        }
+        internal static bool IsSkipped(ResultState outcome)
+        {
+            return outcome == ResultState.Skipped
+                || outcome == ResultState.Ignored
+                || outcome == ResultState.NotRunnable;
+        }
+
+		internal static Dictionary<string, object> GenerateTestParametersContext(IMethodInfo method, object[] arguments)
+		{
+            if (method == null || arguments == null)
+                return null;
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            var paramInfoList = method.GetParameters();
+            if (paramInfoList.Length == 0 || arguments.Length != paramInfoList.Length)
+                return null;
+            for (var i=0; i<paramInfoList.Length; i++)
+			{
+                var paramInfo = paramInfoList[i];
+                var name = paramInfo.ParameterInfo.Name;
+                var value = arguments[i];
+                parameters.Add(name, value);
+            }
+            return parameters;
+		}
+
+        internal static string GetFqn(TestAdapter test)
+        {
+            //return Regex.Replace(test.FullName, "(.*)(\\(.*\\))(\\..*)", "$1$3");
+            return test.FullName;
+        }
+
+		internal static Uri GetSeleniumUrl(TestContext testContext) => new Uri(testContext.Test.Properties["SeleniumUrl"]?.ToString() ?? DEFAULT_SELENIUM_URL);		
+	}
+}

@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0</TargetFrameworks>
+    <Authors>CBNR Cloud Solutions Ltd.</Authors>
+    <Product />
+    <PackageId>CloudBeat.Kit.NUnit4</PackageId>
+	<PackageVersion>5.1.0-rc.1</PackageVersion>
+	<Version>5.1.0-rc.1</Version>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Company>CBNR Cloud Solutions Ltd.</Company>
+    <PackageProjectUrl>https://cloudbeat.io</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/cloudbeat-io/cb-kit-dotnet</RepositoryUrl>
+	<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+	<DebugType>embedded</DebugType>
+	<DebugSymbols>true</DebugSymbols>
+	<EmbedAllSources>true</EmbedAllSources>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AspectInjector" Version="2.8.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="NUnit" Version="4.0.0" />
+    <PackageReference Include="NUnit.Engine" Version="3.17.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CloudBeat.Kit.Common\CloudBeat.Kit.Common.csproj" />
+  </ItemGroup>
+
+</Project>

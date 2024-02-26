@@ -13,6 +13,7 @@ namespace CloudBeat.Kit.Common.Wrappers
         StepResult _startedStep;
         readonly bool _fullPageScreenshot;
         readonly bool _ignoreFindElement;
+        bool doNotHandleException = false;
 
         public CbWebDriverWrapper(EventFiringWebDriver eventFiringWebDriver, CbTestReporter reporter, Options options = null)
         {
@@ -65,6 +66,8 @@ namespace CloudBeat.Kit.Common.Wrappers
 
         private void OnExceptionThrown(object sender, WebDriverExceptionEventArgs e)
         {
+            if (doNotHandleException)
+                return;
             // close step opened by webdriver events because if exception occurs they won't be closed
             if (_startedStep != null && !_startedStep.IsFinished)
             {
@@ -127,10 +130,13 @@ namespace CloudBeat.Kit.Common.Wrappers
             long? loadEvent = null;
             long? domContentLoadedEvent = null;
 
+            // the below try/catch block can cause WD to throw exception
+            // we don't want OnExceptionThrown method to handle it but rather quitely ignore
+            doNotHandleException = true;
             try
             {
-                loadEvent = _driver.ExecuteJavaScript<long>("return (window.performance.timing.loadEventStart - window.performance.timing.navigationStart)");
-                domContentLoadedEvent = _driver.ExecuteJavaScript<long>("return (window.performance.timing.domContentLoadedEventStart - window.performance.timing.navigationStart)");
+                loadEvent = _driver.WrappedDriver.ExecuteJavaScript<long>("return (window.performance.timing.loadEventStart - window.performance.timing.navigationStart)");
+                domContentLoadedEvent = _driver.WrappedDriver.ExecuteJavaScript<long>("return (window.performance.timing.domContentLoadedEventStart - window.performance.timing.navigationStart)");
 
                 if (loadEvent < 0)
                     loadEvent = null;
@@ -139,7 +145,7 @@ namespace CloudBeat.Kit.Common.Wrappers
                     domContentLoadedEvent = null;
             }
             catch { }
-            
+            doNotHandleException = false;
             if (loadEvent.HasValue && !_startedStep.Stats.ContainsKey("loadEvent"))
                 _startedStep.Stats.Add("loadEvent", loadEvent.Value);
 			if (domContentLoadedEvent.HasValue && !_startedStep.Stats.ContainsKey("domContentLoadedEvent"))
