@@ -4,6 +4,8 @@
     {
         General,
         Hook,
-        Transaction
+        Transaction,
+        Http,
+        Assert
     }
 }
