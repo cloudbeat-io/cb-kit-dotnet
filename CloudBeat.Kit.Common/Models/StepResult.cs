@@ -13,6 +13,7 @@ namespace CloudBeat.Kit.Common.Models
         protected readonly TestableResultBase _parentContainer;
         protected readonly IList<StepResult> _steps;
         protected readonly IList<LogMessage> _logs;
+        protected readonly Dictionary<string, IStepExtra> _extra = new Dictionary<string, IStepExtra>();
         private static object _lock = new object();
 
         public StepResult(TestableResultBase parentContainer, StepResult parentStep = null) : this(Guid.NewGuid().ToString(), parentContainer, parentStep)
@@ -37,8 +38,10 @@ namespace CloudBeat.Kit.Common.Models
         public string Name { get; set; }
         public string MethodName { get; set; }
         public IList<string> Arguments { get; set; }
-        
-        [JsonIgnore]
+
+        public Dictionary<string, IStepExtra> Extra => _extra;
+
+		[JsonIgnore]
         public StepResult Parent => _parentStep;
         [JsonIgnore]
         public TestableResultBase ParentContainer => _parentContainer;

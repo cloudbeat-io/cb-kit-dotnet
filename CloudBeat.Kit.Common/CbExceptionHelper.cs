@@ -8,6 +8,7 @@ namespace CloudBeat.Kit.Common
 	{
 		public const string ERROR_TYPE_WEBDRIVER = "WEBDRIVER_ERROR";
 		public const string ERROR_TYPE_GENERAL = "GENERAL_ERROR";
+		public const string ERROR_TYPE_HTTP = "HTTP_ERROR";
 		public const string ERROR_TYPE_ASSERT = "ASSERT_ERROR";
 		public const string ERROR_TYPE_NUNIT = "NUNIT_ERROR";
 		public const string ERROR_TYPE_MSTEST = "MSTEST_ERROR";

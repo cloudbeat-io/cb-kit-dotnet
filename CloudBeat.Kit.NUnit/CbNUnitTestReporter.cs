@@ -6,9 +6,6 @@ using System.Linq;
 using System;
 using Newtonsoft.Json;
 using System.IO;
-using CbExceptionHelper = CloudBeat.Kit.Common.CbExceptionHelper;
-using System.Collections.Concurrent;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace CloudBeat.Kit.NUnit
@@ -23,11 +20,6 @@ namespace CloudBeat.Kit.NUnit
         
         private void WriteCaseResultToFile(CaseResult caseResult)
         {
-            /*
-            string technologyName = TestContext.Parameters["technologyName"]?.ToString();
-            if (string.IsNullOrEmpty(technologyName))
-                return;
-            */
             // If no direct API access details were defined, then write case result to local file
             // so CB Logger can pick it up and send it indirectly to CB server
             var cwd = TestContext.CurrentContext.WorkDirectory;
@@ -123,16 +115,15 @@ namespace CloudBeat.Kit.NUnit
             if (!NUnitHelpers.IsFailure(result.Outcome) && !NUnitHelpers.IsError(result.Outcome))
                 return null;
             var failure = new FailureResult();
+            failure.Type = NUnitHelpers.GetFailureType(result);
             failure.Message = result.Message;
             failure.Data = result.StackTrace;
-            // check if this is assertion related error
-            bool isAssertionFailure = result.Assertions.Any(x => x.Message == result.Message && x.StackTrace == result.StackTrace);
-            failure.Type = isAssertionFailure ? CbExceptionHelper.ERROR_TYPE_ASSERT : CbExceptionHelper.ERROR_TYPE_GENERAL;
-            //failure.Location = GetLocationByStackTrace(result.StackTrace);
             return failure;
         }
+
 		
-        public TResult Hook<T, TResult>(string hookName, string methodName, Func<T, TResult> func, T arg)
+
+		public TResult Hook<T, TResult>(string hookName, string methodName, Func<T, TResult> func, T arg)
         {
             var testFqn = NUnitHelpers.GetFqn(TestContext.CurrentContext.Test);
             return base.Step(testFqn, hookName, StepTypeEnum.Hook, func, arg, x => x.MethodName = methodName);
