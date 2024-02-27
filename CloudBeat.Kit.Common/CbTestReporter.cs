@@ -427,7 +427,29 @@ namespace CloudBeat.Kit.Common
 			return newStep;
 		}
 
-		public virtual StepResult StartStep(string stepName, StepTypeEnum type = StepTypeEnum.General, CaseResult parentCase = null)
+        public TResult Step<TResult>(CaseResult parentCase, string stepName, StepTypeEnum stepType, Func<TResult> func)
+        {
+            StepResult newStep = StartStep(stepName, stepType);
+            if (newStep == null)
+            {
+                return func();
+            }
+            newStep.Type = stepType;
+			TResult retval;
+            try
+            {
+                retval = func();
+                EndStep(newStep);
+            }
+            catch (Exception e)
+            {
+                EndStep(newStep, TestStatusEnum.Failed, e);
+                throw;
+            }
+            return retval;
+        }
+
+        public virtual StepResult StartStep(string stepName, StepTypeEnum type = StepTypeEnum.General, CaseResult parentCase = null)
 		{
 			if (parentCase == null)
 				parentCase = _lastCaseResult.Value;
