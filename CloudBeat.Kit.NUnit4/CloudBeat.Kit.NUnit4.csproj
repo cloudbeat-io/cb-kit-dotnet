@@ -5,16 +5,16 @@
     <Authors>CBNR Cloud Solutions Ltd.</Authors>
     <Product />
     <PackageId>CloudBeat.Kit.NUnit4</PackageId>
-	<PackageVersion>5.1.0-rc.1</PackageVersion>
-	<Version>5.1.0-rc.1</Version>
+    <PackageVersion>4.2.0-rc.1</PackageVersion>
+    <Version>4.2.0-rc.1</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Company>CBNR Cloud Solutions Ltd.</Company>
     <PackageProjectUrl>https://cloudbeat.io</PackageProjectUrl>
     <RepositoryUrl>https://github.com/cloudbeat-io/cb-kit-dotnet</RepositoryUrl>
-	<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
-	<DebugType>embedded</DebugType>
-	<DebugSymbols>true</DebugSymbols>
-	<EmbedAllSources>true</EmbedAllSources>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <EmbedAllSources>true</EmbedAllSources>
   </PropertyGroup>
 
   <ItemGroup>
