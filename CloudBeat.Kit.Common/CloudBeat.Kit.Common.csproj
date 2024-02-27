@@ -6,8 +6,8 @@
 	<PackageProjectUrl>https://cloudbeat.io</PackageProjectUrl>
 	<Company>CBNR Cloud Solutions Ltd.</Company>
 	<Authors>CBNR Cloud Solutions Ltd.</Authors>
-	<PackageVersion>4.2.0-rc.1</PackageVersion>
-	<Version>4.2.0-rc.1</Version>
+	<PackageVersion>4.2.0-rc.2</PackageVersion>
+	<Version>4.2.0-rc.2</Version>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	<RepositoryUrl>https://github.com/cloudbeat-io/cb-kit-dotnet</RepositoryUrl>
 	<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
