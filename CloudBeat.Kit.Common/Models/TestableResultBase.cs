@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -59,9 +60,14 @@ namespace CloudBeat.Kit.Common.Models
                 return newStep;
             }
 		}
+
+		[JsonIgnore]
 		public StepResult LastOpenStep => _openSteps.Count > 0 ? _openSteps.Peek() : null;
 
-        public StepResult EndStep(
+		[JsonIgnore]
+		public StepResult LastFailedStep => Steps.Where(s => s.Status == TestStatusEnum.Failed).LastOrDefault();
+
+		public StepResult EndStep(
 			StepResult step = null,
 			TestStatusEnum? status = null,
 			Exception exception = null,

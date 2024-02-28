@@ -615,7 +615,51 @@ namespace CloudBeat.Kit.Common
 				resultWithAttachment.Attachments.Add(attachment);
         }
 
-        public void AddScreenRecordingAttachmentFromPath(string videoFilePath, bool addToStep = false)
+		public void AddScreenshotAttachment(string base64Data, bool addToStep = false)
+		{
+			IResultWithAttachment resultWithAttachment;
+			if (addToStep && _lastCaseResult.Value != null && _lastCaseResult.Value.LastOpenStep != null)
+			{
+				_lastCaseResult.Value.LastOpenStep.ScreenShot = base64Data;
+				return;
+			}
+			else if (!addToStep)
+			{
+				if (_lastCaseResult.Value != null)
+					resultWithAttachment = _lastCaseResult.Value;
+				else if (_lastSuiteResult != null)
+					resultWithAttachment = _lastSuiteResult.Value;
+				else
+					return;
+			}
+			else
+				return;
+			var attachment = CbAttachmentHelper.PrepareScreenshotAttachment(base64Data);
+			// attachment might be null in case of IO exception
+			if (attachment != null && resultWithAttachment != null)
+				resultWithAttachment.Attachments.Add(attachment);
+		}
+
+		public bool AddScreenshotToLastFailedStep(string base64Data)
+		{
+			if (_lastCaseResult.Value == null)
+				return false;
+			var lastOpenStep = _lastCaseResult.Value.LastOpenStep;
+			if (lastOpenStep != null 
+				&& lastOpenStep.Status == TestStatusEnum.Failed
+				&& string.IsNullOrEmpty(lastOpenStep.ScreenShot))
+			{
+				_lastCaseResult.Value.LastOpenStep.ScreenShot = base64Data;
+				return true;
+			}
+			var lastFailedStep = _lastCaseResult.Value.LastFailedStep;
+			if (lastFailedStep == null || !string.IsNullOrEmpty(lastFailedStep.ScreenShot))
+				return false;
+			lastFailedStep.ScreenShot = base64Data;
+			return true;
+		}
+
+		public void AddScreenRecordingAttachmentFromPath(string videoFilePath, bool addToStep = false)
         {
             IResultWithAttachment resultWithAttachment;
             if (addToStep && _lastCaseResult.Value != null && _lastCaseResult.Value.LastOpenStep != null)

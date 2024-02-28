@@ -65,6 +65,10 @@ namespace CloudBeat.Kit.NUnit.Aspects
                     //var syncResultType = retType.IsConstructedGenericType ? retType.GenericTypeArguments[0] : _voidTaskResult;
                     
                 }
+                else if (retType == typeof(void))
+                {
+                    return reporter.StepWithFqn(methodDisplayName, methodFqn, method, arguments);
+                }
                 else
                 {
                     return _syncGenericHandler.MakeGenericMethod(retType).Invoke(null, new object[] {

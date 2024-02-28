@@ -152,7 +152,17 @@ namespace CloudBeat.Kit.NUnit
             Current.Reporter?.AddScreenRecordingAttachment(videoBase64Data);
         }
 
-        public static void AddScreenRecordingFromPath(string videoFilePath)
+		public static void AddScreenshot(string base64Data, bool toLastFailedStep = true)
+		{
+			if (!Current.IsConfigured || Current.Reporter == null)
+				return;
+            if (toLastFailedStep)
+                if (Current.Reporter.AddScreenshotToLastFailedStep(base64Data))
+                    return;
+			Current.Reporter?.AddScreenshotAttachment(base64Data);
+		}
+
+		public static void AddScreenRecordingFromPath(string videoFilePath)
         {
             if (!Current.IsConfigured)
                 return;

@@ -27,7 +27,27 @@ namespace CloudBeat.Kit.Common
             }
         }
 
-        public static Attachment PrepareScreenRecordingAttachmentFromPath(string filePath)
+		public static Attachment PrepareScreenshotAttachment(string base64Data)
+		{
+			byte[] data = Convert.FromBase64String(base64Data);
+			var attachment = new Attachment();
+			attachment.Type = AttachmentTypeEnum.Screenshot;
+			attachment.Subtype = AttachmentSubTypeEnum.ScreenShot;
+			attachment.FileName = $"{Guid.NewGuid()}.png";
+			attachment.FilePath = GetAttachmentFilePath(attachment.FileName);
+
+			try
+			{
+				System.IO.File.WriteAllBytes(attachment.FilePath, data);
+				return attachment;
+			}
+			catch
+			{
+				return null;
+			}
+		}
+
+		public static Attachment PrepareScreenRecordingAttachmentFromPath(string filePath)
         {
             var attachment = new Attachment();
             attachment.Type = AttachmentTypeEnum.Video;
