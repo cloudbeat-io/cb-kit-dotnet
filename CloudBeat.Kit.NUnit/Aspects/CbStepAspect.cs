@@ -59,11 +59,6 @@ namespace CloudBeat.Kit.NUnit.Aspects
                         return WrapAsyncVoid(
                             ConvertToVoidTaskFunc(method, arguments), methodDisplayName, methodFqn, reporter
                         );
-                        /*return _asyncVoidGenericHandler.MakeGenericMethod(_voidTaskResult).Invoke(null, new object[] {
-                            ConvertToVoidTaskFunc(method, arguments), methodDisplayName, methodFqn, reporter
-                        });*/
-                    //var syncResultType = retType.IsConstructedGenericType ? retType.GenericTypeArguments[0] : _voidTaskResult;
-                    
                 }
                 else if (retType == typeof(void))
                 {
