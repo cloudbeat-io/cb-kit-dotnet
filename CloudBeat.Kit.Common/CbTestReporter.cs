@@ -682,6 +682,16 @@ namespace CloudBeat.Kit.Common
                 resultWithAttachment.Attachments.Add(attachment);
         }
 
+		public void LogMessage(LogMessage logMessage)
+		{
+			var caseResult = _lastCaseResult.Value;
+			var lastOpenStep = caseResult?.LastOpenStep;
+			if (lastOpenStep != null)
+				lastOpenStep.Logs.Add(logMessage);
+			else if (caseResult != null)
+				caseResult.Logs.Add(logMessage);
+		}
+
         public CaseResult LastCaseResult => _lastCaseResult.Value;
 	}
 }

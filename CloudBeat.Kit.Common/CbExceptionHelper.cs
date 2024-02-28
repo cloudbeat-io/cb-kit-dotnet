@@ -17,6 +17,9 @@ namespace CloudBeat.Kit.Common
 
 		public static FailureResult GetFailureFromException(Exception e)
 		{
+			if (e == null)
+				return null;
+
 			FailureResult failure = new FailureResult();
 
 			failure.Type = GetFailureTypeByExceptionSource(e);
