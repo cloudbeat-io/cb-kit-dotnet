@@ -20,8 +20,12 @@ namespace CloudBeat.Kit.Common.Wrappers
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-
+            if (_reporter == null)
+                return await base.SendAsync(request, cancellationToken);
+            // StartStep method might return null if API call is made in NUnit hook method and not in the test method
             var httpStep = _reporter.StartStep(GetStepNameFromRequest(request));
+            if (httpStep == null)
+                return await base.SendAsync(request, cancellationToken);
             httpStep.Type = Models.StepTypeEnum.Http;
             HttpStepExtra extra = new HttpStepExtra();
 			httpStep.Extra.Add("http", extra);
