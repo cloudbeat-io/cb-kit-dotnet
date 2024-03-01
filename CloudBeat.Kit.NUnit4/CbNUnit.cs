@@ -181,11 +181,6 @@ namespace CloudBeat.Kit.NUnit
             Current.Reporter?.HasWarnings(hasWarnings);
         }
 
-        public static string GetEnvironmentName()
-        {
-            return "Dev";
-        }
-
         private static CbNUnitContext CreateCloudBeatNUnitContext()
         {
             CbConfig config = new CbConfig();
