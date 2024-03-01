@@ -5,8 +5,8 @@
     <Authors>CBNR Cloud Solutions Ltd.</Authors>
     <Product />
     <PackageId>CloudBeat.Kit.NUnit4</PackageId>
-    <PackageVersion>4.2.0-rc.1</PackageVersion>
-    <Version>4.2.0-rc.1</Version>
+    <PackageVersion>4.4.0</PackageVersion>
+    <Version>4.4.0</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Company>CBNR Cloud Solutions Ltd.</Company>
     <PackageProjectUrl>https://cloudbeat.io</PackageProjectUrl>
