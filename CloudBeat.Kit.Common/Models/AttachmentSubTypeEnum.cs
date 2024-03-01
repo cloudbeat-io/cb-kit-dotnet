@@ -2,9 +2,10 @@
 {
     public enum AttachmentSubTypeEnum
 	{
-		ScreenShot,
-		ScreenRecording,
-		Har
+		Screenshot,
+		Screencast,
+		Har,
+		PlaywrightTrace
 	}
 }
 

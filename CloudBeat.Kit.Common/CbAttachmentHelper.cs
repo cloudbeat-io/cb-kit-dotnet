@@ -14,7 +14,7 @@ namespace CloudBeat.Kit.Common
             byte[] data = Convert.FromBase64String(base64VideoData);
             var attachment = new Attachment();
             attachment.Type = AttachmentTypeEnum.Video;
-            attachment.Subtype = AttachmentSubTypeEnum.ScreenRecording;
+            attachment.Subtype = AttachmentSubTypeEnum.Screencast;
             attachment.FileName = $"{Guid.NewGuid()}.mp4";
             attachment.FilePath = GetAttachmentFilePath(attachment.FileName);
             
@@ -32,7 +32,7 @@ namespace CloudBeat.Kit.Common
 			byte[] data = Convert.FromBase64String(base64Data);
 			var attachment = new Attachment();
 			attachment.Type = AttachmentTypeEnum.Screenshot;
-			attachment.Subtype = AttachmentSubTypeEnum.ScreenShot;
+			attachment.Subtype = AttachmentSubTypeEnum.Screenshot;
 			attachment.FileName = $"{Guid.NewGuid()}.png";
 			attachment.FilePath = GetAttachmentFilePath(attachment.FileName);
 
@@ -51,7 +51,7 @@ namespace CloudBeat.Kit.Common
         {
             var attachment = new Attachment();
             attachment.Type = AttachmentTypeEnum.Video;
-            attachment.Subtype = AttachmentSubTypeEnum.ScreenRecording;
+            attachment.Subtype = AttachmentSubTypeEnum.Screencast;
             attachment.FileName = Path.GetFileName(filePath);
             attachment.FilePath = filePath;
             return attachment;
