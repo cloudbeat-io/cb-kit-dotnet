@@ -51,6 +51,11 @@ namespace CloudBeat.Kit.NUnit
             return caps;
         }
 
+        public static string GetEnvironmentName(string defaultName = null)
+        {
+			return TestContext.Parameters["environmentName"]?.ToString() ?? defaultName;
+		}
+
         public static void StartStep(string name)
         {
             if (!Current.IsConfigured)

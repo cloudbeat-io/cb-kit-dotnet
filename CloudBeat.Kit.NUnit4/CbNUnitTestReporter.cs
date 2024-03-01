@@ -7,6 +7,7 @@ using System;
 using Newtonsoft.Json;
 using System.IO;
 using System.Threading.Tasks;
+using CloudBeat.Infrastructure.Common.Json;
 
 namespace CloudBeat.Kit.NUnit
 {
@@ -25,7 +26,8 @@ namespace CloudBeat.Kit.NUnit
 			var cwd = TestContext.CurrentContext.WorkDirectory;
 			var caseResultFile = $"{CbGeneralHelpers.FqnToFileName(caseResult.Fqn)}_case_result.json";
 			var fullFilePath = Path.Combine(cwd, caseResultFile);
-			File.WriteAllText(fullFilePath, JsonConvert.SerializeObject(caseResult));
+			File.WriteAllText(fullFilePath, CbJsonConvert.SerializeObject(caseResult));
+			// File.WriteAllText(fullFilePath, JsonConvert.SerializeObject(caseResult));
 			TestContext.AddTestAttachment(fullFilePath);
 		}
 

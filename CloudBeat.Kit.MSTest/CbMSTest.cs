@@ -61,7 +61,15 @@ namespace CloudBeat.Kit.MSTest
             return caps;
         }
 
-        public static TResult Hook<T, TResult>(string hookName, string methodName, Func<T, TResult> func, T arg, TestContext testContext = null)
+		public static string GetEnvironmentName(string defaultName = null)
+		{
+			TestContext msTestContext = Current.MSTestContext;
+			if (!Current.IsConfigured || msTestContext == null)
+				return defaultName;
+			return msTestContext.Properties["environmentName"]?.ToString() ?? defaultName;
+		}
+
+		public static TResult Hook<T, TResult>(string hookName, string methodName, Func<T, TResult> func, T arg, TestContext testContext = null)
         {
             if (!Current.IsConfigured)
                 return func.Invoke(arg);
