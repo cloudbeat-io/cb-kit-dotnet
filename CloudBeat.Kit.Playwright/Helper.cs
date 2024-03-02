@@ -3,7 +3,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using CloudBeat.Kit.Common;
 using CloudBeat.Kit.Common.Models;
+using CloudBeat.Kit.Common.Models.Http;
 using Microsoft.Playwright;
+using System.Linq;
+using System.Web;
 
 namespace CloudBeat.Kit.Playwright
 {
@@ -158,6 +161,124 @@ namespace CloudBeat.Kit.Playwright
             }, new CancellationToken(), TaskContinuationOptions.AttachedToParent, TaskScheduler.Current);
 
             return tcs.Task;
+        }
+
+        public static Task<T> WrapHttpStepTask<T>(
+            Task<T> task,
+            StepResult step,
+            CbTestReporter reporter)
+        {
+            if (reporter == null || step == null)
+                return task;
+            task.ConfigureAwait(true);
+            TaskCompletionSource<T> tcs = new TaskCompletionSource<T>();
+            task.ContinueWith(ignored =>
+            {
+                switch (task.Status)
+                {
+                    case TaskStatus.Canceled:
+                        reporter.EndStep(step, TestStatusEnum.Skipped);
+                        tcs.SetCanceled();
+                        break;
+                    case TaskStatus.RanToCompletion:
+                        EndHttpStep(step, reporter, task.Result as IAPIResponse, null);
+                        tcs.SetResult(task.Result);
+                        break;
+                    case TaskStatus.Faulted:
+                        EndHttpStep(step, reporter, null, task.Exception);
+                        tcs.SetException(task.Exception);
+                        break;
+                    default:
+                        break;
+                }
+            }, new CancellationToken(), TaskContinuationOptions.AttachedToParent, TaskScheduler.Current);
+
+            return tcs.Task;
+        }
+
+        public static StepResult StartHttpStep(string url, string method, APIRequestContextOptions options, CbTestReporter reporter)
+        {
+            if (reporter == null)
+                return null;
+            var uri = new Uri(url);
+            string stepName = $"{method} {uri.PathAndQuery}";
+            StepResult httpStep = reporter.StartStep(stepName, StepTypeEnum.Http);
+            var extra = new HttpStepExtra();
+            extra.Request = new RequestResult();
+            extra.Request.Url = url;
+            extra.Request.Method = method;
+            extra.Request.Path = uri.AbsolutePath;
+            // parse Query string if specified
+            if (!string.IsNullOrEmpty(uri.Query))
+            {
+                var queryString = HttpUtility.ParseQueryString(uri.Query);
+                extra.Request.QueryParams = queryString.AllKeys.ToDictionary(k => k, k => queryString[k]);
+            }
+            if (options != null)
+            {
+                if (options.Headers != null)
+                    foreach (var header in options.Headers)
+                    {
+                        if (!extra.Request.Headers.ContainsKey(header.Key))
+                            extra.Request.Headers.Add(header.Key, header.Value);
+                        if (header.Key.ToLower() == "content-type")
+                            extra.Request.ContentType = header.Value;
+                        if (header.Key.ToLower() == "version")
+                            extra.Request.Version = header.Value;
+                        if (header.Key.ToLower() == "content-length")
+                            extra.Response.ContentLength = GetContentLengthFromHeader(header.Value);
+                    }
+                // Assume that if Data starts with '{' and not Content-Type is defined
+                // then we have a serialized object in JSON format
+                if (options.Data != null && string.IsNullOrEmpty(extra.Request.ContentType) && options.Data.StartsWith("{"))
+                    extra.Request.ContentType = "application/json";
+                extra.Request.Content = options.Data ?? options.DataString;
+            }
+            httpStep.Extra.Add("http", extra);
+            return httpStep;
+        }
+
+        private static void EndHttpStep(StepResult step, CbTestReporter reporter, IAPIResponse response, Exception e)
+        {
+            TestStatusEnum status = e != null ? TestStatusEnum.Failed : TestStatusEnum.Passed;
+            reporter.EndStep(step, status, e, null);
+            if (response == null)
+                return;
+            if (!step.Extra.ContainsKey("http"))
+                return;
+            HttpStepExtra extra = step.Extra["http"] as HttpStepExtra;
+            if (extra == null)
+                return;
+            extra.Response = new ResponseResult();
+            extra.Response.StatusCode = response.Status;
+            extra.Response.StatusText = response.StatusText;
+            extra.Response.Url = response.Url;
+            if (response.HeadersArray != null)
+            {
+                foreach (var header in response.HeadersArray)
+                {
+                    if (!extra.Response.Headers.ContainsKey(header.Name))
+                        extra.Response.Headers.Add(header.Name, header.Value);
+                    if (header.Name.ToLower() == "content-type")
+                        extra.Response.ContentType = header.Value;
+                    if (header.Name.ToLower() == "version")
+                        extra.Response.Version = header.Value;
+                    if (header.Name.ToLower() == "content-length")
+                        extra.Response.ContentLength = GetContentLengthFromHeader(header.Value);
+                }
+                    
+            }
+            extra.Response.Content = response.TextAsync().Result;
+        }
+
+        private static long? GetContentLengthFromHeader(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return null;
+            long contentLength;
+            if (long.TryParse(value, out contentLength))
+                return contentLength;
+            return null;
         }
 
         public static Task WrapStepTask(

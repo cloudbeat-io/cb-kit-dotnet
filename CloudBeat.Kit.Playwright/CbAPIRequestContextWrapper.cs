@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using CloudBeat.Kit.Common;
 using Microsoft.Playwright;
+using CloudBeat.Kit.Common;
 
 namespace CloudBeat.Kit.Playwright
 {
@@ -14,7 +14,7 @@ namespace CloudBeat.Kit.Playwright
 		{
 			this.context = context;
             this.reporter = reporter;
-		}
+        }
 
         public IFormData CreateFormData()
         {
@@ -25,9 +25,9 @@ namespace CloudBeat.Kit.Playwright
         {
             if (reporter == null)
                 return context.DeleteAsync(url, options);
-            var step = reporter?.StartStep($"DELETE {url}");
+            var step = Helper.StartHttpStep(url, "DELETE", options, reporter);
             var task = context.DeleteAsync(url, options);
-            return Helper.WrapStepTask(task, step, null, reporter);
+            return Helper.WrapHttpStepTask(task, step, reporter);
         }
 
         public ValueTask DisposeAsync()
@@ -35,59 +35,63 @@ namespace CloudBeat.Kit.Playwright
             return context.DisposeAsync();
         }
 
-        public Task<IAPIResponse> FetchAsync(string urlOrRequest, APIRequestContextOptions options = null)
+        public Task<IAPIResponse> FetchAsync(string url, APIRequestContextOptions options = null)
         {
-            return context.FetchAsync(urlOrRequest, options);
+            if (reporter == null)
+                return context.FetchAsync(url, options);
+            var step = Helper.StartHttpStep(url, "FETCH", options, reporter);
+            var task = context.FetchAsync(url, options);
+            return Helper.WrapHttpStepTask(task, step, reporter);
         }
 
-        public Task<IAPIResponse> FetchAsync(IRequest urlOrRequest, APIRequestContextOptions options = null)
+        public Task<IAPIResponse> FetchAsync(IRequest request, APIRequestContextOptions options = null)
         {
-            return context.FetchAsync(urlOrRequest, options);
+            return context.FetchAsync(request, options);
         }
 
         public Task<IAPIResponse> GetAsync(string url, APIRequestContextOptions options = null)
         {
             if (reporter == null)
                 return context.GetAsync(url, options);
-            var step = reporter?.StartStep($"GET {url}");
+            var step = Helper.StartHttpStep(url, "GET", options, reporter);
             var task = context.GetAsync(url, options);
-            return Helper.WrapStepTask(task, step, null, reporter);
+            return Helper.WrapHttpStepTask(task, step, reporter);
         }
 
         public Task<IAPIResponse> HeadAsync(string url, APIRequestContextOptions options = null)
         {
             if (reporter == null)
                 return context.HeadAsync(url, options);
-            var step = reporter?.StartStep($"HEAD {url}");
+            var step = Helper.StartHttpStep(url, "HEAD", options, reporter);
             var task = context.HeadAsync(url, options);
-            return Helper.WrapStepTask(task, step, null, reporter);
+            return Helper.WrapHttpStepTask(task, step, reporter);
         }
 
         public Task<IAPIResponse> PatchAsync(string url, APIRequestContextOptions options = null)
         {
             if (reporter == null)
                 return context.PatchAsync(url, options);
-            var step = reporter?.StartStep($"PATCH {url}");
+            var step = Helper.StartHttpStep(url, "PATCH", options, reporter);
             var task = context.PatchAsync(url, options);
-            return Helper.WrapStepTask(task, step, null, reporter);
+            return Helper.WrapHttpStepTask(task, step, reporter);
         }
 
         public Task<IAPIResponse> PostAsync(string url, APIRequestContextOptions options = null)
         {
             if (reporter == null)
                 return context.PostAsync(url, options);
-            var step = reporter?.StartStep($"POST {url}");
+            var step = Helper.StartHttpStep(url, "POST", options, reporter);
             var task = context.PostAsync(url, options);
-            return Helper.WrapStepTask(task, step, null, reporter);
+            return Helper.WrapHttpStepTask(task, step, reporter);
         }
 
         public Task<IAPIResponse> PutAsync(string url, APIRequestContextOptions options = null)
         {
             if (reporter == null)
                 return context.PutAsync(url, options);
-            var step = reporter?.StartStep($"PUT {url}");
+            var step = Helper.StartHttpStep(url, "PUT", options, reporter);
             var task = context.PutAsync(url, options);
-            return Helper.WrapStepTask(task, step, null, reporter);
+            return Helper.WrapHttpStepTask(task, step, reporter);
         }
 
         public Task<string> StorageStateAsync(APIRequestContextStorageStateOptions options = null)

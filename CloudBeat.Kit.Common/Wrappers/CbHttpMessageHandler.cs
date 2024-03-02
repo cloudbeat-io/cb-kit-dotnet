@@ -6,6 +6,7 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Web;
 
 namespace CloudBeat.Kit.Common.Wrappers
 {
@@ -55,7 +56,8 @@ namespace CloudBeat.Kit.Common.Wrappers
 			respRes.Version = response.Version.ToString();
 			respRes.Headers = GetResponseHeaders(response.Headers, response.Content?.Headers);
 			respRes.ContentType = GetContentTypeFromHeaders(respRes.Headers);
-			respRes.Cookies = GetCookiesFromHeaders(respRes.Headers);
+            respRes.ContentLength = GetContentLengthFromHeaders(respRes.Headers);
+            respRes.Cookies = GetCookiesFromHeaders(respRes.Headers);
 			respRes.Content = response.Content?.ReadAsStringAsync().Result;
 
 			return respRes;
@@ -70,7 +72,22 @@ namespace CloudBeat.Kit.Common.Wrappers
 			return null;
 		}
 
-		private static string GetContentTypeFromHeaders(Dictionary<string, string> headers)
+        private static long? GetContentLengthFromHeaders(IDictionary<string, string> headers)
+        {
+			string contentLengthStr = null;
+            if (headers.ContainsKey("Content-Length"))
+                contentLengthStr = headers["Content-Length"];
+            else if (headers.ContainsKey("content-length"))
+                contentLengthStr = headers["content-length"];
+			if (string.IsNullOrEmpty(contentLengthStr))
+				return null;
+			long contentLength;
+			if (long.TryParse(contentLengthStr, out contentLength))
+				return contentLength;
+			return null;
+        }
+
+        private static string GetContentTypeFromHeaders(IDictionary<string, string> headers)
 		{
 			if (headers.ContainsKey("Content-Type"))
 				return headers["Content-Type"];
@@ -103,15 +120,29 @@ namespace CloudBeat.Kit.Common.Wrappers
             RequestResult reqRes = new RequestResult();
             reqRes.Method = request.Method.ToString().ToUpper();
             reqRes.Url = request.RequestUri.ToString();
+			Uri uri = new Uri(reqRes.Url);
+			reqRes.Path = uri.AbsolutePath;
+			if (!string.IsNullOrEmpty(uri.Query))
+			{
+                var queryString = HttpUtility.ParseQueryString(uri.Query);
+                reqRes.QueryParams = queryString.AllKeys.ToDictionary(k => k, k => queryString[k]);
+            }
             reqRes.Version = request.Version.ToString();
             reqRes.Headers = GetRequestHeaders(request.Headers, request.Content?.Headers);
 			reqRes.ContentType = GetContentTypeFromHeaders(reqRes.Headers);
-			reqRes.Content = request.Content?.ReadAsStringAsync().Result;
+            reqRes.ContentLength = GetContentLengthFromHeaders(reqRes.Headers);
+            reqRes.Content = request.Content?.ReadAsStringAsync().Result;
+			// Parse Form Data if presented
+			if (reqRes.ContentType == "application/x-www-form-urlencoded" && !string.IsNullOrEmpty(reqRes.Content))
+			{
+                var queryString = HttpUtility.ParseQueryString(reqRes.Content);
+				reqRes.FormData = queryString.AllKeys.ToDictionary(k => k, k => queryString[k]);
+            }
 
-			return reqRes;
+            return reqRes;
 		}
 
-		private static Dictionary<string, string> GetRequestHeaders(HttpRequestHeaders httpHeaders, HttpContentHeaders contentHeaders)
+        private static Dictionary<string, string> GetRequestHeaders(HttpRequestHeaders httpHeaders, HttpContentHeaders contentHeaders)
 		{
 			Dictionary<string, string> headersDic = new Dictionary<string, string>();
 			if (contentHeaders != null)
@@ -133,8 +164,9 @@ namespace CloudBeat.Kit.Common.Wrappers
 		private static string GetStepNameFromRequest(HttpRequestMessage request)
         {
             var url = request.RequestUri.ToString();
+			var uri = new Uri(url);
             var method = request.Method.Method.ToUpper();
-            return $"{method} {url}";
+            return $"{method} {uri.PathAndQuery}";
         }
     }
 }
