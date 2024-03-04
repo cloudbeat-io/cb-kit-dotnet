@@ -5,8 +5,8 @@
     <Authors>CBNR Cloud Solutions Ltd.</Authors>
     <Product />
     <PackageId>CloudBeat.Kit.MSTest</PackageId>
-	<PackageVersion>4.4.0</PackageVersion>
-	<Version>4.4.0</Version>
+	<PackageVersion>4.5.0</PackageVersion>
+	<Version>4.5.0</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Company>CBNR Cloud Solutions Ltd.</Company>
     <PackageProjectUrl>https://cloudbeat.io</PackageProjectUrl>
