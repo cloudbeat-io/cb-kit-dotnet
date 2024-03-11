@@ -154,40 +154,55 @@ namespace CloudBeat.Kit.NUnit.Aspects
 			}
 		}
 
-		private static string ParameterizeStepName(
-			string stepName,
-			ParameterInfo[] parameterInfos,
-			object[] arguments)
-		{
-			if (string.IsNullOrEmpty(stepName))
-				return stepName;
-			string parameterizedStepName = stepName;
-			for (int i = 0; i < parameterInfos.Length; i++)
-			{
-				var paramInfo = parameterInfos[i];
-				if (string.IsNullOrEmpty(paramInfo.Name) || i >= arguments.Length)
-					continue;
-				if (arguments[i].GetType().IsPrimitive || arguments[i] is string)
-					parameterizedStepName = parameterizedStepName
-						.Replace("{" + paramInfo.Name + "}", arguments[i].ToString());
-				// Try to parametrize complex object (e.g. with public properties)
-				IList<PropertyInfo> objProps = new List<PropertyInfo>(arguments[i].GetType().GetProperties());
-				foreach (PropertyInfo objProp in objProps)
-				{
-					var complexParamNameWithBraces = "{" + paramInfo.Name + "." + objProp.Name + "}";
-					if (!parameterizedStepName.Contains(complexParamNameWithBraces))
-						continue;
-					var objPropVal = objProp.GetValue(arguments[i]);
-					if (objPropVal == null)
-						continue;
-					parameterizedStepName = parameterizedStepName
-						.Replace(complexParamNameWithBraces, objPropVal.ToString());
-				}
-			}
-			return parameterizedStepName;
-		}
+        private static string ParameterizeStepName(string stepName, ParameterInfo[] parameterInfos, object[] arguments)
+        {
+            if (string.IsNullOrEmpty(stepName))
+            {
+                return stepName;
+            }
 
-		private string GetHookName(bool isSetUpHook, bool isTearDownHook, bool isOneTimeSetUpHook, bool isOneTimeTearDownHook)
+            string parameterizedStepName = stepName;
+            for (int i = 0; i < parameterInfos.Length; i++)
+            {
+                var paramInfo = parameterInfos[i];
+                if (string.IsNullOrEmpty(paramInfo.Name) || i >= arguments.Length)
+                {
+                    continue;
+                }
+
+                if (arguments[i] == null)
+                {
+                    parameterizedStepName = parameterizedStepName.Replace("{" + paramInfo.Name + "}", "null");
+                    continue;
+                }
+                else if (arguments[i].GetType().IsPrimitive || arguments[i] is string)
+                {
+                    parameterizedStepName = parameterizedStepName.Replace("{" + paramInfo.Name + "}", arguments[i].ToString());
+                }
+
+                // Try to parametrize complex object (e.g. with public properties)
+                IList<PropertyInfo> objProps = new List<PropertyInfo>(arguments[i].GetType().GetProperties());
+                foreach (PropertyInfo objProp in objProps)
+                {
+                    var complexParamNameWithBraces = "{" + paramInfo.Name + "." + objProp.Name + "}";
+                    if (!parameterizedStepName.Contains(complexParamNameWithBraces))
+                    {
+                        continue;
+                    }
+
+                    var objPropVal = objProp.GetValue(arguments[i]);
+                    if (objPropVal == null)
+                    {
+                        continue;
+                    }
+
+                    parameterizedStepName = parameterizedStepName.Replace(complexParamNameWithBraces, objPropVal.ToString());
+                }
+            }
+            return parameterizedStepName;
+        }
+
+        private string GetHookName(bool isSetUpHook, bool isTearDownHook, bool isOneTimeSetUpHook, bool isOneTimeTearDownHook)
 		{
 			// theoretically, the same method might be taged with multiple hook attributes
 			// e.g. serve as SetUp and TearDown
