@@ -233,7 +233,7 @@ namespace CloudBeat.Kit.Common
 			newStep.Arguments = arg == null
 				? null
 				: argIsArray
-					? (arg as IEnumerable<object>)?.Select(x => x.ToString()).ToArray() : new string[] { arg.ToString() };
+					? (arg as IEnumerable<object>)?.Where(x => x != null).Select(x => x.ToString()).ToArray() : new string[] { arg.ToString() };
 			newStep.MethodName = func.Method.Name;
 			// allow the invoker to update the step properties
 			updateStepAction?.Invoke(newStep);
