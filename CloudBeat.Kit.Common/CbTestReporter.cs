@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -591,6 +592,25 @@ namespace CloudBeat.Kit.Common
             if (caseResult == null)
                 return;
 			caseResult.HasWarnings = hasWarnings;
+        }
+
+        public bool AddScreenRecordingAttachmentFromUrl(string url, bool addToStep = false)
+        {
+	        try
+	        {
+		        using HttpClient client = new HttpClient();
+		        var response = client.GetAsync(url).Result;
+		        if (!response.IsSuccessStatusCode)
+			        return false;
+		        var bytesData = response.Content.ReadAsByteArrayAsync().Result;
+		        var base64Data = Convert.ToBase64String(bytesData);
+		        AddScreenRecordingAttachment(base64Data, addToStep);
+		        return true;
+	        }
+	        catch
+	        {
+		        return false;
+	        }
         }
 
         public void AddScreenRecordingAttachment(string base64Data, bool addToStep = false)

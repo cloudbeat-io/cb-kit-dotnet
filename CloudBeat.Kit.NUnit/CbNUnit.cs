@@ -156,6 +156,13 @@ namespace CloudBeat.Kit.NUnit
                 return;
             Current.Reporter?.AddScreenRecordingAttachment(videoBase64Data);
         }
+        
+        public static bool AddScreenRecordingFromUrl(string url)
+        {
+            if (!Current.IsConfigured || Current.Reporter == null)
+                return false;
+            return Current.Reporter.AddScreenRecordingAttachmentFromUrl(url);
+        }
 
 		public static void AddScreenshot(string base64Data, bool toLastFailedStep = true)
 		{
