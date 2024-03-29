@@ -655,6 +655,16 @@ namespace CloudBeat.Kit.Playwright
 
         ILocator IPage.Locator(string selector, PageLocatorOptions options)
         {
+            if (options?.Has is CbLocatorWrapper)
+            {
+                options.Has = (options.Has as CbLocatorWrapper).GetBaseLocator();
+            }
+
+            if (options?.HasNot is CbLocatorWrapper)
+            {
+                options.HasNot = (options.HasNot as CbLocatorWrapper).GetBaseLocator();
+            }
+
             // TODO: shall we add this as "find element" step or ignore it?
             return WrapLocator(page.Locator(selector, options));
         }
