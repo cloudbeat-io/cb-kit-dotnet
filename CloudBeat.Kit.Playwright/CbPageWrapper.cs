@@ -6,14 +6,12 @@ using System.Threading.Tasks;
 using CloudBeat.Kit.Common;
 using Microsoft.Playwright;
 
-
 namespace CloudBeat.Kit.Playwright
 {
 	public class CbPageWrapper : IPage
 	{
         readonly IPage page;
         readonly CbTestReporter reporter;
-
 
         public CbPageWrapper(IPage page, CbTestReporter reporter, string uniqueTestId = null)
 		{
@@ -23,6 +21,11 @@ namespace CloudBeat.Kit.Playwright
                 reporter?.SetScreenshotProvider(uniqueTestId, new CbPwScreenshotProvider(page));
             else
                 reporter?.SetScreenshotProvider(new CbPwScreenshotProvider(page));
+        }
+
+        public IPage GetBasePage()
+        {
+            return page;
         }
 
         [Obsolete]
@@ -1071,6 +1074,7 @@ namespace CloudBeat.Kit.Playwright
                 return null;
             return new CbLocatorWrapper(locator, page, reporter);
         }
+
     }
 }
 
