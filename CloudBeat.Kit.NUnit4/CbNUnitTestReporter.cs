@@ -4,10 +4,9 @@ using NUnit.Framework;
 using NUnit.Framework.Internal;
 using System.Linq;
 using System;
-using Newtonsoft.Json;
 using System.IO;
 using System.Threading.Tasks;
-using CloudBeat.Infrastructure.Common.Json;
+using CloudBeat.Kit.Common.Json;
 
 namespace CloudBeat.Kit.NUnit
 {

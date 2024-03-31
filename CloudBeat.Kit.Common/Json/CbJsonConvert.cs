@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CloudBeat.Infrastructure.Common.Json
+namespace CloudBeat.Kit.Common.Json
 {
 	public static class CbJsonConvert
 	{
