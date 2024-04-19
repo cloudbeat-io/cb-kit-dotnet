@@ -57,7 +57,7 @@ namespace CloudBeat.Kit.Playwright
 
         public ILocator And(ILocator locator)
         {
-            return this.locator.And(locator);
+            return this.locator.And(locator is CbLocatorWrapper ? (locator as CbLocatorWrapper).GetBaseLocator() : locator);
         }
 
         public Task BlurAsync(LocatorBlurOptions options = null)
@@ -158,6 +158,16 @@ namespace CloudBeat.Kit.Playwright
 
         public ILocator Filter(LocatorFilterOptions options = null)
         {
+            if (options?.Has is CbLocatorWrapper)
+            {
+                options.Has = (options.Has as CbLocatorWrapper).GetBaseLocator();
+            }
+
+            if (options?.HasNot is CbLocatorWrapper)
+            {
+                options.HasNot = (options.HasNot as CbLocatorWrapper).GetBaseLocator();
+            }
+
             return locator.Filter(options);
         }
 
@@ -298,11 +308,31 @@ namespace CloudBeat.Kit.Playwright
 
         public ILocator Locator(string selectorOrLocator, LocatorLocatorOptions options = null)
         {
+            if (options?.Has is CbLocatorWrapper)
+            {
+                options.Has = (options.Has as CbLocatorWrapper).GetBaseLocator();
+            }
+
+            if (options?.HasNot is CbLocatorWrapper)
+            {
+                options.HasNot = (options.HasNot as CbLocatorWrapper).GetBaseLocator();
+            }
+
             return locator.Locator(selectorOrLocator, options);
         }
 
         public ILocator Locator(ILocator selectorOrLocator, LocatorLocatorOptions options = null)
         {
+            if (options?.Has is CbLocatorWrapper)
+            {
+                options.Has = (options.Has as CbLocatorWrapper).GetBaseLocator();
+            }
+
+            if (options?.HasNot is CbLocatorWrapper)
+            {
+                options.HasNot = (options.HasNot as CbLocatorWrapper).GetBaseLocator();
+            }
+
             return locator.Locator(selectorOrLocator, options);
         }
 
@@ -313,12 +343,16 @@ namespace CloudBeat.Kit.Playwright
 
         public ILocator Or(ILocator locator)
         {
-            return this.locator.Or(locator);
+            return this.locator.Or(locator is CbLocatorWrapper ? (locator as CbLocatorWrapper).GetBaseLocator() : locator);
         }
 
         public Task PressAsync(string key, LocatorPressOptions options = null)
         {
-            return locator.PressAsync(key, options);
+            if (reporter == null)
+                return locator.PressAsync(key, options);
+            var step = reporter.StartStep($"Press {key}");
+            var task = locator.PressAsync(key, options);
+            return Helper.WrapStepTask(task, step, page, reporter);
         }
 
         public Task PressSequentiallyAsync(string text, LocatorPressSequentiallyOptions options = null)
