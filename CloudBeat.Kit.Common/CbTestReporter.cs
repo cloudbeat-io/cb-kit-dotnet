@@ -598,12 +598,10 @@ namespace CloudBeat.Kit.Common
         {
 	        try
 	        {
-		        using HttpClient client = new HttpClient();
-		        var response = client.GetAsync(url).Result;
-		        if (!response.IsSuccessStatusCode)
-			        return false;
-		        var bytesData = response.Content.ReadAsByteArrayAsync().Result;
-		        var base64Data = Convert.ToBase64String(bytesData);
+				var bytesData = CbHttpHelper.DownloadFile(url);
+				if (bytesData == null)
+                    return false;
+                var base64Data = Convert.ToBase64String(bytesData);
 		        AddScreenRecordingAttachment(base64Data, addToStep);
 		        return true;
 	        }
