@@ -203,6 +203,13 @@ namespace CloudBeat.Kit.Playwright
             var uri = new Uri(url, UriKind.RelativeOrAbsolute);
             string stepName = $"{method} {(uri.IsAbsoluteUri ? uri.PathAndQuery : uri.OriginalString)}";
             StepResult httpStep = reporter.StartStep(stepName, StepTypeEnum.Http);
+            if (httpStep == null)
+            {
+                // could happen if HTTP method was invoked from OneTimeSetUp or similar methods.
+                // such methods do not trigger StartCase and as the result there is nothing to add the new step to
+                // and as a consequence we get null returned instead of an actual new step.
+                return null;
+            }
             var extra = new HttpStepExtra();
             extra.Request = new RequestResult();
             extra.Request.Url = url;
