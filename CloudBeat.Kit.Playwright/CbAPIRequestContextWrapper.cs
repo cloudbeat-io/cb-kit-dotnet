@@ -1,18 +1,17 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.Playwright;
 using CloudBeat.Kit.Common;
 
 namespace CloudBeat.Kit.Playwright
 {
-	public class CbAPIRequestContextWrapper : IAPIRequestContext
+    public class CbAPIRequestContextWrapper : IAPIRequestContext
     {
         protected readonly IAPIRequestContext context;
         protected readonly CbTestReporter reporter;
 
         public CbAPIRequestContextWrapper(IAPIRequestContext context, CbTestReporter reporter)
 		{
-			this.context = context;
+            this.context = context;
             this.reporter = reporter;
         }
 

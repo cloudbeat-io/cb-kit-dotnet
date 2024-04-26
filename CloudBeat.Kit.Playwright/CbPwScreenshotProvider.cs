@@ -1,10 +1,9 @@
-﻿using System;
-using CloudBeat.Kit.Common;
+﻿using CloudBeat.Kit.Common;
 using Microsoft.Playwright;
 
 namespace CloudBeat.Kit.Playwright
 {
-	public class CbPwScreenshotProvider : ICbScreenshotProvider
+    public class CbPwScreenshotProvider : ICbScreenshotProvider
 	{
         private readonly IPage page;
 

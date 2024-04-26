@@ -200,16 +200,16 @@ namespace CloudBeat.Kit.Playwright
         {
             if (reporter == null)
                 return null;
-            var uri = new Uri(url);
-            string stepName = $"{method} {uri.PathAndQuery}";
+            var uri = new Uri(url, UriKind.RelativeOrAbsolute);
+            string stepName = $"{method} {(uri.IsAbsoluteUri ? uri.PathAndQuery : uri.OriginalString)}";
             StepResult httpStep = reporter.StartStep(stepName, StepTypeEnum.Http);
             var extra = new HttpStepExtra();
             extra.Request = new RequestResult();
             extra.Request.Url = url;
             extra.Request.Method = method;
-            extra.Request.Path = uri.AbsolutePath;
+            extra.Request.Path = uri.IsAbsoluteUri ? uri.AbsolutePath: uri.OriginalString;
             // parse Query string if specified
-            if (!string.IsNullOrEmpty(uri.Query))
+            if (uri.IsAbsoluteUri && !string.IsNullOrEmpty(uri.Query))
             {
                 var queryString = HttpUtility.ParseQueryString(uri.Query);
                 extra.Request.QueryParams = queryString.AllKeys.ToDictionary(k => k, k => queryString[k]);
