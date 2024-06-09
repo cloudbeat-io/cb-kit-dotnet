@@ -2,11 +2,15 @@
 using NUnit.Framework.Interfaces;
 using NUnit.Framework.Internal.Commands;
 using System;
+using AspectInjector.Broker;
+using CloudBeat.Kit.NUnit.Aspects;
+using NUnit.Framework.Internal;
 
 namespace CloudBeat.Kit.NUnit.Attributes
 {
+    [Injection(typeof(CbStepAspect))]
     [AttributeUsage(AttributeTargets.Method)]
-    public class CbNUnitHookAttribute : PropertyAttribute, IWrapSetUpTearDown
+    public class CbNUnitHookAttribute : Attribute, IApplyToContext
     {
         public TestCommand Wrap(TestCommand command)
         {
@@ -56,5 +60,9 @@ namespace CloudBeat.Kit.NUnit.Attributes
             return command;
         }*/
 
+        public void ApplyToContext(TestExecutionContext context)
+        {
+            // throw new NotImplementedException();
+        }
     }
 }

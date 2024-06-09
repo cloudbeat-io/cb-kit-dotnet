@@ -2,41 +2,40 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CloudBeat.Kit.Common.Models.Hook;
 
 namespace CloudBeat.Kit.Common.Models
 {
     public abstract class TestableResultBase : IResultWithAttachment
     {
-		protected readonly string _id;
-		protected readonly IList<StepResult> _steps;
-		protected readonly IList<LogMessage> _logs;
-		protected readonly Stack<StepResult> _openSteps = new Stack<StepResult>();
-		protected readonly Dictionary<string, object> _testAttributes = new Dictionary<string, object>();
-		protected readonly Dictionary<string, object> _context = new Dictionary<string, object>();
-        private static object _stepsLock = new object();
+	    private readonly Stack<StepResult> _openSteps = new Stack<StepResult>();
+        private static readonly object _stepsLock = new object();
 
         public TestableResultBase() : this(Guid.NewGuid().ToString()) { }
 		public TestableResultBase(string id)
 		{
-			_id = id;			
-			_steps = new List<StepResult>();
-			_logs = new List<LogMessage>();
+			Id = id;			
 			StartTime = DateTime.UtcNow;
 		}
-		public string Id => _id;
-		public IList<StepResult> Steps => _steps;
-		public IList<LogMessage> Logs => _logs;
+		public string Id { get; }
+
+		public IList<StepResult> Steps { get; } = new List<StepResult>();
+
+		public IList<StepResult> Hooks { get; } = new List<StepResult>();
+
+		public IList<LogMessage> Logs { get; } = new List<LogMessage>();
+
+		public Dictionary<string, object> TestAttributes { get; } = new Dictionary<string, object>();
+
 		public string Name { get; set; }
 		public string Fqn { get; set; }
-		public Dictionary<string, object> Context => _context;
+		public string Owner { get; set; }
 		public IList<string> Arguments { get; set; }
-		public Dictionary<string, object> TestAttributes => _testAttributes;
 		public TestStatusEnum? Status { get; set; }
 		public FailureResult Failure { get; set; }
 		public DateTime StartTime { get; set; }
 		public DateTime? EndTime { get; set; }
 		public long? Duration { get; set; }
-		public long? FailureReasonId { get; set; }
 		public bool HasWarnings { get; set; } = false;
         public IList<Attachment> Attachments { get; set; } = new List<Attachment>();
 
@@ -54,18 +53,33 @@ namespace CloudBeat.Kit.Common.Models
                         Name = name,
                         Type = type
                     };
-                    _steps.Add(newStep);
+                    Steps.Add(newStep);
                 }
                 _openSteps.Push(newStep);
                 return newStep;
             }
+		}
+		public StepResult AddNewHook(string name, HookTypeEnum type)
+		{
+			lock (_stepsLock)
+			{
+				StepResult newStep = new StepResult(this)
+				{
+					Name = name,
+					Type = StepTypeEnum.Hook
+				};
+				newStep.Extra.Add("hook", new HookStepExtra(type));
+				Hooks.Add(newStep);
+				_openSteps.Push(newStep);
+				return newStep;
+			}
 		}
 
 		[JsonIgnore]
 		public StepResult LastOpenStep => _openSteps.Count > 0 ? _openSteps.Peek() : null;
 
 		[JsonIgnore]
-		public StepResult LastFailedStep => Steps.Where(s => s.Status == TestStatusEnum.Failed).LastOrDefault();
+		public StepResult LastFailedStep => Steps.LastOrDefault(s => s.Status == TestStatusEnum.Failed);
 
 		public StepResult EndStep(
 			StepResult step = null,
@@ -95,26 +109,15 @@ namespace CloudBeat.Kit.Common.Models
                 // end the step
                 step.End(status, exception, screenshot);
                 // if step has failed, then mark case as failed
-                if (status != null && status.Value == TestStatusEnum.Failed)
+                if (status is TestStatusEnum.Failed)
                     Status = TestStatusEnum.Failed;
                 else if (status == null)
-                    CalculateStatus();
+	                Status = CalculateHooksAndStepsStatus();
 
                 if (step.ScreenShot == null && screenshot != null)
                     step.ScreenShot = screenshot;
                 return step;
             }
-		}
-		public void End()
-        {
-			End(null, null);
-        }
-		public void End(TestStatusEnum? status, FailureResult failure)
-		{
-			EndTime = DateTime.UtcNow;
-			Duration = ModelHelpers.CalculateDuration(StartTime, EndTime);
-			Status = status.HasValue ? status.Value : CalculateStatus();
-			Failure = failure;
 		}
 
 		public StepResult FindOpenStepByName(string name)
@@ -125,12 +128,14 @@ namespace CloudBeat.Kit.Common.Models
             }
 		}
 
-        private TestStatusEnum CalculateStatus()
+        protected TestStatusEnum CalculateHooksAndStepsStatus()
         {
             lock (_stepsLock)
             {
-                if (_steps != null && _steps.Any(x => x.Status == TestStatusEnum.Failed || x.Status == TestStatusEnum.Broken))
+                if (Steps != null && Steps.Any(x => x.Status == TestStatusEnum.Failed || x.Status == TestStatusEnum.Broken))
                     return TestStatusEnum.Failed;
+                if (Hooks != null && Hooks.Any(x => x.Status == TestStatusEnum.Failed || x.Status == TestStatusEnum.Broken))
+	                return TestStatusEnum.Failed;
                 return TestStatusEnum.Passed;
             }
         }

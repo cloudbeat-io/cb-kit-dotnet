@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using CloudBeat.Kit.Common.Models.Hook;
 
 namespace CloudBeat.Kit.Common
 {
@@ -98,11 +99,15 @@ namespace CloudBeat.Kit.Common
 			//File.WriteAllText(@"c:\temp\result.json", JsonConvert.SerializeObject(_result));
 		}
 
-		public void StartSuite(string name, string fqn, Action<SuiteResult> updateAction = null)
+		public void StartSuite(string name, string fqn, string parentFqn = null, Action<SuiteResult> updateAction = null)
 		{
 			if (_result == null || string.IsNullOrEmpty(fqn))
 				return;
-			var newSuite = _result.AddNewSuite(name, fqn);
+			SuiteResult newSuite;
+			if (_lastSuiteResult.Value != null && parentFqn != null && _lastSuiteResult.Value.Fqn == parentFqn)
+				newSuite = _lastSuiteResult.Value.AddNewSuite(name, fqn);
+			else
+				newSuite = _result.AddNewSuite(name, fqn);
 			_lastSuiteResult.Value = newSuite;
 			_lastCaseResult.Value = null;
 			_lastCaseResultByThread.Value = null;
@@ -210,6 +215,75 @@ namespace CloudBeat.Kit.Common
 			var parentSuite = _lastSuiteResult.Value;
 			var parentCase = parentSuite?.GetCaseByFqn(caseFqn);
 			return Step(parentCase, stepName, stepType, func, arg, updateStepAction);
+		}
+		public TResult CaseHook<T, TResult>(string caseFqn, string hookName, HookTypeEnum hookType, Func<T, TResult> func, T arg, Action<StepResult> updateStepAction = null)
+		{
+			var parentSuite = _lastSuiteResult.Value;
+			var parentCase = parentSuite?.GetCaseByFqn(caseFqn);
+			if (parentCase == null)
+				return func.Invoke(arg);
+			StepResult newStep = StartHook(hookName, hookType, parentCase);
+			if (newStep == null)
+				return func.Invoke(arg);
+			bool argIsArray = arg != null && arg.GetType().IsArray;
+			newStep.Arguments = arg == null
+				? null
+				: argIsArray
+					? (arg as IEnumerable<object>)?.Where(x => x != null).Select(x => x.ToString()).ToArray() : new string[] { arg.ToString() };
+			newStep.MethodName = func.Method.Name;
+			// allow the invoker to update the step properties
+			updateStepAction?.Invoke(newStep);
+			try
+			{
+				var result = func.Invoke(arg);
+				if (result is Task task)
+				{
+					task.Wait();
+					EndStep(newStep);
+				}
+				else
+					EndStep(newStep);
+				return result;
+			}
+			catch (Exception e)
+			{
+				EndStep(newStep, TestStatusEnum.Failed, e);
+				throw;
+			}
+		}
+		public TResult SuiteHook<T, TResult>(string suiteFqn, string hookName, HookTypeEnum hookType, Func<T, TResult> func, T arg, Action<StepResult> updateStepAction = null)
+		{
+			var parentSuite = _lastSuiteResult.Value;
+			if (parentSuite == null || parentSuite.Fqn != suiteFqn)
+				return func.Invoke(arg);
+			StepResult newStep = StartHook(hookName, hookType, parentSuite);
+			if (newStep == null)
+				return func.Invoke(arg);
+			bool argIsArray = arg != null && arg.GetType().IsArray;
+			newStep.Arguments = arg == null
+				? null
+				: argIsArray
+					? (arg as IEnumerable<object>)?.Where(x => x != null).Select(x => x.ToString()).ToArray() : new string[] { arg.ToString() };
+			newStep.MethodName = func.Method.Name;
+			// allow the invoker to update the step properties
+			updateStepAction?.Invoke(newStep);
+			try
+			{
+				var result = func.Invoke(arg);
+				if (result is Task task)
+				{
+					task.Wait();
+					EndStep(newStep);
+				}
+				else
+					EndStep(newStep);
+				return result;
+			}
+			catch (Exception e)
+			{
+				EndStep(newStep, TestStatusEnum.Failed, e);
+				throw;
+			}
 		}
         public Task<TResult> StepAsync<TResult>(string caseFqn, string stepName, StepTypeEnum stepType, Func<Task<TResult>> func, Action<StepResult> updateStepAction = null)
         {
@@ -458,6 +532,23 @@ namespace CloudBeat.Kit.Common
 				return null;
 			return parentCase.AddNewStep(stepName, type);
 		}
+        
+		public virtual StepResult StartHook(string stepName, HookTypeEnum type, CaseResult parentCase = null)
+		{
+			if (parentCase == null)
+				parentCase = _lastCaseResult.Value;
+			if (parentCase == null)
+				return null;
+			return parentCase.AddNewHook(stepName, type);
+		}
+		
+		public virtual StepResult StartHook(string stepName, HookTypeEnum type, SuiteResult parentSuite = null)
+		{
+			parentSuite ??= _lastSuiteResult.Value;
+			if (parentSuite == null)
+				return null;
+			return parentSuite.AddNewHook(stepName, type);
+		}
 
 		public StepResult EndLastStep(
 			TestStatusEnum? status = null,
@@ -487,14 +578,14 @@ namespace CloudBeat.Kit.Common
         {
 			if (stepResult == null)
 				throw new ArgumentNullException("stepResult");
-			var parentCase = stepResult.ParentContainer as CaseResult;
-			if (parentCase == null)
+			var parentContainer = stepResult.ParentContainer;
+			if (parentContainer == null)
 				return null;
 
 			if (screenshot == null && exception != null )
 				screenshot = GetScreenshotForException(stepResult, exception);
 
-            return parentCase.EndStep(stepResult, status, exception, screenshot);
+            return parentContainer.EndStep(stepResult, status, exception, screenshot);
         }
 
         public void SetCurrentWebDriver(IWebDriver driver)

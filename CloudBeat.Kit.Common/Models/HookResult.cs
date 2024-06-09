@@ -1,10 +1,9 @@
 ﻿namespace CloudBeat.Kit.Common.Models
 {
-    public class HookResult : TestableResultBase
+    public class HookResult : StepResult
 	{
-		public HookResult() : base()
+		public HookResult(TestableResultBase parentContainer) : base(parentContainer)
         {
-
         }
 	}
 }

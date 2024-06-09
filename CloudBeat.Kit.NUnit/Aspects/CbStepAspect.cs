@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using AspectInjector.Broker;
+using CloudBeat.Kit.Common.Models.Hook;
 using CloudBeat.Kit.NUnit.Attributes;
 using NUnit.Framework;
 
@@ -33,7 +34,7 @@ namespace CloudBeat.Kit.NUnit.Aspects
         {
             if (!CbNUnit.Current.IsConfigured)
                 return method(arguments);
-            var stepName = methodBase.GetCustomAttribute<CbStepAttribute>().StepName;
+            var stepName = methodBase.GetCustomAttribute<CbStepAttribute>()?.StepName;
             bool isSetUpHook = methodBase.GetCustomAttribute<SetUpAttribute>() != null;
             bool isTearDownHook = methodBase.GetCustomAttribute<TearDownAttribute>() != null;
             bool isOneTimeSetUpHook = methodBase.GetCustomAttribute<OneTimeSetUpAttribute>() != null;
@@ -43,8 +44,10 @@ namespace CloudBeat.Kit.NUnit.Aspects
             var reporter = CbNUnit.Current.Reporter;
             var testId = TestContext.CurrentContext.Test.ID;
             reporter.SetCurrentTestId(testId);
-            if (isHook)
-                return reporter.Hook(stepName ?? hookName, methodName, method, arguments);
+            if (isOneTimeSetUpHook)
+                return reporter.SuiteHook(stepName ?? hookName, HookTypeEnum.Before, methodName, method, arguments);
+            else if (isOneTimeTearDownHook)
+                return reporter.SuiteHook(stepName ?? hookName, HookTypeEnum.After, methodName, method, arguments);
             string methodFqn = $"{methodBase.DeclaringType}.{methodName}";
             string methodDisplayName = ParameterizeStepName(stepName, methodBase.GetParameters(), arguments) ?? methodName;
             try
@@ -53,7 +56,7 @@ namespace CloudBeat.Kit.NUnit.Aspects
                 {
                     if (retType.IsConstructedGenericType)
                         return _asyncGenericHandler.MakeGenericMethod(retType.GenericTypeArguments[0]).Invoke(null, new object[] {
-                            ConvertToTaskFunc(method, arguments), methodDisplayName, methodFqn, reporter
+                            method/*ConvertToTaskFunc(method, arguments)*/, arguments, methodDisplayName, methodFqn, reporter
                         });
                     else
                         return WrapAsyncVoid(
@@ -80,6 +83,11 @@ namespace CloudBeat.Kit.NUnit.Aspects
         private static Func<Task<object>> ConvertToTaskFunc(Func<object[], object> func, object[] args)
         {
             return () => (Task<object>)func(args);
+        }
+        
+        private static Func<Task<T>> ConvertToTypedTaskFunc<T>(Func<object[], object> func, object[] args)
+        {
+            return () => (Task<T>)func(args);
         }
 
         private static Func<Task> ConvertToVoidTaskFunc(Func<object[], object> func, object[] args)
@@ -111,17 +119,20 @@ namespace CloudBeat.Kit.NUnit.Aspects
         }
 
         private static async Task<T> WrapAsync<T>(
-            Func<Task<object>> func,
+            //Func<Task<T>> func,
+            Func<object[], object> method,
+            object[] arguments,
             string methodName,
             string methodFqn,
             CbNUnitTestReporter reporter)
         {
             try
             {
+                var asyncFunc = ConvertToTypedTaskFunc<T>(method, arguments);
                 return (T)await reporter.StepWithFqnAsync(
                     methodName,
                     methodFqn,
-                    func
+                    asyncFunc
                 );
                 // return await (Task<T>)func(args);
             }

@@ -2,47 +2,36 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using CloudBeat.Kit.Common.Models.Hook;
+using Newtonsoft.Json;
 
 namespace CloudBeat.Kit.Common.Models
 {
-    public class SuiteResult : IResultWithAttachment
+    public class SuiteResult : TestableResultBase
     {
-		private readonly string _id;
-		private readonly ConcurrentBag<CaseResult> _cases;
-		private readonly IList<LogMessage> _logs;
-		private readonly Dictionary<string, object> _testAttributes = new Dictionary<string, object>();
+		public SuiteResult(SuiteResult parentSuite = null) : this(Guid.NewGuid().ToString()) { }
 
-		public SuiteResult() : this(Guid.NewGuid().ToString()) { }
-		public SuiteResult(string id)
+		private SuiteResult(string id, SuiteResult parentSuite = null) : base(id)
 		{
-			_id = id;
-			_cases = new ConcurrentBag<CaseResult>();
-			_logs = new List<LogMessage>();
-			StartTime = DateTime.UtcNow;
+			ParentSuite = parentSuite;
 		}
-		public string Id => _id;
-		public ConcurrentBag<CaseResult> Cases { get { return _cases; } }
-		public IList<LogMessage> Logs => _logs;
-		public string Name { get; set; }
-		public string Fqn { get; set; }
-		public IList<string> Arguments { get; set; }
-		public Dictionary<string, object> TestAttributes => _testAttributes;
-		public TestStatusEnum? Status { get; set; }
-		public DateTime StartTime { get; set; }
-		public DateTime? EndTime { get; set; }
-		public long? Duration { get; set; }
-		public IList<Attachment> Attachments { get; set; } = new List<Attachment>();
 
-        public CaseResult GetCaseByFqn(string fqn)
+		public ConcurrentBag<CaseResult> Cases { get; } = new ConcurrentBag<CaseResult>();
+		public ConcurrentBag<SuiteResult> Suites { get; } = new ConcurrentBag<SuiteResult>();
+		
+		[JsonIgnore]
+		public SuiteResult ParentSuite { get; }
+
+		public CaseResult GetCaseByFqn(string fqn)
 		{
 			// Search from last to first (the latest added case first)
-			return _cases.Reverse().Where(x => x.Fqn == fqn).FirstOrDefault();
+			return Cases.Reverse().FirstOrDefault(x => x.Fqn == fqn);
 		}
 
 		internal CaseResult AddNewCase(string name, string fqn)
 		{
 			CaseResult newCase;
-			_cases.Add(newCase = new CaseResult(this)
+			Cases.Add(newCase = new CaseResult(this)
 			{
 				Name = name,
 				Fqn = fqn,
@@ -54,22 +43,25 @@ namespace CloudBeat.Kit.Common.Models
 					newCase.TestAttributes.Add(kvp.Key, kvp.Value);
 			return newCase;
 		}
-
-		public void Start()
-		{
-			StartTime = DateTime.UtcNow;
-		}
 		
-		internal void End(TestStatusEnum? status = null)
+		public void End(TestStatusEnum? status = null)
         {
+			EndSubSuites();
 			EndTime = DateTime.UtcNow;
 			Duration = ModelHelpers.CalculateDuration(StartTime, EndTime);
 			if (!status.HasValue)
-				UpdateSuiteStatus();
+				CalculateSuiteStatus();
 			else
 				Status = status.Value;
 		}
 
+		private void EndSubSuites()
+		{
+			foreach (var subSuite in Suites)
+			{
+				subSuite.End();
+			}
+		}
         internal CaseResult EndCase(string fqn, TestStatusEnum? status = null, FailureResult failure = null)
         {
 			if (fqn == null)
@@ -84,21 +76,35 @@ namespace CloudBeat.Kit.Common.Models
 		{
 			if (caseResult == null)
 				return null;
-			if (!_cases.Contains(caseResult))
+			if (!Cases.Contains(caseResult))
 				return null;
 			caseResult.End(status, failure);
 			End();
 			return caseResult;
 		}
 
-		private void UpdateSuiteStatus()
+		private void CalculateSuiteStatus()
         {
 			if (Status == TestStatusEnum.Failed)
 				return;
-			if (_cases != null && _cases.Any(x => x.Status == TestStatusEnum.Failed || x.Status == TestStatusEnum.Broken))
+			if (Cases != null &&
+			    Cases.Any(x => x.Status == TestStatusEnum.Failed || x.Status == TestStatusEnum.Broken))
 				Status = TestStatusEnum.Failed;
-			if (!Status.HasValue)
-				Status = TestStatusEnum.Passed;
+			else
+				Status = CalculateHooksAndStepsStatus();
+			Status ??= TestStatusEnum.Passed;
+        }
+
+        public SuiteResult AddNewSuite(string name, string fqn)
+        {
+	        SuiteResult newSuite;
+	        Suites.Add(newSuite = new SuiteResult(this)
+	        {
+		        Name = name,
+		        Fqn = fqn,
+		        StartTime = DateTime.UtcNow
+	        });
+	        return newSuite;
         }
     }
 }

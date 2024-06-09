@@ -55,7 +55,7 @@ namespace CloudBeat.Kit.Common.Models
 
 		public SuiteResult GetSuite(string fqn)
 		{
-			return _suites.Where(x => x.Fqn == fqn).FirstOrDefault();
+			return _suites.FirstOrDefault(x => x.Fqn == fqn);
 		}
 
 		public SuiteResult GetSuiteByCaseFqn(string caseFqn)
