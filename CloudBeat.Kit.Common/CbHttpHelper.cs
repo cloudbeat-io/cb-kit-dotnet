@@ -12,9 +12,11 @@ namespace CloudBeat.Kit.Common
     {
         const int MAX_DOWNLOAD_RETRIES = 10;
         const int RETRY_INTERVAL = 2000;
+        private const int REQUEST_TIMEOUT = 2000; 
         public static byte[] DownloadFile(string fileUrl)
         {
             using HttpClient client = new HttpClient();
+            client.Timeout = TimeSpan.FromMilliseconds(REQUEST_TIMEOUT);
             int retries = 0;
             while (retries < MAX_DOWNLOAD_RETRIES)
             {

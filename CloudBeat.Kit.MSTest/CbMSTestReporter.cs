@@ -56,7 +56,7 @@ namespace CloudBeat.Kit.MSTest
             var suiteFqn = msTestContext.FullyQualifiedTestClassName;
             var suiteName = ExtractClassNameFronFqn(suiteFqn);
             //var categoryAttributes = suite.GetCustomAttributes<CategoryAttribute>(true);
-            base.StartSuite(suiteName, suiteFqn, x =>    // NUnitHelpers.GetTestSuiteFqn(
+            base.StartSuite(suiteName, suiteFqn, null, x =>    // NUnitHelpers.GetTestSuiteFqn(
             {
                 //x.Arguments = suite.Arguments?.Select(a => a.ToString()).ToArray();
                 //AddCategoriesAsTagsAndTestAttributes(x, categoryAttributes);
