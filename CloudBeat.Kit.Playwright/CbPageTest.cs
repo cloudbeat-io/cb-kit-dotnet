@@ -6,9 +6,9 @@ namespace CloudBeat.Kit.Playwright
     public class CbPageTest : PageTest
     {
         public new ILocatorAssertions Expect(ILocator locator)
-            => Assertions.Expect(locator is CbLocatorWrapper ? (locator as CbLocatorWrapper).GetBaseLocator() : locator);
+            => Assertions.Expect(locator is CbLocatorWrapper wrapper ? wrapper.GetBaseLocator() : locator);
 
         public new IPageAssertions Expect(IPage page) 
-            => Assertions.Expect(page is CbPageWrapper ? (page as CbPageWrapper).GetBasePage() : page);
+            => Assertions.Expect(page is CbPageWrapper wrapper ? wrapper.GetBasePage() : page);
     }
 }

@@ -15,6 +15,7 @@
 	<DebugType>embedded</DebugType>
 	<DebugSymbols>true</DebugSymbols>
 	<EmbedAllSources>true</EmbedAllSources>
+    <AspectInjector_UseRosetta>true</AspectInjector_UseRosetta>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0|AnyCPU'">
@@ -28,7 +29,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AspectInjector" Version="2.8.1" />
+    <PackageReference Include="AspectInjector" Version="2.8.3-pre3" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NUnit" Version="3.13.3" />
     <PackageReference Include="NUnit.Engine" Version="3.16.0" />

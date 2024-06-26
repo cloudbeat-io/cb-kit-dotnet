@@ -2,6 +2,6 @@
 {
     public class CbApiClient
 	{
-		public IRunApi RunApi { get; set; }
+		public IRuntimeApi RuntimeApi { get; set; }
 	}
 }

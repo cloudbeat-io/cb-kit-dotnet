@@ -4,9 +4,12 @@ using NUnit.Framework;
 using NUnit.Framework.Internal;
 using System.Linq;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using CloudBeat.Kit.Common.Attributes;
 using CloudBeat.Kit.Common.Json;
+using CloudBeat.Kit.Common.Models.Hook;
 
 namespace CloudBeat.Kit.NUnit
 {
@@ -17,31 +20,31 @@ namespace CloudBeat.Kit.NUnit
         public CbNUnitTestReporter(CbConfig config) : base(config)
         {
         }
-
-		private void WriteCaseResultToFile(CaseResult caseResult)
-		{
-			// If no direct API access details were defined, then write case result to local file
-			// so CB Logger can pick it up and send it indirectly to CB server
-			var cwd = TestContext.CurrentContext.WorkDirectory;
-			var caseResultFile = $"{CbGeneralHelpers.FqnToFileName(caseResult.Fqn)}_case_result.json";
-			var fullFilePath = Path.Combine(cwd, caseResultFile);
+        
+        private void WriteCaseResultToFile(CaseResult caseResult)
+        {
+            // If no direct API access details were defined, then write case result to local file
+            // so CB Logger can pick it up and send it indirectly to CB server
+            var cwd = TestContext.CurrentContext.WorkDirectory;
+            var caseResultFile = $"{CbGeneralHelpers.FqnToFileName(caseResult.Fqn)}_case_result.json";
+            var fullFilePath = Path.Combine(cwd, caseResultFile);
 			File.WriteAllText(fullFilePath, CbJsonConvert.SerializeObject(caseResult));
 			// File.WriteAllText(fullFilePath, JsonConvert.SerializeObject(caseResult));
-			TestContext.AddTestAttachment(fullFilePath);
-		}
+            TestContext.AddTestAttachment(fullFilePath);
+        }
 
-		public void StartSuite(TestSuite suite)
+        public void StartSuite(TestSuite suite, TestSuite parentSuite)
         {
-            var categoryAttributes = suite.GetCustomAttributes<CategoryAttribute>(true);
-            StartSuite(suite.Name, suite.FullName, x =>    // NUnitHelpers.GetTestSuiteFqn(
+            StartSuite(suite.Name, suite.FullName, parentSuite?.FullName, x =>    // NUnitHelpers.GetTestSuiteFqn(
             {
                 x.Arguments = suite.Arguments?.Select(a => a.ToString()).ToArray();
-                AddCategoriesAsTagsAndTestAttributes(x, categoryAttributes);
+                ProcessSuiteAttributes(suite, x);
             });
         }
 
-		private static void AddCategoriesAsTagsAndTestAttributes(SuiteResult suiteResult, CategoryAttribute[] categoryAttributes)
+		private static void ProcessSuiteAttributes(TestSuite suite, SuiteResult suiteResult)
 		{
+            var categoryAttributes = suite.GetCustomAttributes<CategoryAttribute>(true);
             foreach (var categoryAttr in categoryAttributes)
 			{
                 if (string.IsNullOrEmpty(categoryAttr.Name))
@@ -54,10 +57,16 @@ namespace CloudBeat.Kit.NUnit
                     suiteResult.TestAttributes.Add(keyVal[0], keyVal[1]);
 				}
 			}
+            var ownerAttributes = suite.GetCustomAttributes<CbOwner>(true);
+            if (ownerAttributes.Length > 0)
+            {
+                suiteResult.Owner = ownerAttributes[0].Name;
+            }
 		}
 
-        private static void AddCategoriesAsTagsAndTestAttributes(CaseResult caseResult, CategoryAttribute[] categoryAttributes)
+        private static void ProcessTestCategories(Test test, CaseResult caseResult)
         {
+            var categoryAttributes = test.GetCustomAttributes<CategoryAttribute>(true);
             foreach (var categoryAttr in categoryAttributes)
             {
                 if (string.IsNullOrEmpty(categoryAttr.Name))
@@ -74,7 +83,6 @@ namespace CloudBeat.Kit.NUnit
 
         public void StartCase(Test test)
         {
-            var categoryAttributes = test.GetCustomAttributes<CategoryAttribute>(true);
             lock (_lock)
             {
                 base.StartCase(test.Name, test.FullName, x =>
@@ -86,8 +94,32 @@ namespace CloudBeat.Kit.NUnit
                     else
                         x.Context.Add("params", testParams);
 
-                    AddCategoriesAsTagsAndTestAttributes(x, categoryAttributes);
+                    AddMetadataToTestCase(test, x);
                 });
+            }
+        }
+
+        private void AddMetadataToTestCase(Test test, CaseResult caseResult)
+        {
+            ProcessTestCategories(test, caseResult);
+            ProcessTestRailAttributes(test, caseResult);
+        }
+        
+        private static void ProcessTestRailAttributes(Test test, CaseResult caseResult)
+        {
+            var testRailAttributes = test.GetCustomAttributes<CbTestRail>(true);
+            if (testRailAttributes.Length == 0)
+                return;
+            if (!caseResult.Context.ContainsKey("testrail"))
+                caseResult.Context.Add("testrail", new Dictionary<string, string>());
+            var testRailCtx = caseResult.Context["testrail"] as Dictionary<string, string>;
+            // the below condition is not suppose to happen
+            if (testRailCtx == null)
+                return;
+            foreach (var testRailAttribute in testRailAttributes)
+            {
+                string refTypeAsStr = testRailAttribute.Type.ToString().ToLower();
+                testRailCtx[refTypeAsStr] = testRailAttribute.Value;
             }
         }
 
@@ -111,22 +143,29 @@ namespace CloudBeat.Kit.NUnit
                 WriteCaseResultToFile(endedCase);
             }
         }
-		private static FailureResult GetFailureFromResult(TestContext.ResultAdapter result)
+        private static FailureResult GetFailureFromResult(TestContext.ResultAdapter result)
 		{
-			if (!NUnitHelpers.IsFailure(result.Outcome) && !NUnitHelpers.IsError(result.Outcome))
-				return null;
-			var failure = new FailureResult();
-			failure.Type = NUnitHelpers.GetFailureType(result);
-			failure.Message = result.Message;
-			failure.Data = result.StackTrace;
-			return failure;
-		}
+            if (!NUnitHelpers.IsFailure(result.Outcome) && !NUnitHelpers.IsError(result.Outcome))
+                return null;
+            var failure = new FailureResult();
+            failure.Type = NUnitHelpers.GetFailureType(result);
+            failure.Message = result.Message;
+            failure.Data = result.StackTrace;
+            return failure;
+        }
 
-		public TResult Hook<T, TResult>(string hookName, string methodName, Func<T, TResult> func, T arg)
+		public TResult CaseHook<T, TResult>(string hookName, HookTypeEnum hookType, string methodName, Func<T, TResult> func, T arg)
         {
             var testFqn = NUnitHelpers.GetFqn(TestContext.CurrentContext.Test);
-            return base.Step(testFqn, hookName, StepTypeEnum.Hook, func, arg, x => x.MethodName = methodName);
+            return base.CaseHook(testFqn, hookName, hookType, func, arg, x => x.MethodName = methodName);
         }
+        
+        public TResult SuiteHook<T, TResult>(string hookName, HookTypeEnum hookType, string methodName, Func<T, TResult> func, T arg)
+        {
+            var testFqn = NUnitHelpers.GetFqn(TestContext.CurrentContext.Test);
+            return base.SuiteHook(testFqn, hookName, hookType, func, arg, x => x.MethodName = methodName);
+        }
+        
         public TResult Step<T, TResult>(string name, Func<T, TResult> func, T arg)
         {
             var testFqn = NUnitHelpers.GetFqn(TestContext.CurrentContext.Test);
@@ -163,16 +202,7 @@ namespace CloudBeat.Kit.NUnit
         {
             return base.StartStep(stepName, type);
         }
-
-        public override StepResult EndStep(
-            StepResult stepResult,
-            TestStatusEnum? status = null,
-            Exception exception = null,
-            string screenshot = null)
-        {
-            return base.EndStep(stepResult, status, exception, screenshot);
-        }
-
+        
         public void HasWarnings(bool hasWarnings = true)
         {
             SetCaseHasWarnings(hasWarnings);
