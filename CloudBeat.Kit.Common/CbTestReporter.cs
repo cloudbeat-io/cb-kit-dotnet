@@ -5,14 +5,13 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using CloudBeat.Kit.Common.Models.Hook;
 
 namespace CloudBeat.Kit.Common
 {
-	public class CbTestReporter
+    public class CbTestReporter
 	{
 		protected TestRun _run;
 		protected TestInstance _instance;

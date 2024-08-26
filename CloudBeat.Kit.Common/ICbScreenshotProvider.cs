@@ -1,7 +1,6 @@
-﻿using System;
-namespace CloudBeat.Kit.Common
+﻿namespace CloudBeat.Kit.Common
 {
-	public interface ICbScreenshotProvider
+    public interface ICbScreenshotProvider
 	{
 		string TakeScreenshot();
 	}

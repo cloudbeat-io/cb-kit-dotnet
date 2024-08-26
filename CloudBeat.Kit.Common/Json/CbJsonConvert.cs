@@ -1,16 +1,11 @@
-﻿using CloudBeat.Kit.Common.Json;
-using Newtonsoft.Json.Converters;
+﻿using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CloudBeat.Kit.Common.Json
 {
-	public static class CbJsonConvert
+    public static class CbJsonConvert
 	{
 		private static JsonSerializerSettings _jsonSerializerSettings = new JsonSerializerSettings
 		{
