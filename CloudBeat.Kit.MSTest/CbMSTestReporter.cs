@@ -9,7 +9,6 @@ using CbExceptionHelper = CloudBeat.Kit.Common.CbExceptionHelper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Reflection;
 using System.Collections.Concurrent;
-using System.Threading;
 
 namespace CloudBeat.Kit.MSTest
 {

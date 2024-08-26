@@ -2,15 +2,11 @@
 using CloudBeat.Kit.Common.Models;
 using NLog;
 using NLog.Targets;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CloudBeat.Kit.Common.Wrappers
 {
-	public abstract class CbNLogTargetBase : TargetWithLayout
+    public abstract class CbNLogTargetBase : TargetWithLayout
 	{
 		private static readonly Dictionary<LogLevel, LogLevelEnum> NLOG_CB_LOG_LEVEL_MAP =
 			new Dictionary<LogLevel, LogLevelEnum>()

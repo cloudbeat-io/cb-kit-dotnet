@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
-using CloudBeat.Kit.Common.Models.Hook;
 using Newtonsoft.Json;
 
 namespace CloudBeat.Kit.Common.Models

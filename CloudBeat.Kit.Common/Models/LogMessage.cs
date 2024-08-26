@@ -1,6 +1,5 @@
 ﻿using CloudBeat.Kit.Common.Enums;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace CloudBeat.Kit.Common.Models

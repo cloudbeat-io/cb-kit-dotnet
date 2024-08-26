@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace CloudBeat.Kit.Common.Models.Hook
+﻿namespace CloudBeat.Kit.Common.Models.Hook
 {
-	public class HookStepExtra : IStepExtra
+    public class HookStepExtra : IStepExtra
 	{
 		public HookStepExtra(HookTypeEnum type)
 		{

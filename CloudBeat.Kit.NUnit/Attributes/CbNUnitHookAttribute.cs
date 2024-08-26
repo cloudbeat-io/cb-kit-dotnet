@@ -1,5 +1,4 @@
-﻿using NUnit.Framework;
-using NUnit.Framework.Interfaces;
+﻿using NUnit.Framework.Interfaces;
 using NUnit.Framework.Internal.Commands;
 using System;
 using AspectInjector.Broker;

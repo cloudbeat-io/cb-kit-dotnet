@@ -6,11 +6,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
-using CloudBeat.Kit.Common.Models;
 
 namespace CloudBeat.Kit.NUnit.Attributes
 {
-	[AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class)]
     public class CbNUnitTestAttribute : PropertyAttribute, ITestAction, IApplyToContext, IWrapSetUpTearDown
     {
         private readonly bool _isWrappedIntoStep;
