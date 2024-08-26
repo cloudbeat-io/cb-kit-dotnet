@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using CloudBeat.Kit.Common.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 
 namespace CloudBeat.Kit.MSTest
 {
-	public static class MSTestHelpers
+    public static class MSTestHelpers
 	{
-		private const string DEFAULT_SELENIUM_URL = "http://localhost:4437/wd/hub";
-
 		private static readonly Dictionary<UnitTestOutcome, TestStatusEnum> TEST_OUTCOME_RESULT_STATUS_MAP =
             new Dictionary<UnitTestOutcome, TestStatusEnum>()
             {
@@ -74,7 +71,6 @@ namespace CloudBeat.Kit.MSTest
             return string.Join(".", fqnElms.Take(fqnElms.Length - 1));
 
         }
-		internal static Uri GetSeleniumUrl(TestContext testContext) => new Uri(testContext.Properties["SeleniumUrl"]?.ToString() ?? DEFAULT_SELENIUM_URL);		
 	}
 }
 

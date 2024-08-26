@@ -3,7 +3,6 @@ using CloudBeat.Kit.Common.Models;
 using NUnit.Framework;
 using NUnit.Framework.Interfaces;
 using NUnit.Framework.Internal;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -14,8 +13,6 @@ namespace CloudBeat.Kit.NUnit
     internal static class NUnitHelpers
     {
 		private static readonly Regex exceptionTypeRegex = new Regex(@"^[a-zA-Z.]+\.([a-zA-Z]+) *:", RegexOptions.Compiled | RegexOptions.Multiline);
-		private const string DEFAULT_SELENIUM_URL = "http://localhost:4437/wd/hub";
-		private const string USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36";
 
 		private static readonly Dictionary<ResultState, TestStatusEnum> TEST_OUTCOME_RESULT_STATUS_MAP =
             new Dictionary<ResultState, TestStatusEnum>()
@@ -37,11 +34,13 @@ namespace CloudBeat.Kit.NUnit
                 { ResultState.NotRunnable, TestStatusEnum.Skipped }
                 
             };
+
 		private static readonly Dictionary<string, string> EXCEPTION_FAILURE_TYPE_MAP =
 			new Dictionary<string, string>()
 			{
 				{ "HttpRequestException", CbExceptionHelper.ERROR_TYPE_HTTP }
 			};
+
 		public static IEnumerable<string> GetTestProperties(ITest test, string propertyName)
         {
             var list = new List<string>();
@@ -107,8 +106,6 @@ namespace CloudBeat.Kit.NUnit
             //return Regex.Replace(test.FullName, "(.*)(\\(.*\\))(\\..*)", "$1$3");
             return test.FullName;
         }
-
-		internal static Uri GetSeleniumUrl(TestContext testContext) => new Uri(testContext.Test.Properties["SeleniumUrl"]?.ToString() ?? DEFAULT_SELENIUM_URL);
 
 		internal static string GetFailureType(TestContext.ResultAdapter result)
 		{

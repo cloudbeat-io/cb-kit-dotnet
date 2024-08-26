@@ -29,7 +29,6 @@ namespace CloudBeat.Kit.NUnit
             var caseResultFile = $"{CbGeneralHelpers.FqnToFileName(caseResult.Fqn)}_case_result.json";
             var fullFilePath = Path.Combine(cwd, caseResultFile);
 			File.WriteAllText(fullFilePath, CbJsonConvert.SerializeObject(caseResult));
-			// File.WriteAllText(fullFilePath, JsonConvert.SerializeObject(caseResult));
             TestContext.AddTestAttachment(fullFilePath);
         }
 
