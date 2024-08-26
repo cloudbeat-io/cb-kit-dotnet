@@ -6,7 +6,6 @@ namespace CloudBeat.Kit.Common
 {
     public class CbConfig
 	{
-        public const string DEFAULT_WEBDRIVER_URL = "http://localhost:4444/wd/hub";
         public const string CB_API_KEY = "CB_API_KEY";
         public const string CB_API_URL = "CB_API_URL";
         public const string CB_PROJECT_ID = "CB_PROJECT_ID";
