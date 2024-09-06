@@ -20,11 +20,6 @@ namespace CloudBeat.Kit.Common
 		protected readonly CbConfig _config;
 		protected bool _syncWithCb = false;
 		protected readonly IList<IDisposable> _wrappers = new List<IDisposable>();
-		/*
-		protected readonly ThreadLocal<CaseResult> _lastCaseResult = new ThreadLocal<CaseResult>();
-		protected readonly ThreadLocal<SuiteResult> _lastSuiteResult = new ThreadLocal<SuiteResult>();
-		protected readonly ThreadLocal<IWebDriver> _currentWebDriver = new ThreadLocal<IWebDriver>();
-		*/
 		protected readonly AsyncLocal<CaseResult> _lastCaseResult = new();
 		protected readonly ThreadLocal<CaseResult> _lastCaseResultByThread = new();
         protected readonly AsyncLocal<SuiteResult> _lastSuiteResult = new();
@@ -592,6 +587,11 @@ namespace CloudBeat.Kit.Common
 			_currentWebDriver.Value = driver;
         }
 
+        public ICbScreenshotProvider GetScreenshotProvider()
+        {
+			return _screenshotProvider.Value;
+        }
+
         public void SetScreenshotProvider(ICbScreenshotProvider provider)
 		{
 			_screenshotProvider.Value = provider;
@@ -612,35 +612,36 @@ namespace CloudBeat.Kit.Common
 
         public IWebDriver GetCurrentWebDriver()
         {
-			//if (_currentWebDriver.IsValueCreated)
-				return _currentWebDriver.Value;
-            //return null;
+			return _currentWebDriver.Value;
         }
 
 		public string GetScreenshotForException(StepResult stepResult, Exception e)
 		{
-            if (e == null)
-				return null;
 			ICbScreenshotProvider screenshotProvider;
 			if (_currentTestId.Value != null && _screenshotProviderByTestId.ContainsKey(_currentTestId.Value))
 				screenshotProvider = _screenshotProviderByTestId[_currentTestId.Value];
 			else
 				screenshotProvider = _screenshotProvider.Value;
-			if (screenshotProvider == null)
+
+			if (e == null || screenshotProvider == null)
 				return null;
+
             // check if we need to take a screenshot or it has been already taken in the child step
             if (stepResult.Steps?.Count > 0) {
 				var firstSimilarFailedChildStep = stepResult.Steps.FirstOrDefault(x => x.Status == TestStatusEnum.Failed && x.Failure?.Subtype == e.GetType().Name);
 				if (firstSimilarFailedChildStep != null && firstSimilarFailedChildStep.ScreenShot != null)
 					return null;
             }
-			//var driver = GetCurrentWebDriver();
+
 			try
 			{
-				//return driver?.TakeScreenshot()?.AsBase64EncodedString;
 				return screenshotProvider.TakeScreenshot();
             }
-			catch { }
+			catch
+			{
+				// ignored
+			}
+
 			return null;
 		}
 
@@ -723,35 +724,55 @@ namespace CloudBeat.Kit.Common
 				resultWithAttachment.Attachments.Add(attachment);
         }
 
-		public void AddScreenshotAttachment(string base64Data, bool addToStep = false)
+        /// <summary>
+        /// Add screenshot to last failed step if it doesn't have any screenshot. If there is no last failed step then add screenshot as an attachment to the test result.
+        /// </summary>
+        /// <param name="base64Data">Base64 encoded screenshot</param>
+        public void AddScreenshot(string base64Data)
+        {
+			if (_lastCaseResult.Value?.LastFailedStep != null)
+			{
+                if (_lastCaseResult.Value?.LastFailedStep.ScreenShot == null)
+				{
+                    _lastCaseResult.Value.LastFailedStep.ScreenShot = base64Data;
+                }
+				return;
+            }
+
+			AddScreenshotAttachment(base64Data);
+        }
+
+        /// <summary>
+        /// Add screenshot as an attachment to test result.
+        /// </summary>
+        /// <param name="base64Data">Base64 encoded screenshot</param>
+        public void AddScreenshotAttachment(string base64Data)
 		{
 			IResultWithAttachment resultWithAttachment;
-			if (addToStep && _lastCaseResult.Value != null && _lastCaseResult.Value.LastOpenStep != null)
-			{
-				_lastCaseResult.Value.LastOpenStep.ScreenShot = base64Data;
-				return;
-			}
-			else if (!addToStep)
-			{
-				if (_lastCaseResult.Value != null)
-					resultWithAttachment = _lastCaseResult.Value;
-				else if (_lastSuiteResult != null)
-					resultWithAttachment = _lastSuiteResult.Value;
-				else
-					return;
-			}
+
+			if (_lastCaseResult.Value != null)
+				resultWithAttachment = _lastCaseResult.Value;
+			else if (_lastSuiteResult != null)
+				resultWithAttachment = _lastSuiteResult.Value;
 			else
 				return;
+
 			var attachment = CbAttachmentHelper.PrepareScreenshotAttachment(base64Data);
 			// attachment might be null in case of IO exception
 			if (attachment != null && resultWithAttachment != null)
 				resultWithAttachment.Attachments.Add(attachment);
 		}
 
-		public bool AddScreenshotToLastFailedStep(string base64Data)
+        /// <summary>
+        /// Add screenshot to last failed step if doesn't have any screenshot.
+        /// </summary>
+        /// <param name="base64Data">Base64 encoded screenshot</param>
+        /// <returns>true if screenshot was successfully added. false if last failed step already had a screenshot or there was no failed step.</returns>
+        public bool AddScreenshotToLastFailedStep(string base64Data)
 		{
 			if (_lastCaseResult.Value == null)
 				return false;
+
 			var lastOpenStep = _lastCaseResult.Value.LastOpenStep;
 			if (lastOpenStep != null 
 				&& lastOpenStep.Status == TestStatusEnum.Failed
@@ -760,11 +781,15 @@ namespace CloudBeat.Kit.Common
 				_lastCaseResult.Value.LastOpenStep.ScreenShot = base64Data;
 				return true;
 			}
+
 			var lastFailedStep = _lastCaseResult.Value.LastFailedStep;
-			if (lastFailedStep == null || !string.IsNullOrEmpty(lastFailedStep.ScreenShot))
-				return false;
-			lastFailedStep.ScreenShot = base64Data;
-			return true;
+			if (lastFailedStep != null && string.IsNullOrEmpty(lastFailedStep.ScreenShot))
+			{
+                lastFailedStep.ScreenShot = base64Data;
+				return true;
+            }
+
+			return false;
 		}
 
 		public void AddScreenRecordingAttachmentFromPath(string videoFilePath, bool addToStep = false)
