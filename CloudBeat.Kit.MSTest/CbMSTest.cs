@@ -119,19 +119,20 @@ namespace CloudBeat.Kit.MSTest
             Current.Reporter.Transaction(name, action);
         }
 
-        public static void WrapWebDriver(EventFiringWebDriver driver, 
-            bool takeFullPageScreenshots = true,
-			bool ignoreFindElement = true)
+        public static void WrapWebDriver(EventFiringWebDriver driver, bool takeFullPageScreenshots = true, bool ignoreFindElement = true)
         {
             if (!Current.IsConfigured)
                 return;
+
 			Current.Reporter?.SetCurrentWebDriver(driver?.WrappedDriver);
+
 			new CbWebDriverWrapper(driver, Current.Reporter, 
                 new CbWebDriverWrapper.Options { 
                     FullPageScreenshot = takeFullPageScreenshots,
 					IgnoreFindElement = ignoreFindElement
 				});
-            //Current.Reporter.WrapWebDriver(driver);
+
+            Current.Reporter?.SetScreenshotProvider(new CbMSTestScreenshotProvider(driver));
         }
 
         public static IEnumerable<object[]> GetTestData()
