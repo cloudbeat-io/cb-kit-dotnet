@@ -14,8 +14,8 @@ namespace CloudBeat.Kit.MSTest
     public static class CbMSTest
     {
         private const string TEST_DATA_PARAM_NAME = "testData";
-        public const string FRAMEWORK_NAME = "MSTest";
-        public const string FRAMEWORK_VERSION = "2";
+        private const string FRAMEWORK_NAME = "MSTest";
+        private const string FRAMEWORK_VERSION = "2";
 
         private static CbMSTestContext currentCbContext;
 
@@ -23,13 +23,19 @@ namespace CloudBeat.Kit.MSTest
         {
             //Debugger.Launch();
         }
+
+        /// <summary>
+        /// Retrieves current MSTestContext. 
+        /// </summary>
         public static CbMSTestContext Current
         {
             get
             {
                 if (currentCbContext == null)
 				{
-                    currentCbContext = CreateCloudBeatMSTestContext();
+                    CbConfig config = new CbConfig();
+                    config.loadFromEnvironment();
+                    currentCbContext = new CbMSTestContext(config);
 
                     if (currentCbContext.Reporter != null)
                     {
@@ -41,27 +47,24 @@ namespace CloudBeat.Kit.MSTest
             }
         }
 
-        public static Dictionary<string, object> GetCapabilities()
+        /// <summary>
+        /// Retrieves test run parameters.
+        /// </summary>
+        /// <returns>Copy of test run parameters or null if not running inside a CB context.</returns>
+        public static Dictionary<string, object> GetTesRunParameters()
 		{
-            TestContext msTestContext = Current.MSTestContext;
-            if (!Current.IsConfigured || msTestContext == null)
+            if (!Current.IsConfigured || Current.MSTestContext == null)
                 return null;
-            Dictionary<string, object> caps = new Dictionary<string, object>();
-            var deviceName = msTestContext.Properties["deviceName"]?.ToString();            
-            var platformName = msTestContext.Properties["platformName"]?.ToString();
-            var browserName = msTestContext.Properties["browserName"]?.ToString();
-            var platformVersion = msTestContext.Properties["platformVersion"]?.ToString();
-            var udid = msTestContext.Properties["udid"]?.ToString();
-            if (!string.IsNullOrEmpty(deviceName)) caps.Add("deviceName", deviceName);
-            if (!string.IsNullOrEmpty(platformName)) caps.Add("platformName", platformName);
-            if (!string.IsNullOrEmpty(browserName)) caps.Add("browserName", browserName);
-            if (!string.IsNullOrEmpty(platformVersion)) caps.Add("platformVersion", platformVersion);
-            if (!string.IsNullOrEmpty(udid)) caps.Add("udid", udid);
 
-            return caps;
+            var props = Current.MSTestContext.Properties as Dictionary<string, object>;
+            return props.ToDictionary(entry => entry.Key, entry => entry.Value);
         }
 
-		public static string GetEnvironmentName(string defaultName = null)
+        /// <summary>
+        /// Retrieves environment name.
+        /// </summary>
+        /// <returns>Environment name or defaultName if no environment was selected during test execution.</returns>
+        public static string GetEnvironmentName(string defaultName = null)
 		{
 			TestContext msTestContext = Current.MSTestContext;
 			if (!Current.IsConfigured || msTestContext == null)
@@ -77,6 +80,7 @@ namespace CloudBeat.Kit.MSTest
                 testContext = Current.MSTestContext;
             return Current.Reporter.Step(hookName, methodName, func, arg);
         }
+
         public static TResult Step<T, TResult>(string name, Func<T, TResult> func, T arg, TestContext testContext = null)
         {
             if (!Current.IsConfigured)
@@ -85,6 +89,7 @@ namespace CloudBeat.Kit.MSTest
                 testContext = Current.MSTestContext;
             return Current.Reporter.Step(name, func, arg);
         }
+
         public static TResult Step<TResult>(string name, Func<TResult> func, TestContext testContext = null)
         {
             if (!Current.IsConfigured)
@@ -93,6 +98,7 @@ namespace CloudBeat.Kit.MSTest
                 testContext = Current.MSTestContext;
             return Current.Reporter.Step(name, func);
         }
+
         public static void Step(string name, Action action, TestContext testContext = null)
         {
             if (!Current.IsConfigured)
@@ -119,6 +125,12 @@ namespace CloudBeat.Kit.MSTest
             Current.Reporter.Transaction(name, action);
         }
 
+        /// <summary>
+        /// Adds CloudBeat event handlers to the provided Web Driver.
+        /// </summary>
+        /// <param name="driver">EventFiringWebDriver to wrap.</param>
+        /// <param name="takeFullPageScreenshots">Take full page screenshots. Works only when using ChromeDriver.</param>
+        /// <param name="ignoreFindElement">Ignore exceptions produced by IWebDriver.FindElement(s)</param>
         public static void WrapWebDriver(EventFiringWebDriver driver, bool takeFullPageScreenshots = true, bool ignoreFindElement = true)
         {
             if (!Current.IsConfigured)
@@ -156,13 +168,6 @@ namespace CloudBeat.Kit.MSTest
         {
             if (Current.IsConfigured)
                 Current.MSTestContext = context;
-        }
-
-        private static CbMSTestContext CreateCloudBeatMSTestContext()
-        {
-            CbConfig config = new CbConfig();
-            config.loadFromEnvironment();
-            return new CbMSTestContext(config);
         }
 
         internal static void StartCase(ITestMethod testMethod)

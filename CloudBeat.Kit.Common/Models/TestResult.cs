@@ -9,25 +9,6 @@ namespace CloudBeat.Kit.Common.Models
 	{
 		private readonly ConcurrentBag<SuiteResult> _suites = new ConcurrentBag<SuiteResult>();
 
-		public TestResult() : this(null, null) { }
-		public TestResult(string runId, string instanceId) : this(runId, instanceId, null, null, null, null)
-		{
-
-		}
-		public TestResult(
-			string runId,
-			string instanceId,
-			Dictionary<string, string> options,
-			Dictionary<string, string> capabilities,
-			Dictionary<string, string> metaData,
-			Dictionary<string, string> environmentVariables)
-		{
-			RunId = runId;
-			InstanceId = instanceId;
-			StartTime = DateTime.UtcNow;
-			//_suites = new List<SuiteResult>();
-		}
-
 		public string RunId { get; set; }
 		public string InstanceId { get; set; }
 		public DateTime StartTime { get; set; }
@@ -41,7 +22,18 @@ namespace CloudBeat.Kit.Common.Models
 		public FailureResult Failure { get; set; }
 		public IEnumerable<SuiteResult> Suites { get { return _suites; } }
 
-		public SuiteResult AddNewSuite(string name, string fqn)
+        public TestResult() : this(null, null)
+        {
+        }
+
+        public TestResult(string runId, string instanceId)
+        {
+            RunId = runId;
+            InstanceId = instanceId;
+            StartTime = DateTime.UtcNow;
+        }
+
+        public SuiteResult AddNewSuite(string name, string fqn)
 		{
 			SuiteResult newSuite;
 			_suites.Add(newSuite = new SuiteResult()

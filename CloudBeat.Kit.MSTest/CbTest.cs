@@ -9,9 +9,9 @@ namespace CloudBeat.Kit.MSTest
     [TestClass]
     public abstract class CbTest : IDisposable
     {
-		public TestContext TestContext { get; set; }        
-
+		public TestContext TestContext { get; set; }
         public bool TakeFullPageScreenshots { get; set; } = true;
+
         public bool IsRunningFromCB() 
         { 
             return CbMSTest.Current.IsConfigured;
@@ -22,6 +22,7 @@ namespace CloudBeat.Kit.MSTest
         {
             CbMSTest.SetMSTestContext(context);
         }
+
         [TestInitialize]
         public void TestInitialize()
 		{
@@ -74,9 +75,13 @@ namespace CloudBeat.Kit.MSTest
 
 		private bool HasCbTestMethodAttribute(string testMethodName)
 		{
-            if (string.IsNullOrEmpty(testMethodName)) return false;
+            if (string.IsNullOrEmpty(testMethodName))
+                return false;
+
 			var methodInfo = this.GetType().GetMethod(testMethodName);
-			if (methodInfo == null) return false;
+			if (methodInfo == null) 
+                return false;
+
 			var cbTestMethodAttr = methodInfo.GetCustomAttribute<CbTestMethodAttribute>();
 			return cbTestMethodAttr != null;
 		}
