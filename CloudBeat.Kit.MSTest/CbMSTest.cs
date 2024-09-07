@@ -173,7 +173,7 @@ namespace CloudBeat.Kit.MSTest
             return CbConfig.ParseCsvStringAsObjectArray(csvDataAsString);
         }
 
-        public static void SetMSTestContext(TestContext context)
+        internal static void SetMSTestContext(TestContext context)
         {
             if (Current.IsConfigured)
                 Current.MSTestContext = context;
