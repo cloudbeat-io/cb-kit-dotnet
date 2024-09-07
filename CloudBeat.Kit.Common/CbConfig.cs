@@ -23,10 +23,6 @@ namespace CloudBeat.Kit.Common
         string _apiKey;
         string _apiUrl;
         bool _isCbAgent;
-        Dictionary<string, string> _metadata;
-        Dictionary<string, string> _capabilities;
-        Dictionary<string, string> _envVars;
-        Dictionary<string, string> _options;
 
         public void loadFromEnvironment()
 		{
@@ -40,7 +36,6 @@ namespace CloudBeat.Kit.Common
 
         private static bool parseBool(string str)
         {
-            if (string.IsNullOrEmpty(str)) return false;
             bool.TryParse(str, out bool result);
             return result;
         }
@@ -55,10 +50,6 @@ namespace CloudBeat.Kit.Common
         public string ProjectId => _projectId;
         public string ApiKey => _apiKey;
         public string ApiUrl => _apiUrl;
-        public Dictionary<string, string> Metadata => _metadata;
-        public Dictionary<string, string> Capabilities => _capabilities;
-        public Dictionary<string, string> EnvironmentVariables => _envVars;
-        public Dictionary<string, string> Options => _options;
 
         public static IEnumerable<object[]> ParseCsvStringAsObjectArray(string csvStr)
 		{
@@ -77,6 +68,5 @@ namespace CloudBeat.Kit.Common
 			}
             return rows;
         }
-
     }
 }

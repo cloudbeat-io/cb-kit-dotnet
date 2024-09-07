@@ -15,14 +15,8 @@ namespace CloudBeat.Kit.NUnit.Aspects
         private static readonly MethodInfo _asyncGenericHandler =
             typeof(CbStepAspect).GetMethod(nameof(CbStepAspect.WrapAsync), BindingFlags.NonPublic | BindingFlags.Static);
 
-        private static readonly MethodInfo _asyncVoidGenericHandler =
-            typeof(CbStepAspect).GetMethod(nameof(CbStepAspect.WrapAsyncVoid), BindingFlags.NonPublic | BindingFlags.Static);
-
         private static readonly MethodInfo _syncGenericHandler =
             typeof(CbStepAspect).GetMethod(nameof(CbStepAspect.WrapSync), BindingFlags.NonPublic | BindingFlags.Static);
-
-        private static readonly Type _voidTaskResult = Type.GetType("System.Threading.Tasks.VoidTaskResult");
-
 
         [Advice(Kind.Around, Targets = Target.Method)]
         public object WrapStep(
@@ -50,33 +44,27 @@ namespace CloudBeat.Kit.NUnit.Aspects
                 return reporter.SuiteHook(stepName ?? hookName, HookTypeEnum.After, methodName, method, arguments);
             string methodFqn = $"{methodBase.DeclaringType}.{methodName}";
             string methodDisplayName = ParameterizeStepName(stepName, methodBase.GetParameters(), arguments) ?? methodName;
-            try
+
+            if (typeof(Task).IsAssignableFrom(retType))
             {
-                if (typeof(Task).IsAssignableFrom(retType))
-                {
-                    if (retType.IsConstructedGenericType)
-                        return _asyncGenericHandler.MakeGenericMethod(retType.GenericTypeArguments[0]).Invoke(null, new object[] {
-                            method/*ConvertToTaskFunc(method, arguments)*/, arguments, methodDisplayName, methodFqn, reporter
-                        });
-                    else
-                        return WrapAsyncVoid(
-                            ConvertToVoidTaskFunc(method, arguments), methodDisplayName, methodFqn, reporter
-                        );
-                }
-                else if (retType == typeof(void))
-                {
-                    return reporter.StepWithFqn(methodDisplayName, methodFqn, method, arguments);
-                }
+                if (retType.IsConstructedGenericType)
+                    return _asyncGenericHandler.MakeGenericMethod(retType.GenericTypeArguments[0]).Invoke(null, new object[] {
+                        method, arguments, methodDisplayName, methodFqn, reporter
+                    });
                 else
-                {
-                    return _syncGenericHandler.MakeGenericMethod(retType).Invoke(null, new object[] {
+                    return WrapAsyncVoid(
+                        ConvertToVoidTaskFunc(method, arguments), methodDisplayName, methodFqn, reporter
+                    );
+            }
+            else if (retType == typeof(void))
+            {
+                return reporter.StepWithFqn(methodDisplayName, methodFqn, method, arguments);
+            }
+            else
+            {
+                return _syncGenericHandler.MakeGenericMethod(retType).Invoke(null, new object[] {
                     method, arguments, methodDisplayName, methodFqn, reporter
                 });
-                }
-            }
-            catch (Exception e)
-            {
-                throw;
             }
         }
 
@@ -102,45 +90,18 @@ namespace CloudBeat.Kit.NUnit.Aspects
             string methodFqn,
             CbNUnitTestReporter reporter)
         {
-            try
-            {
-                return (T)reporter.StepWithFqn(
-                    methodName,
-                    methodFqn,
-                    func,
-                    args
-                );
-            }
-            catch (Exception e)
-            {
-                // return default(T);
-                throw;
-            }
+            return (T)reporter.StepWithFqn(methodName, methodFqn, func, args);
         }
 
         private static async Task<T> WrapAsync<T>(
-            //Func<Task<T>> func,
             Func<object[], object> method,
             object[] arguments,
             string methodName,
             string methodFqn,
             CbNUnitTestReporter reporter)
         {
-            try
-            {
-                var asyncFunc = ConvertToTypedTaskFunc<T>(method, arguments);
-                return (T)await reporter.StepWithFqnAsync(
-                    methodName,
-                    methodFqn,
-                    asyncFunc
-                );
-                // return await (Task<T>)func(args);
-            }
-            catch (Exception e)
-            {
-                throw;
-                // return default(T);
-            }
+            var asyncFunc = ConvertToTypedTaskFunc<T>(method, arguments);
+            return await reporter.StepWithFqnAsync(methodName, methodFqn, asyncFunc);
         }
 
         private static async Task WrapAsyncVoid(
@@ -149,20 +110,7 @@ namespace CloudBeat.Kit.NUnit.Aspects
             string methodFqn,
             CbNUnitTestReporter reporter)
         {
-            try
-            {
-                await reporter.StepWithFqnAsync(
-                    methodName,
-                    methodFqn,
-                    func
-                );
-                // return await (Task<T>)func(args);
-            }
-            catch (Exception e)
-            {
-                throw;
-                // return default(T);
-            }
+            await reporter.StepWithFqnAsync(methodName, methodFqn, func);
         }
 
         private static string ParameterizeStepName(string stepName, ParameterInfo[] parameterInfos, object[] arguments)

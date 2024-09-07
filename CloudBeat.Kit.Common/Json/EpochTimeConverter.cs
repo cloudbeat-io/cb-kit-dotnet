@@ -12,7 +12,6 @@ namespace CloudBeat.Kit.Common.Json
         {
             long msValue = (long)Math.Ceiling(((DateTime)value - _epoch).TotalMilliseconds);
 
-            //writer.WriteRawValue(((DateTime)value - _epoch).TotalMilliseconds + "000");
             writer.WriteRawValue(msValue.ToString());
         }
 
