@@ -10,7 +10,7 @@ namespace CloudBeat.Kit.Common
 {
     // following code is taken from https://stackoverflow.com/a/52063597
     // another example based on Selenium 4: https://dev.to/gdledsan/selenium-4-and-chrome-driver-take-full-page-screenthos-2j8d
-    internal static class CbScreenshotHelper
+    public static class CbScreenshotHelper
     {
         private const string DEFAULT_SCREENSHOT_FORMAT = "Png";
 		private const int DEFAULT_SCREENSHOT_QUALITY = 80;

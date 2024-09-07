@@ -163,7 +163,7 @@ namespace CloudBeat.Kit.MSTest
 					IgnoreFindElement = ignoreFindElement
 				});
 
-            Current.Reporter?.SetScreenshotProvider(new CbMSTestScreenshotProvider(driver));
+            Current.Reporter?.SetScreenshotProvider(new CbMSTestScreenshotProvider(driver?.WrappedDriver, takeFullPageScreenshots));
         }
 
         /// <summary>
