@@ -56,10 +56,8 @@ namespace CloudBeat.Kit.MSTest
             }
         }
 
-        /// <summary>
-        /// Retrieves test run parameters.
-        /// </summary>
-        /// <returns>Copy of test run parameters or null if not running inside a CB context.</returns>
+        // Retrieves copy of TesRunParameters. This method is intended for debugging purposes only.
+        [Obsolete("Intended for debugging purposes only. Do not use in production code.")]
         public static Dictionary<string, object> GetTesRunParameters()
 		{
             if (!Current.IsConfigured || Current.MSTestContext == null)
@@ -72,7 +70,7 @@ namespace CloudBeat.Kit.MSTest
         /// <summary>
         /// Retrieves environment name.
         /// </summary>
-        /// <returns>Environment name or defaultName if no environment was selected during test execution.</returns>
+        /// <returns>Environment name or <c>defaultName</c> if no environment was selected during test execution.</returns>
         public static string GetEnvironmentName(string defaultName = null)
 		{
 			TestContext msTestContext = Current.MSTestContext;
@@ -81,7 +79,19 @@ namespace CloudBeat.Kit.MSTest
 			return msTestContext.Properties["environmentName"]?.ToString() ?? defaultName;
 		}
 
-		public static TResult Hook<T, TResult>(string hookName, string methodName, Func<T, TResult> func, T arg, TestContext testContext = null)
+        /// <summary>
+        /// Retrieves environment variable.
+        /// </summary>
+        /// <returns>Environment value. null if no environment was selected during test execution or the specified variable is not defined.</returns>
+        public static string GetEnvironmentValue(string name)
+        {
+            TestContext msTestContext = Current.MSTestContext;
+            if (!Current.IsConfigured || msTestContext == null || name == null)
+                return null;
+            return msTestContext.Properties[name]?.ToString();
+        }
+
+        public static TResult Hook<T, TResult>(string hookName, string methodName, Func<T, TResult> func, T arg, TestContext testContext = null)
         {
             if (!Current.IsConfigured)
                 return func.Invoke(arg);
@@ -156,6 +166,10 @@ namespace CloudBeat.Kit.MSTest
             Current.Reporter?.SetScreenshotProvider(new CbMSTestScreenshotProvider(driver));
         }
 
+        /// <summary>
+        /// Retrieves parameters passed from CloudBeat.
+        /// </summary>
+        /// <returns>Enumerable containing parameter rows. Parameter header is not returned.</returns>
         public static IEnumerable<object[]> GetTestData()
 		{
             TestContext msTestContext = Current.MSTestContext;
@@ -207,6 +221,12 @@ namespace CloudBeat.Kit.MSTest
 			Current.Reporter.EndCase(Current.MSTestContext);
 		}
 
+        /// <summary>
+        /// Adds name/value data pair to the test result.
+        /// </summary>
+        /// <param name="name">Data name.</param>
+        /// <param name="data">Data value.</param>
+        /// <param name="testContext">Optional TestContext.</param>
 		public static void AddOutputData(string name, object data, TestContext testContext = null)
 		{
             if (!Current.IsConfigured)
@@ -216,6 +236,12 @@ namespace CloudBeat.Kit.MSTest
             Current.Reporter.AddOutputData(name, data, testContext);
         }
 
+        /// <summary>
+        /// Adds name/value test attribute pair to the test result.
+        /// </summary>
+        /// <param name="name">Attribute name</param>
+        /// <param name="value">Attribute value</param>
+        /// <param name="testContext">Optional TestContext.</param>
 		public static void AddTestAttribute(string name, object value, TestContext testContext = null)
 		{
 			if (!Current.IsConfigured)
@@ -225,6 +251,12 @@ namespace CloudBeat.Kit.MSTest
 			Current.Reporter.AddTestAttribute(name, value, testContext);
 		}
 
+        /// <summary>
+        /// Sets failure reason.
+        /// Could be used from cleanup methods or catch blocks to set reason for the test failure.
+        /// </summary>
+        /// <param name="reason">Failure reason.</param>
+        /// <param name="testContext">Optional TestContext.</param>
 		public static void SetFailureReason(FailureReasonEnum reason, TestContext testContext = null)
         {
             if (!Current.IsConfigured)

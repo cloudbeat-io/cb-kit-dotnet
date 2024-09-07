@@ -10,12 +10,6 @@ namespace CloudBeat.Kit.MSTest
     public abstract class CbTest : IDisposable
     {
 		public TestContext TestContext { get; set; }
-        public bool TakeFullPageScreenshots { get; set; } = true;
-
-        public bool IsRunningFromCB() 
-        { 
-            return CbMSTest.Current.IsConfigured;
-        }
 
         [ClassInitialize(InheritanceBehavior.BeforeEachDerivedClass)]
         public static void ClassInitialize(TestContext context)
@@ -49,16 +43,40 @@ namespace CloudBeat.Kit.MSTest
             }
         }
 
+        /// <summary>
+        /// Retrieves a boolean value indicating whether the code is running from CloudBeat.
+        /// </summary>
+        /// <returns><c>true</c> if running from CloudBeat; <c>false</c> otherwise.</returns>
+        public static bool IsRunningFromCB()
+        {
+            return CbMSTest.IsRunningFromCB();
+        }
+
+        /// <summary>
+        /// Adds name/value data pair to the test result.
+        /// </summary>
+        /// <param name="name">Data name.</param>
+        /// <param name="data">Data value.</param>
         public void AddOutputData(string name, object data)
         {
             CbMSTest.AddOutputData(name, data, TestContext);
         }
 
+        /// <summary>
+        /// Adds name/value test attribute pair to the test result.
+        /// </summary>
+        /// <param name="name">Attribute name</param>
+        /// <param name="value">Attribute value</param>
         public void AddTestAttribute(string name, object value)
         {
             CbMSTest.AddTestAttribute(name, value, TestContext);
         }
 
+        /// <summary>
+        /// Sets failure reason.
+        /// Could be used from cleanup methods or catch blocks to set reason for the test failure.
+        /// </summary>
+        /// <param name="reason">Failure reason.</param>
         public void SetFailureReason(FailureReasonEnum reason)
         {
             CbMSTest.SetFailureReason(reason);
