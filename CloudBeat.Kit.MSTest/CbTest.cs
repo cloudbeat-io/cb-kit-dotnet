@@ -79,7 +79,7 @@ namespace CloudBeat.Kit.MSTest
         /// <param name="reason">Failure reason.</param>
         public void SetFailureReason(FailureReasonEnum reason)
         {
-            CbMSTest.SetFailureReason(reason);
+            CbMSTest.SetFailureReason(reason, TestContext);
         }
 
         public void HasWarnings(bool warnings = true)

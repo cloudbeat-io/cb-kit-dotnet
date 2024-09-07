@@ -19,6 +19,7 @@ namespace CloudBeat.Kit.Common.Json
 			Formatting = Formatting.None,
 			Converters = new List<JsonConverter> { new EpochDateTimeConverter(), new StringEnumConverter(), new StatusConverter() }
 		};
+
 		public static string SerializeObject(object obj)
 		{
 			return JsonConvert.SerializeObject(obj, _jsonSerializerSettings);
