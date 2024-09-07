@@ -236,11 +236,11 @@ namespace CloudBeat.Kit.MSTest
         }
 
         /// <summary>
-        /// Take screenshot (only if current test has failed status) and add it to last failed step if it doesn't have any screenshot. 
-        /// If there is no last failed step then add screenshot as an attachment to the test result.
+        /// Takes screenshot (only if current test has failed) and adds it to last failed step if it doesn't have any screenshot. 
+        /// If there is no last failed step then screenshot is added as attachment to the test result.
         /// This method is intended to be used from TestCleanup methods for taking screenshots for exceptions happening outside of "steps".
         /// </summary>
-        public static void AddScreenshot()
+        public static void AddScreenshotOnError()
         {
             if (!Current.IsConfigured)
             {
