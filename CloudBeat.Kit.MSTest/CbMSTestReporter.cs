@@ -193,24 +193,17 @@ namespace CloudBeat.Kit.MSTest
         public StepResult StartStep(string stepName)
         {
             CaseResult caseResult = GetStartedCase(null);
-            if (caseResult == null) return null;
+            if (caseResult == null)
+                return null;
             return base.StartStep(stepName);
-            // return base.StartStep(caseResult, stepName);
         }
 
-        /*public StepResult EndStep(StepResult stepResult, TestStatusEnum? status = null)
-        {
-            CaseResult caseResult = GetStartedCase(null);
-            if (caseResult == null) return null;
-            return base.EndStep(stepResult, caseResult, status);
-        }*/
-
-        public void AddOutputData(string entryName, object entyData, TestContext msTestContext = null)
+        public void AddOutputData(string name, object value, TestContext msTestContext = null)
         {
             CaseResult caseResult = GetStartedCase(msTestContext);
             if (caseResult == null)
                 return;
-            var dataEntry = new OutputDataEntry(entryName, entyData);
+            var dataEntry = new OutputDataEntry(name, value);
             List<OutputDataEntry> outputDataList = caseResult.Context.ContainsKey("resultData") ? 
                 caseResult.Context["resultData"] as List<OutputDataEntry> : new List<OutputDataEntry>();
             outputDataList.Add(dataEntry);
