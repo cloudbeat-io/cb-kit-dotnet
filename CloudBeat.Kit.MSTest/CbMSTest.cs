@@ -25,6 +25,15 @@ namespace CloudBeat.Kit.MSTest
         }
 
         /// <summary>
+        /// Retrieves a boolean value indicating whether the code is running from CloudBeat.
+        /// </summary>
+        /// <returns><c>true</c> if running from CloudBeat; <c>false</c> otherwise.</returns>
+        public static bool IsRunningFromCB()
+        {
+            return Current.IsConfigured;
+        }
+
+        /// <summary>
         /// Retrieves current MSTestContext. 
         /// </summary>
         public static CbMSTestContext Current
