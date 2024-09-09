@@ -92,6 +92,10 @@ namespace CloudBeat.Kit.NUnit
 			return TestContext.Parameters["environmentName"]?.ToString() ?? defaultName;
 		}
 
+        /// <summary>
+        /// Starts new step.
+        /// </summary>
+        /// <param name="name">Step name.</param>
 		public static void StartStep(string name)
         {
             if (!Current.IsConfigured)
@@ -99,6 +103,10 @@ namespace CloudBeat.Kit.NUnit
             Current.Reporter.StartStep(name);
         }
 
+        /// <summary>
+        /// Closes currently active step.
+        /// </summary>
+        /// <param name="name">Step name.</param>
         public static void EndStep(string name)
         {
             if (!Current.IsConfigured)
@@ -106,6 +114,11 @@ namespace CloudBeat.Kit.NUnit
             Current.Reporter.EndStep(name);
         }
 
+        /// <summary>
+        /// Encapsulates a code block inside step.
+        /// </summary>
+        /// <param name="name">Step name.</param>
+        /// <param name="action">Delegate to execute.</param>
         public static void Step(string name, Action action)
 		{
             if (!Current.IsConfigured)
@@ -114,7 +127,14 @@ namespace CloudBeat.Kit.NUnit
                 Current.Reporter.Step(name, action);
 		}
 
-        public static T Step<T>(string name, Func<T> func)
+        /// <summary>
+        /// Encapsulates a code block inside step.
+        /// </summary>
+        /// <typeparam name="TResult">The type returned from this method.</typeparam>
+        /// <param name="name">Step name.</param>
+        /// <param name="func">Delegate to execute.</param>
+        /// <returns>Delegate's return value.</returns>
+        public static TResult Step<TResult>(string name, Func<TResult> func)
         {
             if (!Current.IsConfigured)
                 return func.Invoke();
@@ -122,6 +142,11 @@ namespace CloudBeat.Kit.NUnit
                 return Current.Reporter.Step(name, func);
         }
 
+        /// <summary>
+        /// Encapsulates a code block inside transaction.
+        /// </summary>
+        /// <param name="name">Transaction name.</param>
+        /// <param name="action">Delegate to execute</param>
         public static void Transaction(string name, Action action)
         {
             if (!Current.IsConfigured)
@@ -218,27 +243,13 @@ namespace CloudBeat.Kit.NUnit
             Current.Reporter?.SetCaseFailureReason(reason);
         }
 
-        public static void AddScreenRecording(string videoBase64Data)
-        {
-            if (!Current.IsConfigured)
-                return;
-            Current.Reporter?.AddScreenRecordingAttachment(videoBase64Data);
-        }
-        
-        public static bool AddScreenRecordingFromUrl(string url)
-        {
-            if (!Current.IsConfigured || Current.Reporter == null)
-                return false;
-            return Current.Reporter.AddScreenRecordingAttachmentFromUrl(url);
-        }
-
         /// <summary>
         /// Takes screenshot (only if current test has failed) and adds it to last failed step if it doesn't have any screenshot. 
         /// If there is no last failed step then screenshot is added as attachment to the test result.
         /// This method is intended to be used from TearDown methods for taking screenshots for exceptions happening outside of "steps".
         /// </summary>
         public static void AddScreenshotOnError()
-		{
+        {
             if (!Current.IsConfigured || Current.Reporter == null)
             {
                 return;
@@ -256,7 +267,21 @@ namespace CloudBeat.Kit.NUnit
                     // ignored
                 }
             }
-		}
+        }
+
+        public static void AddScreenRecording(string videoBase64Data)
+        {
+            if (!Current.IsConfigured)
+                return;
+            Current.Reporter?.AddScreenRecordingAttachment(videoBase64Data);
+        }
+        
+        public static bool AddScreenRecordingFromUrl(string url)
+        {
+            if (!Current.IsConfigured || Current.Reporter == null)
+                return false;
+            return Current.Reporter.AddScreenRecordingAttachmentFromUrl(url);
+        }
 
 		public static void AddScreenRecordingFromPath(string videoFilePath)
         {
