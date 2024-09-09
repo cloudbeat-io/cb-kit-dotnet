@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace CloudBeat.Kit.NUnit.Attributes
 {
-	[AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class)]
     public class CbNUnitTestAttribute : PropertyAttribute, ITestAction, IApplyToContext, IWrapSetUpTearDown
     {
         private readonly bool _isWrappedIntoStep;

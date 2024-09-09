@@ -1,6 +1,5 @@
 ﻿using CloudBeat.Kit.Common;
 using CloudBeat.Kit.Common.Models;
-using NUnit.Framework;
 using NUnit.Framework.Interfaces;
 using NUnit.Framework.Internal;
 using System.Collections.Generic;
@@ -107,7 +106,7 @@ namespace CloudBeat.Kit.NUnit
             return test.FullName;
         }
 
-		internal static string GetFailureType(TestContext.ResultAdapter result)
+		internal static string GetFailureType(ResultAdapter result)
 		{
             if (string.IsNullOrEmpty(result.Message))
 				return CbExceptionHelper.ERROR_TYPE_GENERAL;
