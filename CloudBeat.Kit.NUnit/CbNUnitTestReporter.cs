@@ -34,7 +34,7 @@ namespace CloudBeat.Kit.NUnit
 
         public void StartSuite(TestSuite suite, TestSuite parentSuite)
         {
-            StartSuite(suite.Name, suite.FullName, parentSuite?.FullName, x =>    // NUnitHelpers.GetTestSuiteFqn(
+            StartSuite(suite.Name, suite.FullName, parentSuite?.FullName, x =>
             {
                 x.Arguments = suite.Arguments?.Select(a => a.ToString()).ToArray();
                 ProcessSuiteAttributes(suite, x);
@@ -124,7 +124,7 @@ namespace CloudBeat.Kit.NUnit
 
         public bool EndSuite(TestSuite suite)
         {
-            return EndSuite(suite.FullName); // NUnitHelpers.GetTestSuiteFqn(
+            return EndSuite(suite.FullName);
         }
 
         public void EndCase(Test test)
@@ -135,13 +135,14 @@ namespace CloudBeat.Kit.NUnit
             var status = NUnitHelpers.DetermineTestStatus(nuTestResult.Outcome);
             lock (_lock)
             {
-                var fqn = test.FullName; // NUnitHelpers.GetTestCaseFqn(test);
+                var fqn = test.FullName;
                 CaseResult endedCase;
                 // remove ended case from current case per-thread storage
                 endedCase = EndCase(fqn, status, failure);
                 WriteCaseResultToFile(endedCase);
             }
         }
+
         private static FailureResult GetFailureFromResult(TestContext.ResultAdapter result)
 		{
             if (!NUnitHelpers.IsFailure(result.Outcome) && !NUnitHelpers.IsError(result.Outcome))
@@ -200,15 +201,6 @@ namespace CloudBeat.Kit.NUnit
         public override StepResult StartStep(string stepName, StepTypeEnum type = StepTypeEnum.General, CaseResult parentCase = null)
         {
             return base.StartStep(stepName, type);
-        }
-
-        public override StepResult EndStep(
-            StepResult stepResult,
-            TestStatusEnum? status = null,
-            Exception exception = null,
-            string screenshot = null)
-        {
-            return base.EndStep(stepResult, status, exception, screenshot);
         }
 
         public void HasWarnings(bool hasWarnings = true)
