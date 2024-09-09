@@ -56,6 +56,25 @@ namespace CloudBeat.Kit.MSTest
             }
         }
 
+        /// <summary>
+        /// Retrieves capabilities.
+        /// </summary>
+        /// <returns><Dictionary containing the capabilities./returns>
+        public static Dictionary<string, object> GetCapabilities()
+        {
+            Dictionary<string, object> caps = new Dictionary<string, object>();
+
+            foreach (var capName in CapabilitiesList.Capabilities)
+            {
+                if (Current.MSTestContext.Properties.Contains(capName))
+                {
+                    var cap = Current.MSTestContext.Properties[capName];
+                    caps.Add(capName, cap);
+                }
+            }
+            return caps;
+        }
+
         // Retrieves copy of TesRunParameters. This method is intended for debugging purposes only.
         [Obsolete("Intended for debugging purposes only. Do not use in production code.")]
         public static Dictionary<string, object> GetTesRunParameters()

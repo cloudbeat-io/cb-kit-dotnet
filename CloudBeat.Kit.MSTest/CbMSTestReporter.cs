@@ -238,7 +238,6 @@ namespace CloudBeat.Kit.MSTest
             caseResult.HasWarnings = warnings;
         }
 
-
         public TResult Hook<T, TResult>(string hookName, string methodName, Func<T, TResult> func, T arg, TestContext testContext = null)
         {
             var startedCase = GetStartedCase(testContext);
