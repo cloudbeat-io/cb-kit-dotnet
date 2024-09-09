@@ -110,15 +110,36 @@ namespace CloudBeat.Kit.MSTest
             return msTestContext.Properties[name]?.ToString();
         }
 
+        /// <summary>
+        /// Encapsulates a code block inside hook.
+        /// </summary>
+        /// <typeparam name="T">The type of the parameter of the method that this delegate encapsulates.</typeparam>
+        /// <typeparam name="TResult">The type returned from this method.</typeparam>
+        /// <param name="hookName">Hook name.</param>
+        /// <param name="methodName">Method name.</param>
+        /// <param name="func">Delegate to execute.</param>
+        /// <param name="arg">Delegate arguments.</param>
+        /// <param name="testContext">Optional TestContext.</param>
+        /// <returns>Delegate's return value.</returns>
         public static TResult Hook<T, TResult>(string hookName, string methodName, Func<T, TResult> func, T arg, TestContext testContext = null)
         {
             if (!Current.IsConfigured)
                 return func.Invoke(arg);
             if (testContext == null)
                 testContext = Current.MSTestContext;
-            return Current.Reporter.Step(hookName, methodName, func, arg);
+            return Current.Reporter.Hook(hookName, methodName, func, arg);
         }
 
+        /// <summary>
+        /// Encapsulates a code block inside step.
+        /// </summary>
+        /// <typeparam name="T">The type of the parameter of the method that this delegate encapsulates.</typeparam>
+        /// <typeparam name="TResult">The type returned from this method.</typeparam>
+        /// <param name="name">Step name.</param>
+        /// <param name="func">Delegate to execute.</param>
+        /// <param name="arg">Delegate arguments.</param>
+        /// <param name="testContext">Optional TestContext.</param>
+        /// <returns>Delegate's return value.</returns>
         public static TResult Step<T, TResult>(string name, Func<T, TResult> func, T arg, TestContext testContext = null)
         {
             if (!Current.IsConfigured)
@@ -128,6 +149,14 @@ namespace CloudBeat.Kit.MSTest
             return Current.Reporter.Step(name, func, arg);
         }
 
+        /// <summary>
+        /// Encapsulates a code block inside step.
+        /// </summary>
+        /// <typeparam name="TResult">The type returned from this method.</typeparam>
+        /// <param name="name">Step name.</param>
+        /// <param name="func">Delegate to execute.</param>
+        /// <param name="testContext">Optional TestContext.</param>
+        /// <returns>Delegate's return value.</returns>
         public static TResult Step<TResult>(string name, Func<TResult> func, TestContext testContext = null)
         {
             if (!Current.IsConfigured)
@@ -137,6 +166,12 @@ namespace CloudBeat.Kit.MSTest
             return Current.Reporter.Step(name, func);
         }
 
+        /// <summary>
+        /// Encapsulates a code block inside step.
+        /// </summary>
+        /// <param name="name">Step name.</param>
+        /// <param name="action">Delegate to execute.</param>
+        /// <param name="testContext">Optional TestContext.</param>
         public static void Step(string name, Action action, TestContext testContext = null)
         {
             if (!Current.IsConfigured)
@@ -150,6 +185,12 @@ namespace CloudBeat.Kit.MSTest
             Current.Reporter.Step(name, action);
         }
 
+        /// <summary>
+        /// Encapsulates a code block inside transaction.
+        /// </summary>
+        /// <param name="name">Transaction name.</param>
+        /// <param name="action">Delegate to execute</param>
+        /// <param name="testContext">Optional TestContext.</param>
         public static void Transaction(string name, Action action, TestContext testContext = null)
         {
             if (!Current.IsConfigured)
