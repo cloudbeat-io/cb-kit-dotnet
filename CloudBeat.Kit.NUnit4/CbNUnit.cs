@@ -122,11 +122,15 @@ namespace CloudBeat.Kit.NUnit
         {
             if (!Current.IsConfigured)
                 return;
+
             Current.Reporter?.SetCurrentWebDriver(driver?.WrappedDriver);
+
             new CbWebDriverWrapper(
                 driver,
                 Current.Reporter,
                 new CbWebDriverWrapper.Options { FullPageScreenshot = takeFullPageScreenshots, IgnoreFindElement = ignoreFindElement });
+
+            Current.Reporter?.SetScreenshotProvider(new CbNUnitScreenshotProvider(driver?.WrappedDriver, takeFullPageScreenshots));
         }
 
         public static void AddOutputData(string name, object data)
