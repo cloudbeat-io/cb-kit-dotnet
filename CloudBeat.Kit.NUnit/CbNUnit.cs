@@ -14,7 +14,6 @@ namespace CloudBeat.Kit.NUnit
     public static class CbNUnit
     {
         private const string TEST_DATA_PARAM_NAME = "testData";
-        private const string CB_ENVIRONMENT_PARAM_NAME = "environment";
 
         private static CbNUnitContext currentCbContext;
 
@@ -22,36 +21,73 @@ namespace CloudBeat.Kit.NUnit
         {
             Thread.AllocateNamedDataSlot("_cbContext");
         }
+
+        /// <summary>
+        /// Retrieves a boolean value indicating whether the code is running from CloudBeat.
+        /// </summary>
+        /// <returns><c>true</c> if running from CloudBeat; <c>false</c> otherwise.</returns>
+        public static bool IsRunningFromCB()
+        {
+            return Current.IsConfigured;
+        }
+
+        /// <summary>
+        /// Retrieves current CbNUnitContext. 
+        /// </summary>
         public static CbNUnitContext Current
         {
             get
             {
                 if (currentCbContext == null)
                 {
-                    currentCbContext = CreateCloudBeatNUnitContext();
+                    CbConfig config = new CbConfig();
+                    config.loadFromEnvironment();
+                    currentCbContext = new CbNUnitContext(config);
                 }
                 return currentCbContext;
             }
         }
 
+        /// <summary>
+        /// Retrieves capabilities.
+        /// </summary>
+        /// <returns><Dictionary containing the capabilities./returns>
         public static Dictionary<string, object> GetCapabilities()
         {
             Dictionary<string, object> caps = new Dictionary<string, object>();
-            var deviceName = TestContext.Parameters["deviceName"]?.ToString();
-            var platformName = TestContext.Parameters["platformName"]?.ToString();
-            var browserName = TestContext.Parameters["browserName"]?.ToString();
-            var platformVersion = TestContext.Parameters["platformVersion"]?.ToString();
-            var udid = TestContext.Parameters["udid"]?.ToString();
-            if (!string.IsNullOrEmpty(deviceName)) caps.Add("deviceName", deviceName);
-            if (!string.IsNullOrEmpty(platformName)) caps.Add("platformName", platformName);
-            if (!string.IsNullOrEmpty(browserName)) caps.Add("browserName", browserName);
-            if (!string.IsNullOrEmpty(platformVersion)) caps.Add("platformVersion", platformVersion);
-            if (!string.IsNullOrEmpty(udid)) caps.Add("udid", udid);
 
+            foreach (var capName in CapabilitiesList.Capabilities)
+            {
+                var cap = TestContext.Parameters[capName]?.ToString();
+                if (!string.IsNullOrEmpty(cap))
+                {
+                    caps.Add(capName, cap);
+                }
+            }
             return caps;
         }
 
-		public static string GetEnvironmentName(string defaultName = null)
+        // Retrieves copy of TesRunParameters. This method is intended for debugging purposes only.
+        [Obsolete("Intended for debugging purposes only. Do not use in production code.")]
+        public static Dictionary<string, object> GetTesRunParameters()
+        {
+            if (!Current.IsConfigured)
+                return null;
+
+            var dict = new Dictionary<string, object>(TestContext.Parameters.Count);
+            foreach (var param in TestContext.Parameters.Names)
+            {
+                dict.Add(param, TestContext.Parameters[param]);
+            }
+
+            return dict;
+        }
+
+        /// <summary>
+        /// Retrieves environment name.
+        /// </summary>
+        /// <returns>Environment name or <c>defaultName</c> if no environment was selected during test execution.</returns>
+        public static string GetEnvironmentName(string defaultName = null)
 		{
 			return TestContext.Parameters["environmentName"]?.ToString() ?? defaultName;
 		}
@@ -96,9 +132,12 @@ namespace CloudBeat.Kit.NUnit
                 if (step != null)
                     step.Type = StepTypeEnum.Transaction;
             }
-                
         }
 
+        /// <summary>
+        /// Retrieves parameters passed from CloudBeat.
+        /// </summary>
+        /// <returns>Enumerable containing parameter rows. Parameter header is not returned.</returns>
         public static IEnumerable<object[]> GetTestData()
 		{
             if (!Current.IsConfigured || !TestContext.Parameters.Exists(TEST_DATA_PARAM_NAME))
@@ -111,13 +150,23 @@ namespace CloudBeat.Kit.NUnit
             return CbConfig.ParseCsvStringAsObjectArray(csvDataAsString);
         }
 
-        public static string GetParameter(string name)
+        /// <summary>
+        /// Retrieves environment variable.
+        /// </summary>
+        /// <returns>Environment value. null if no environment was selected during test execution or the specified variable is not defined.</returns>
+        public static string GetEnvironmentValue(string name)
         {
             if (!Current.IsConfigured || !TestContext.Parameters.Exists(name))
                 return null;
             return TestContext.Parameters.Get(name);
         }
 
+        /// <summary>
+        /// Adds CloudBeat event handlers to the provided Web Driver.
+        /// </summary>
+        /// <param name="driver">EventFiringWebDriver to wrap.</param>
+        /// <param name="takeFullPageScreenshots">Take full page screenshots. Works only when using ChromeDriver.</param>
+        /// <param name="ignoreFindElement">Ignore exceptions produced by IWebDriver.FindElement(s)</param>
         public static void WrapWebDriver(EventFiringWebDriver driver, bool takeFullPageScreenshots = true, bool ignoreFindElement = true)
         {
             if (!Current.IsConfigured)
@@ -133,6 +182,11 @@ namespace CloudBeat.Kit.NUnit
             Current.Reporter?.SetScreenshotProvider(new CbNUnitScreenshotProvider(driver?.WrappedDriver, takeFullPageScreenshots));
         }
 
+        /// <summary>
+        /// Adds name/value data pair to the test result.
+        /// </summary>
+        /// <param name="name">Data name.</param>
+        /// <param name="data">Data value.</param>
         public static void AddOutputData(string name, object data)
         {
             if (!Current.IsConfigured)
@@ -140,6 +194,11 @@ namespace CloudBeat.Kit.NUnit
             Current.Reporter?.AddOutputData(name, data);
         }
 
+        /// <summary>
+        /// Adds name/value test attribute pair to the test result.
+        /// </summary>
+        /// <param name="name">Attribute name</param>
+        /// <param name="value">Attribute value</param>
         public static void AddTestAttribute(string name, object value)
         {
             if (!Current.IsConfigured)
@@ -147,6 +206,11 @@ namespace CloudBeat.Kit.NUnit
             Current.Reporter?.AddTestAttribute(name, value);
         }
 
+        /// <summary>
+        /// Sets failure reason.
+        /// Could be used from cleanup methods or catch blocks to set reason for the test failure.
+        /// </summary>
+        /// <param name="reason">Failure reason.</param>
         public static void SetFailureReason(FailureReasonEnum reason)
         {
             if (!Current.IsConfigured)
@@ -168,14 +232,30 @@ namespace CloudBeat.Kit.NUnit
             return Current.Reporter.AddScreenRecordingAttachmentFromUrl(url);
         }
 
-		public static void AddScreenshot(string base64Data, bool toLastFailedStep = true)
+        /// <summary>
+        /// Takes screenshot (only if current test has failed) and adds it to last failed step if it doesn't have any screenshot. 
+        /// If there is no last failed step then screenshot is added as attachment to the test result.
+        /// This method is intended to be used from TearDown methods for taking screenshots for exceptions happening outside of "steps".
+        /// </summary>
+        public static void AddScreenshotOnError()
 		{
-			if (!Current.IsConfigured || Current.Reporter == null)
-				return;
-            if (toLastFailedStep)
-                if (Current.Reporter.AddScreenshotToLastFailedStep(base64Data))
-                    return;
-			Current.Reporter?.AddScreenshotAttachment(base64Data);
+            if (!Current.IsConfigured || Current.Reporter == null)
+            {
+                return;
+            }
+
+            if (TestContext.CurrentContext.Result.FailCount > 0)
+            {
+                try
+                {
+                    var screenshot = Current.Reporter?.GetScreenshotProvider().TakeScreenshot();
+                    Current.Reporter.AddScreenshot(screenshot);
+                }
+                catch
+                {
+                    // ignored
+                }
+            }
 		}
 
 		public static void AddScreenRecordingFromPath(string videoFilePath)
@@ -190,13 +270,6 @@ namespace CloudBeat.Kit.NUnit
             if (!Current.IsConfigured)
                 return;
             Current.Reporter?.HasWarnings(hasWarnings);
-        }
-
-        private static CbNUnitContext CreateCloudBeatNUnitContext()
-        {
-            CbConfig config = new CbConfig();
-            config.loadFromEnvironment();
-            return new CbNUnitContext(config);
         }
     }
 }
