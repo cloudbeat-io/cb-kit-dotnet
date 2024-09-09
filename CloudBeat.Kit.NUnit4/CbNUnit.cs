@@ -92,13 +92,21 @@ namespace CloudBeat.Kit.NUnit
 			return TestContext.Parameters["environmentName"]?.ToString() ?? defaultName;
 		}
 
-        public static void StartStep(string name)
+        /// <summary>
+        /// Starts new step.
+        /// </summary>
+        /// <param name="name">Step name.</param>
+		public static void StartStep(string name)
         {
             if (!Current.IsConfigured)
                 return;
             Current.Reporter.StartStep(name);
         }
 
+        /// <summary>
+        /// Closes currently active step.
+        /// </summary>
+        /// <param name="name">Step name.</param>
         public static void EndStep(string name)
         {
             if (!Current.IsConfigured)
@@ -106,15 +114,27 @@ namespace CloudBeat.Kit.NUnit
             Current.Reporter.EndStep(name);
         }
 
+        /// <summary>
+        /// Encapsulates a code block inside step.
+        /// </summary>
+        /// <param name="name">Step name.</param>
+        /// <param name="action">Delegate to execute.</param>
         public static void Step(string name, Action action)
-		{
+        {
             if (!Current.IsConfigured)
                 action.Invoke();
             else
                 Current.Reporter.Step(name, action);
-		}
+        }
 
-        public static T Step<T>(string name, Func<T> func)
+        /// <summary>
+        /// Encapsulates a code block inside step.
+        /// </summary>
+        /// <typeparam name="TResult">The type returned from this method.</typeparam>
+        /// <param name="name">Step name.</param>
+        /// <param name="func">Delegate to execute.</param>
+        /// <returns>Delegate's return value.</returns>
+        public static TResult Step<TResult>(string name, Func<TResult> func)
         {
             if (!Current.IsConfigured)
                 return func.Invoke();
@@ -122,16 +142,21 @@ namespace CloudBeat.Kit.NUnit
                 return Current.Reporter.Step(name, func);
         }
 
+        /// <summary>
+        /// Encapsulates a code block inside transaction.
+        /// </summary>
+        /// <param name="name">Transaction name.</param>
+        /// <param name="action">Delegate to execute</param>
         public static void Transaction(string name, Action action)
         {
             if (!Current.IsConfigured)
                 action.Invoke();
             else
-			{
+            {
                 var step = Current.Reporter.Step(name, action);
                 if (step != null)
                     step.Type = StepTypeEnum.Transaction;
-            } 
+            }
         }
 
         /// <summary>
