@@ -353,7 +353,7 @@ namespace CloudBeat.Kit.MSTest
             {
                 try
                 {
-                    var screenshot = Current.Reporter?.GetScreenshotProvider().TakeScreenshot();
+                    var screenshot = Current.Reporter?.GetScreenshotProvider()?.TakeScreenshot();
                     Current.Reporter.AddScreenshot(screenshot);
                 }
                 catch

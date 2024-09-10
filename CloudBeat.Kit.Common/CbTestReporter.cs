@@ -721,6 +721,11 @@ namespace CloudBeat.Kit.Common
         /// <param name="base64Data">Base64 encoded screenshot</param>
         public void AddScreenshot(string base64Data)
         {
+			if (base64Data == null)
+			{
+				return;
+			}
+
 			if (_lastCaseResult.Value?.LastFailedStep != null)
 			{
                 if (_lastCaseResult.Value?.LastFailedStep.ScreenShot == null)
