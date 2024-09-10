@@ -250,7 +250,7 @@ namespace CloudBeat.Kit.NUnit
         /// </summary>
         public static void AddScreenshotOnError()
         {
-            if (!Current.IsConfigured || Current.Reporter == null)
+            if (!Current.IsConfigured)
             {
                 return;
             }
@@ -278,7 +278,7 @@ namespace CloudBeat.Kit.NUnit
         
         public static bool AddScreenRecordingFromUrl(string url)
         {
-            if (!Current.IsConfigured || Current.Reporter == null)
+            if (!Current.IsConfigured)
                 return false;
             return Current.Reporter.AddScreenRecordingAttachmentFromUrl(url);
         }

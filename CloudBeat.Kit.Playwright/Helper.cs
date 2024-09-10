@@ -19,7 +19,6 @@ namespace CloudBeat.Kit.Playwright
             return Task.FromResult(reporter?.StartStep($"{namePrefix} \"{value}\""));
         }
 
-
         public static void EndTaskStep(Task task, StepResult step, CbTestReporter reporter)
 		{
 			if (reporter == null)
