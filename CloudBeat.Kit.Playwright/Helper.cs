@@ -134,8 +134,12 @@ namespace CloudBeat.Kit.Playwright
             if (reporter == null || step == null)
                 return task;
             task.ConfigureAwait(true);
+
             if (page != null)
+            {
                 reporter.SetScreenshotProvider(new CbPwScreenshotProvider(page));
+            }
+
             TaskCompletionSource<T> tcs = new TaskCompletionSource<T>();
             task.ContinueWith(ignored =>
             {
@@ -296,7 +300,12 @@ namespace CloudBeat.Kit.Playwright
             if (reporter == null)
                 return task;
             task.ConfigureAwait(true);
-            reporter.SetScreenshotProvider(new CbPwScreenshotProvider(page));
+
+            if (page != null)
+            {
+                reporter.SetScreenshotProvider(new CbPwScreenshotProvider(page));
+            }
+
             TaskCompletionSource tcs = new TaskCompletionSource();
             task.ContinueWith(ignored =>
             {

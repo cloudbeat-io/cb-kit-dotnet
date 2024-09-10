@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CloudBeat.Kit.Common;
 using Microsoft.Playwright;
+using NUnit.Framework;
 
 namespace CloudBeat.Kit.Playwright
 {
@@ -13,14 +14,11 @@ namespace CloudBeat.Kit.Playwright
         readonly IPage page;
         readonly CbTestReporter reporter;
 
-        public CbPageWrapper(IPage page, CbTestReporter reporter, string uniqueTestId = null)
+        public CbPageWrapper(IPage page, CbTestReporter reporter)
 		{
             this.page = page;
             this.reporter = reporter;
-            if (uniqueTestId != null)
-                reporter?.SetScreenshotProvider(uniqueTestId, new CbPwScreenshotProvider(page));
-            else
-                reporter?.SetScreenshotProvider(new CbPwScreenshotProvider(page));
+            reporter?.SetScreenshotProvider(TestContext.CurrentContext.Test.ID, new CbPwScreenshotProvider(page));
         }
 
         public IPage GetBasePage()
