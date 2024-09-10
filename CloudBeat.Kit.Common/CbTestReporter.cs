@@ -13,19 +13,16 @@ namespace CloudBeat.Kit.Common
 {
     public class CbTestReporter
 	{
-		protected TestRun _run;
 		protected TestInstance _instance;
 		protected TestResult _result;
 		protected CbApiClient _client;
 		protected readonly CbConfig _config;
-		protected bool _syncWithCb = false;
 		protected readonly IList<IDisposable> _wrappers = new List<IDisposable>();
 		protected readonly AsyncLocal<CaseResult> _lastCaseResult = new();
 		protected readonly ThreadLocal<CaseResult> _lastCaseResultByThread = new();
         protected readonly AsyncLocal<SuiteResult> _lastSuiteResult = new();
 		protected readonly AsyncLocal<IWebDriver> _currentWebDriver = new();
 		protected readonly AsyncLocal<ICbScreenshotProvider> _screenshotProvider = new();
-		protected readonly ThreadLocal<ICbScreenshotProvider> _screenshotProviderByThread = new();
 		protected readonly ConcurrentDictionary<string, ICbScreenshotProvider> _screenshotProviderByTestId = new();
 		protected readonly AsyncLocal<string> _currentTestId = new();
 
