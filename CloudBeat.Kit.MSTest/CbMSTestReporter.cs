@@ -9,6 +9,7 @@ using CbExceptionHelper = CloudBeat.Kit.Common.CbExceptionHelper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Reflection;
 using System.Collections.Concurrent;
+using CloudBeat.Kit.Common.Json;
 
 namespace CloudBeat.Kit.MSTest
 {
@@ -39,7 +40,7 @@ namespace CloudBeat.Kit.MSTest
 			var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
 			var cwd = Path.GetDirectoryName(assembly.Location);
 			var fullFilePath = Path.Combine(cwd, caseResultFile);
-            File.WriteAllText(fullFilePath, JsonConvert.SerializeObject(caseResult));
+            File.WriteAllText(fullFilePath, CbJsonConvert.SerializeObject(caseResult));
             if (testResult != null)
             {
 				if (testResult.ResultFiles == null)
