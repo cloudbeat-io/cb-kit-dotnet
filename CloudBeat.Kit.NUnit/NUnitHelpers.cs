@@ -31,7 +31,6 @@ namespace CloudBeat.Kit.NUnit
                 { ResultState.Warning, TestStatusEnum.Warning },
                 { ResultState.Inconclusive, TestStatusEnum.Broken },
                 { ResultState.NotRunnable, TestStatusEnum.Skipped }
-                
             };
 
 		private static readonly Dictionary<string, string> EXCEPTION_FAILURE_TYPE_MAP =

@@ -118,7 +118,7 @@ namespace CloudBeat.Kit.NUnit
         /// Encapsulates a code block inside step.
         /// </summary>
         /// <param name="name">Step name.</param>
-        /// <param name="action">Delegate to execute.</param>
+        /// <param name="action">Delegate to execute (async delegates are not supported!).</param>
         public static void Step(string name, Action action)
 		{
             if (!Current.IsConfigured)
@@ -132,7 +132,7 @@ namespace CloudBeat.Kit.NUnit
         /// </summary>
         /// <typeparam name="TResult">The type returned from this method.</typeparam>
         /// <param name="name">Step name.</param>
-        /// <param name="func">Delegate to execute.</param>
+        /// <param name="func">Delegate to execute (async delegates are not supported!).</param>
         /// <returns>Delegate's return value.</returns>
         public static TResult Step<TResult>(string name, Func<TResult> func)
         {
@@ -146,7 +146,7 @@ namespace CloudBeat.Kit.NUnit
         /// Encapsulates a code block inside transaction.
         /// </summary>
         /// <param name="name">Transaction name.</param>
-        /// <param name="action">Delegate to execute</param>
+        /// <param name="action">Delegate to execute (async delegates are not supported!).</param>
         public static void Transaction(string name, Action action)
         {
             if (!Current.IsConfigured)
