@@ -139,6 +139,21 @@ namespace CloudBeat.Kit.NUnit
                 CaseResult endedCase;
                 // remove ended case from current case per-thread storage
                 endedCase = EndCase(fqn, status, failure);
+
+                // Make sure to clear Failure Reason if test has not failed
+                // as the user may call SetFailureReason even on passed test
+                if (endedCase != null && (endedCase.Status == TestStatusEnum.Passed || endedCase.Status == TestStatusEnum.Skipped))
+                {
+                    endedCase.FailureReasonId = null;
+                }
+
+                // if test passed but user specified that it has warnings, then set status to warning
+                // if test failed - do nothing as failed status takes precedence before warning
+                if (endedCase != null && endedCase.HasWarnings && endedCase.Status == TestStatusEnum.Passed)
+                {
+                    endedCase.Status = TestStatusEnum.Warning;
+                }
+
                 WriteCaseResultToFile(endedCase);
             }
         }
