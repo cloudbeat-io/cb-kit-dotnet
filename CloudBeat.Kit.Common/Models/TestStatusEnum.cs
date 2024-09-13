@@ -2,10 +2,11 @@
 {
     public enum TestStatusEnum
 	{
-		Passed,
-		Failed,
-		Skipped,
-		Broken,
-		Warning
-	}
+        Failed = 0,
+        Passed = 1,
+        Skipped = 2,
+        Unknown = 3,
+        Warning = 4,
+        Broken = 5
+    }
 }

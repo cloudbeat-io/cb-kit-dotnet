@@ -3,7 +3,6 @@ using CloudBeat.Kit.Common.Models;
 using System.Linq;
 using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
 using System.IO;
 using CbExceptionHelper = CloudBeat.Kit.Common.CbExceptionHelper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -152,8 +151,18 @@ namespace CloudBeat.Kit.MSTest
             // Make sure to clear Failure Reason if test has not failed
             // as the user may call SetFailureReason even on passed test
             if (endedCase != null && (testStatus == TestStatusEnum.Passed || testStatus == TestStatusEnum.Skipped))
+            {
                 endedCase.FailureReasonId = null;
-			WriteCaseResultToFile(endedCase);
+            }
+
+            // if test passed but user specified that it has warnings, then set status to warning
+            // if test failed - do nothing as failed status takes precedence before warning
+            if (endedCase != null && endedCase.HasWarnings && endedCase.Status == TestStatusEnum.Passed)
+            {
+                endedCase.Status = TestStatusEnum.Warning;
+            }
+
+            WriteCaseResultToFile(endedCase);
 		}
 
         public void EndCase(ITestMethod testMethod, Microsoft.VisualStudio.TestTools.UnitTesting.TestResult[] results, TestContext testContext = null)
@@ -187,7 +196,17 @@ namespace CloudBeat.Kit.MSTest
             // Make sure to clear Failure Reason if test has not failed
             // as the user may call SetFailureReason even on passed test
             if (endedCase != null && (testStatus == TestStatusEnum.Passed || testStatus == TestStatusEnum.Skipped))
+            {
                 endedCase.FailureReasonId = null;
+            }
+
+            // if test passed but user specified that it has warnings, then set status to warning
+            // if test failed - do nothing as failed status takes precedence before warning
+            if (endedCase != null && endedCase.HasWarnings && endedCase.Status == TestStatusEnum.Passed)
+            {
+                endedCase.Status = TestStatusEnum.Warning;
+            }
+
             WriteCaseResultToFile(endedCase, mainTestResult);
         }
 
