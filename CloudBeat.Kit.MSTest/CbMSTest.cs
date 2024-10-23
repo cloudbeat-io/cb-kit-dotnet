@@ -335,7 +335,16 @@ namespace CloudBeat.Kit.MSTest
 
             Current.Reporter.HasWarnings(warnings, testContext);
         }
-
+        /// <summary>
+        /// Adds Appium page source as a special attachment. 
+        /// With combination of screenshot attachment, it allows you to inspect page elements in CloudBeat after the test run has finished.
+        /// </summary>
+        public static void AddAppiumPageSourceAttachment(string sourceXml)
+        {
+            if (!Current.IsConfigured)
+                return;
+            Current.Reporter?.AddAppiumPageSourceAttachment(sourceXml);
+        }
         /// <summary>
         /// Takes screenshot (only if current test has failed) and adds it to last failed step if it doesn't have any screenshot. 
         /// If there is no last failed step then screenshot is added as attachment to the test result.

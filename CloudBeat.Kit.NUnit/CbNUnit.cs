@@ -268,6 +268,13 @@ namespace CloudBeat.Kit.NUnit
                 }
             }
         }
+        
+        public static void AddAppiumPageSourceAttachment(string sourceXml)
+        {
+            if (!Current.IsConfigured)
+                return;
+            Current.Reporter?.AddAppiumPageSourceAttachment(sourceXml);
+        }
 
         public static void AddScreenRecording(string videoBase64Data)
         {

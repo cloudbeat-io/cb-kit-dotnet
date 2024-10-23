@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Text;
 
 namespace CloudBeat.Kit.Common
 {
@@ -25,6 +26,26 @@ namespace CloudBeat.Kit.Common
             catch {
                 return null;
             }
+        }
+        
+        public static Attachment PrepareAppiumPageSourceAttachment(string sourceXml)
+        {
+	        byte[] data = Encoding.UTF8.GetBytes(sourceXml);
+	        var attachment = new Attachment
+	        {
+		        Type = AttachmentTypeEnum.Video,
+		        Subtype = AttachmentSubTypeEnum.AppiumPageSource,
+		        FileName = $"{Guid.NewGuid()}.xml"
+	        };
+	        attachment.FilePath = GetAttachmentFilePath(attachment.FileName);
+            
+	        try {
+		        File.WriteAllBytes(attachment.FilePath, data);
+		        return attachment;
+	        }
+	        catch {
+		        return null;
+	        }
         }
 
 		public static Attachment PrepareScreenshotAttachment(string base64Data)

@@ -5,7 +5,8 @@
 		Screenshot,
 		Screencast,
 		Har,
-		PlaywrightTrace
+		PlaywrightTrace,
+		AppiumPageSource
 	}
 }
 

@@ -690,6 +690,27 @@ namespace CloudBeat.Kit.Common
 	        }
         }
 
+        public void AddAppiumPageSourceAttachment(string sourceXml, bool addToStep = false)
+        {
+	        IResultWithAttachment resultWithAttachment;
+	        if (addToStep && _lastCaseResult.Value != null && _lastCaseResult.Value.LastOpenStep != null)
+		        resultWithAttachment = _lastCaseResult.Value.LastOpenStep;
+	        else if (!addToStep)
+	        {
+		        if (_lastCaseResult.Value != null)
+			        resultWithAttachment = _lastCaseResult.Value;
+		        else if (_lastSuiteResult != null)
+			        resultWithAttachment = _lastSuiteResult.Value;
+		        else
+			        return;
+	        }
+	        else
+		        return;
+	        var attachment = CbAttachmentHelper.PrepareAppiumPageSourceAttachment(sourceXml);
+	        // attachment might be null in case of IO exception
+	        if (attachment != null && resultWithAttachment != null)
+		        resultWithAttachment.Attachments.Add(attachment);
+        }
         public void AddScreenRecordingAttachment(string base64Data, bool addToStep = false)
         {
             IResultWithAttachment resultWithAttachment;
