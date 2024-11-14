@@ -13,10 +13,10 @@ namespace CloudBeat.Kit.Common.Wrappers
 	public class CbHttpMessageHandler : DelegatingHandler
     {
         readonly CbTestReporter _reporter;
-        public CbHttpMessageHandler(CbTestReporter reporter)
+        public CbHttpMessageHandler(CbTestReporter reporter, HttpClientHandler httpClientHandler = null)
 		{
             _reporter = reporter;
-            InnerHandler = new HttpClientHandler();
+			InnerHandler = httpClientHandler ?? new HttpClientHandler();
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
