@@ -3,23 +3,31 @@
   <PropertyGroup>
     <TargetFrameworks>net6.0;net8.0;</TargetFrameworks>
     <RootNamespace>$(MSBuildProjectName)</RootNamespace>
-	<PackageProjectUrl>https://cloudbeat.io</PackageProjectUrl>
-	<Company>CBNR Cloud Solutions Ltd.</Company>
-	<Authors>CBNR Cloud Solutions Ltd.</Authors>
-	<PackageVersion>4.8.1</PackageVersion>
-	<Version>4.8.1</Version>
-	<PackageLicenseExpression>MIT</PackageLicenseExpression>
-	<RepositoryUrl>https://github.com/cloudbeat-io/cb-kit-dotnet</RepositoryUrl>
-	<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
-	<DebugType>embedded</DebugType>
-	<DebugSymbols>true</DebugSymbols>
-	<EmbedAllSources>true</EmbedAllSources>
+	  <PackageProjectUrl>https://cloudbeat.io</PackageProjectUrl>
+	  <Company>CBNR Cloud Solutions Ltd.</Company>
+	  <Authors>CBNR Cloud Solutions Ltd.</Authors>
+	  <PackageVersion>4.8.1</PackageVersion>
+	  <Version>4.8.1</Version>
+	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	  <RepositoryUrl>https://github.com/cloudbeat-io/cb-kit-dotnet</RepositoryUrl>
+	  <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+	  <DebugType>embedded</DebugType>
+	  <DebugSymbols>true</DebugSymbols>
+	  <EmbedAllSources>true</EmbedAllSources>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+  
   <ItemGroup>
     <PackageReference Include="Microsoft.Playwright" Version="[1.41.2]" />
     <PackageReference Include="Microsoft.Playwright.NUnit" Version="[1.41.2]" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\CloudBeat.Kit.Common\CloudBeat.Kit.Common.csproj" />
   </ItemGroup>
+
 </Project>

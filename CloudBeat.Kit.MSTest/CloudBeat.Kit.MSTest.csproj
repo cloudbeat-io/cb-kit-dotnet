@@ -5,17 +5,18 @@
     <Authors>CBNR Cloud Solutions Ltd.</Authors>
     <Product />
     <PackageId>CloudBeat.Kit.MSTest</PackageId>
-	<PackageVersion>4.8.1</PackageVersion>
-	<Version>4.8.1</Version>
+    <PackageVersion>4.8.1</PackageVersion>
+    <Version>4.8.1</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Company>CBNR Cloud Solutions Ltd.</Company>
     <PackageProjectUrl>https://cloudbeat.io</PackageProjectUrl>
     <RepositoryUrl>https://github.com/cloudbeat-io/cb-kit-dotnet</RepositoryUrl>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
-	<DebugType>embedded</DebugType>
-	<DebugSymbols>true</DebugSymbols>
-	<EmbedAllSources>true</EmbedAllSources>
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <EmbedAllSources>true</EmbedAllSources>
     <AspectInjector_UseRosetta>true</AspectInjector_UseRosetta>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0|AnyCPU'">
@@ -31,6 +32,10 @@
   <ItemGroup>
     <PackageReference Include="AspectInjector" Version="2.8.3-pre3" />
     <PackageReference Include="MSTest.TestFramework" Version="3.6.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>
