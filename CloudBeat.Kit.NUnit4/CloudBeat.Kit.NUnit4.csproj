@@ -20,8 +20,8 @@
   <ItemGroup>
     <PackageReference Include="AspectInjector" Version="2.8.3-pre3" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="NUnit" Version="4.2.1" />
-    <PackageReference Include="NUnit.Engine" Version="3.18.1" />
+    <PackageReference Include="NUnit" Version="4.2.2" />
+    <PackageReference Include="NUnit.Engine" Version="3.18.3" />
   </ItemGroup>
 
   <ItemGroup>
