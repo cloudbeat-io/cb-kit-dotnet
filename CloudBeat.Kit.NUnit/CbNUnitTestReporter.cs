@@ -48,7 +48,7 @@ namespace CloudBeat.Kit.NUnit
 			{
                 if (string.IsNullOrEmpty(categoryAttr.Name))
                     continue;
-                if (categoryAttr.Name.Contains(":"))
+                if (categoryAttr.Name.Contains(':'))
 				{
                     var keyVal = categoryAttr.Name.Split(':');
                     if (keyVal.Length < 2) continue;
@@ -70,7 +70,7 @@ namespace CloudBeat.Kit.NUnit
             {
                 if (string.IsNullOrEmpty(categoryAttr.Name))
                     continue;
-                if (categoryAttr.Name.Contains(":"))
+                if (categoryAttr.Name.Contains(':'))
                 {
                     var keyVal = categoryAttr.Name.Split(':');
                     if (keyVal.Length < 2) continue;
@@ -162,10 +162,12 @@ namespace CloudBeat.Kit.NUnit
 		{
             if (!NUnitHelpers.IsFailure(result.Outcome) && !NUnitHelpers.IsError(result.Outcome))
                 return null;
-            var failure = new FailureResult();
-            failure.Type = NUnitHelpers.GetFailureType(result);
-            failure.Message = result.Message;
-            failure.Data = result.StackTrace;
+            var failure = new FailureResult
+            {
+                Type = NUnitHelpers.GetFailureType(result),
+                Message = result.Message,
+                Data = result.StackTrace
+            };
             return failure;
         }
 

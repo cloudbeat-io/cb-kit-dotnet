@@ -48,7 +48,7 @@ namespace CloudBeat.Kit.NUnit
 			{
                 if (string.IsNullOrEmpty(categoryAttr.Name))
                     continue;
-                if (categoryAttr.Name.Contains(":"))
+                if (categoryAttr.Name.Contains(':'))
 				{
                     var keyVal = categoryAttr.Name.Split(':');
                     if (keyVal.Length < 2) continue;
@@ -139,6 +139,21 @@ namespace CloudBeat.Kit.NUnit
                 CaseResult endedCase;
                 // remove ended case from current case per-thread storage
                 endedCase = EndCase(fqn, status, failure);
+
+                // Make sure to clear Failure Reason if test has not failed
+                // as the user may call SetFailureReason even on passed test
+                if (endedCase != null && (endedCase.Status == TestStatusEnum.Passed || endedCase.Status == TestStatusEnum.Skipped))
+                {
+                    endedCase.FailureReasonId = null;
+                }
+
+                // if test passed but user specified that it has warnings, then set status to warning
+                // if test failed - do nothing as failed status takes precedence before warning
+                if (endedCase != null && endedCase.HasWarnings && endedCase.Status == TestStatusEnum.Passed)
+                {
+                    endedCase.Status = TestStatusEnum.Warning;
+                }
+
                 WriteCaseResultToFile(endedCase);
             }
         }
@@ -146,10 +161,12 @@ namespace CloudBeat.Kit.NUnit
 		{
             if (!NUnitHelpers.IsFailure(result.Outcome) && !NUnitHelpers.IsError(result.Outcome))
                 return null;
-            var failure = new FailureResult();
-            failure.Type = NUnitHelpers.GetFailureType(result);
-            failure.Message = result.Message;
-            failure.Data = result.StackTrace;
+            var failure = new FailureResult
+            {
+                Type = NUnitHelpers.GetFailureType(result),
+                Message = result.Message,
+                Data = result.StackTrace
+            };
             return failure;
         }
 
