@@ -311,7 +311,7 @@ namespace CloudBeat.Kit.Common
 			catch (Exception e)
 			{
 				EndStep(newStep, TestStatusEnum.Failed, e);
-				throw;
+				throw e;
 			}
 		}
         public Task<TResult> StepAsync<TResult>(CaseResult parentCase, string stepName, StepTypeEnum stepType, Func<Task<TResult>> func, Action<StepResult> updateStepAction = null)

@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net6.0;net8.0;</TargetFrameworks>
+    <AspectInjector_UseRosetta>true</AspectInjector_UseRosetta>
     <RootNamespace>$(MSBuildProjectName)</RootNamespace>
 	  <PackageProjectUrl>https://cloudbeat.io</PackageProjectUrl>
 	  <Company>CBNR Cloud Solutions Ltd.</Company>
