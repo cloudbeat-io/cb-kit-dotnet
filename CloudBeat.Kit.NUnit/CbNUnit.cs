@@ -51,7 +51,7 @@ namespace CloudBeat.Kit.NUnit
         /// <summary>
         /// Retrieves capabilities.
         /// </summary>
-        /// <returns><Dictionary containing the capabilities./returns>
+        /// <returns>Dictionary containing the capabilities.</returns>
         public static Dictionary<string, object> GetCapabilities()
         {
             Dictionary<string, object> caps = new Dictionary<string, object>();
@@ -67,7 +67,10 @@ namespace CloudBeat.Kit.NUnit
             return caps;
         }
 
-        // Retrieves copy of TesRunParameters. This method is intended for debugging purposes only.
+        /// <summary>
+        /// Retrieves copy of TesRunParameters. This method is intended for debugging purposes only.
+        /// </summary>
+        /// <returns>Dictionary containing test run parameters.</returns>
         [Obsolete("Intended for debugging purposes only. Do not use in production code.")]
         public static Dictionary<string, object> GetTesRunParameters()
         {
@@ -115,7 +118,7 @@ namespace CloudBeat.Kit.NUnit
         }
 
         /// <summary>
-        /// Encapsulates a code block inside step.
+        /// Encapsulates a code block inside a step.
         /// </summary>
         /// <param name="name">Step name.</param>
         /// <param name="action">Delegate to execute (async delegates are not supported!).</param>
@@ -128,7 +131,7 @@ namespace CloudBeat.Kit.NUnit
 		}
 
         /// <summary>
-        /// Encapsulates a code block inside step.
+        /// Encapsulates a code block inside a step.
         /// </summary>
         /// <typeparam name="TResult">The type returned from this method.</typeparam>
         /// <param name="name">Step name.</param>
@@ -143,7 +146,7 @@ namespace CloudBeat.Kit.NUnit
         }
 
         /// <summary>
-        /// Encapsulates a code block inside transaction.
+        /// Encapsulates a code block inside a transaction.
         /// </summary>
         /// <param name="name">Transaction name.</param>
         /// <param name="action">Delegate to execute (async delegates are not supported!).</param>
@@ -245,7 +248,7 @@ namespace CloudBeat.Kit.NUnit
 
         /// <summary>
         /// Takes screenshot (only if current test has failed) and adds it to last failed step if it doesn't have any screenshot. 
-        /// If there is no last failed step then screenshot is added as attachment to the test result.
+        /// If there is no last failed step then screenshot is added as an attachment to the test result.
         /// This method is intended to be used from TearDown methods for taking screenshots for exceptions happening outside of "steps".
         /// </summary>
         public static void AddScreenshotOnError()
@@ -269,20 +272,33 @@ namespace CloudBeat.Kit.NUnit
             }
         }
 
+        /// <summary>
+        /// Adds video as an attachment to the test result.
+        /// </summary>
+        /// <param name="videoBase64Data">Base64 encoded video.</param>
         public static void AddScreenRecording(string videoBase64Data)
         {
             if (!Current.IsConfigured)
                 return;
             Current.Reporter?.AddScreenRecordingAttachment(videoBase64Data);
         }
-        
+
+        /// <summary>
+        /// Adds video as an attachment to the test result.
+        /// </summary>
+        /// <param name="url">URL of the video to add.</param>
         public static bool AddScreenRecordingFromUrl(string url)
         {
-            if (!Current.IsConfigured)
+            if (!Current.IsConfigured || Current.Reporter == null)
                 return false;
+
             return Current.Reporter.AddScreenRecordingAttachmentFromUrl(url);
         }
 
+        /// <summary>
+        /// Adds video as an attachment to the test result.
+        /// </summary>
+        /// <param name="videoFilePath">Path to the video file.</param>
 		public static void AddScreenRecordingFromPath(string videoFilePath)
         {
             if (!Current.IsConfigured)
@@ -290,11 +306,15 @@ namespace CloudBeat.Kit.NUnit
             Current.Reporter?.AddScreenRecordingAttachmentFromPath(videoFilePath);
         }
 
-        public static void HasWarnings(bool hasWarnings = true)
+        /// <summary>
+        /// Sets or clears the warning status for a test.
+        /// </summary>
+        /// <param name="warnings">Set to <c>true</c> to mark the test with a warning status; set to <c>false</c> to remove an existing warning.</param>
+        public static void HasWarnings(bool warnings = true)
         {
             if (!Current.IsConfigured)
                 return;
-            Current.Reporter?.HasWarnings(hasWarnings);
+            Current.Reporter?.HasWarnings(warnings);
         }
     }
 }
