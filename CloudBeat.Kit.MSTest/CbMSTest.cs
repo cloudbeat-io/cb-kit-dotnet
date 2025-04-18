@@ -59,7 +59,7 @@ namespace CloudBeat.Kit.MSTest
         /// <summary>
         /// Retrieves capabilities.
         /// </summary>
-        /// <returns><Dictionary containing the capabilities./returns>
+        /// <returns>Dictionary containing the capabilities.</returns>
         public static Dictionary<string, object> GetCapabilities()
         {
             Dictionary<string, object> caps = new Dictionary<string, object>();
@@ -75,7 +75,10 @@ namespace CloudBeat.Kit.MSTest
             return caps;
         }
 
-        // Retrieves copy of TesRunParameters. This method is intended for debugging purposes only.
+        /// <summary>
+        /// Retrieves copy of TesRunParameters. This method is intended for debugging purposes only.
+        /// </summary>
+        /// <returns>Dictionary containing test run parameters.</returns>
         [Obsolete("Intended for debugging purposes only. Do not use in production code.")]
         public static Dictionary<string, object> GetTesRunParameters()
 		{
@@ -119,7 +122,7 @@ namespace CloudBeat.Kit.MSTest
         /// <param name="methodName">Method name.</param>
         /// <param name="func">Delegate to execute.</param>
         /// <param name="arg">Delegate arguments.</param>
-        /// <param name="testContext">Optional TestContext.</param>
+        /// <param name="testContext">Optional. The <see cref="TestContext"/> associated with the test. If not provided, the default context will be used.</param>
         /// <returns>Delegate's return value.</returns>
         public static TResult Hook<T, TResult>(string hookName, string methodName, Func<T, TResult> func, T arg, TestContext testContext = null)
         {
@@ -138,7 +141,7 @@ namespace CloudBeat.Kit.MSTest
         /// <param name="name">Step name.</param>
         /// <param name="func">Delegate to execute.</param>
         /// <param name="arg">Delegate arguments.</param>
-        /// <param name="testContext">Optional TestContext.</param>
+        /// <param name="testContext">Optional. The <see cref="TestContext"/> associated with the test. If not provided, the default context will be used.</param>
         /// <returns>Delegate's return value.</returns>
         public static TResult Step<T, TResult>(string name, Func<T, TResult> func, T arg, TestContext testContext = null)
         {
@@ -155,7 +158,7 @@ namespace CloudBeat.Kit.MSTest
         /// <typeparam name="TResult">The type returned from this method.</typeparam>
         /// <param name="name">Step name.</param>
         /// <param name="func">Delegate to execute.</param>
-        /// <param name="testContext">Optional TestContext.</param>
+        /// <param name="testContext">Optional. The <see cref="TestContext"/> associated with the test. If not provided, the default context will be used.</param>
         /// <returns>Delegate's return value.</returns>
         public static TResult Step<TResult>(string name, Func<TResult> func, TestContext testContext = null)
         {
@@ -171,7 +174,7 @@ namespace CloudBeat.Kit.MSTest
         /// </summary>
         /// <param name="name">Step name.</param>
         /// <param name="action">Delegate to execute.</param>
-        /// <param name="testContext">Optional TestContext.</param>
+        /// <param name="testContext">Optional. The <see cref="TestContext"/> associated with the test. If not provided, the default context will be used.</param>
         public static void Step(string name, Action action, TestContext testContext = null)
         {
             if (!Current.IsConfigured)
@@ -190,7 +193,7 @@ namespace CloudBeat.Kit.MSTest
         /// </summary>
         /// <param name="name">Transaction name.</param>
         /// <param name="action">Delegate to execute</param>
-        /// <param name="testContext">Optional TestContext.</param>
+        /// <param name="testContext">Optional. The <see cref="TestContext"/> associated with the test. If not provided, the default context will be used.</param>
         public static void Transaction(string name, Action action, TestContext testContext = null)
         {
             if (!Current.IsConfigured)
@@ -286,7 +289,7 @@ namespace CloudBeat.Kit.MSTest
         /// </summary>
         /// <param name="name">Data name.</param>
         /// <param name="data">Data value.</param>
-        /// <param name="testContext">Optional TestContext.</param>
+        /// <param name="testContext">Optional. The <see cref="TestContext"/> associated with the test. If not provided, the default context will be used.</param>
 		public static void AddOutputData(string name, object data, TestContext testContext = null)
 		{
             if (!Current.IsConfigured)
@@ -299,9 +302,9 @@ namespace CloudBeat.Kit.MSTest
         /// <summary>
         /// Adds name/value test attribute pair to the test result.
         /// </summary>
-        /// <param name="name">Attribute name</param>
-        /// <param name="value">Attribute value</param>
-        /// <param name="testContext">Optional TestContext.</param>
+        /// <param name="name">Attribute name.</param>
+        /// <param name="value">Attribute value.</param>
+        /// <param name="testContext">Optional. The <see cref="TestContext"/> associated with the test. If not provided, the default context will be used.</param>
 		public static void AddTestAttribute(string name, object value, TestContext testContext = null)
 		{
 			if (!Current.IsConfigured)
@@ -316,7 +319,7 @@ namespace CloudBeat.Kit.MSTest
         /// Could be used from cleanup methods or catch blocks to set reason for the test failure.
         /// </summary>
         /// <param name="reason">Failure reason.</param>
-        /// <param name="testContext">Optional TestContext.</param>
+        /// <param name="testContext">Optional. The <see cref="TestContext"/> associated with the test. If not provided, the default context will be used.</param>
 		public static void SetFailureReason(FailureReasonEnum reason, TestContext testContext = null)
         {
             if (!Current.IsConfigured)
@@ -326,6 +329,11 @@ namespace CloudBeat.Kit.MSTest
             Current.Reporter.SetFailureReason(reason, testContext);
         }
 
+        /// <summary>
+        /// Sets or clears the warning status for a test.
+        /// </summary>
+        /// <param name="warnings">Set to <c>true</c> to mark the test with a warning status; set to <c>false</c> to remove an existing warning.</param>
+        /// <param name="testContext">Optional. The <see cref="TestContext"/> associated with the test. If not provided, the default context will be used.</param>
         public static void HasWarnings(bool warnings = true, TestContext testContext = null)
         {
             if (!Current.IsConfigured)
@@ -338,7 +346,7 @@ namespace CloudBeat.Kit.MSTest
 
         /// <summary>
         /// Takes screenshot (only if current test has failed) and adds it to last failed step if it doesn't have any screenshot. 
-        /// If there is no last failed step then screenshot is added as attachment to the test result.
+        /// If there is no last failed step then screenshot is added as an attachment to the test result.
         /// This method is intended to be used from TestCleanup methods for taking screenshots for exceptions happening outside of "steps".
         /// </summary>
         public static void AddScreenshotOnError()
