@@ -155,9 +155,7 @@ namespace CloudBeat.Kit.MSTest
                 endedCase.FailureReasonId = null;
             }
 
-            // if test passed but user specified that it has warnings, then set status to warning
-            // if test failed - do nothing as failed status takes precedence before warning
-            if (endedCase != null && endedCase.HasWarnings && endedCase.Status == TestStatusEnum.Passed)
+            if (endedCase != null && endedCase.HasWarnings)
             {
                 endedCase.Status = TestStatusEnum.Warning;
             }
@@ -200,9 +198,7 @@ namespace CloudBeat.Kit.MSTest
                 endedCase.FailureReasonId = null;
             }
 
-            // if test passed but user specified that it has warnings, then set status to warning
-            // if test failed - do nothing as failed status takes precedence before warning
-            if (endedCase != null && endedCase.HasWarnings && endedCase.Status == TestStatusEnum.Passed)
+            if (endedCase != null && endedCase.HasWarnings)
             {
                 endedCase.Status = TestStatusEnum.Warning;
             }
