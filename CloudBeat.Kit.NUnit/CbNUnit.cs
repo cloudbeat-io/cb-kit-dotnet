@@ -316,5 +316,16 @@ namespace CloudBeat.Kit.NUnit
                 return;
             Current.Reporter?.HasWarnings(warnings);
         }
+
+        /// <summary>
+        /// Adds a collection of logs to the current test case.
+        /// </summary>
+        /// <param name="logList">A collection of log messages.</param>
+        public static void AddLogs(IList<LogMessage> logList)
+        {
+            if (!Current.IsConfigured)
+                return;
+            Current.Reporter?.AddLogs(logList);
+        }
     }
 }
