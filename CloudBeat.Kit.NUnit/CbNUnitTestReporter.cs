@@ -222,5 +222,19 @@ namespace CloudBeat.Kit.NUnit
         {
             SetCaseHasWarnings(hasWarnings);
         }
+
+        public void AddLogs(IList<LogMessage> logList)
+        {
+            CaseResult caseResult = _lastCaseResult.Value;
+            if (caseResult == null || logList == null)
+            {
+                return;
+            }
+
+            foreach (var logMsg in logList)
+            {
+                caseResult.Logs.Add(logMsg);
+            }
+        }
     }
 }
