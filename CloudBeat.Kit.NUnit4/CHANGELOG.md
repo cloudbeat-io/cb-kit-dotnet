@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v5.2.0 (2025-04-24)
+
+#### :tada: New Feature
+* Add `AddLogs` method.
+
 ## v5.1.0 (2025-04-18)
 
 #### :beetle: Bug Fix
