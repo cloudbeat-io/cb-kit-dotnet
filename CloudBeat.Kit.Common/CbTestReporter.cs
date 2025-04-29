@@ -110,10 +110,32 @@ namespace CloudBeat.Kit.Common
 				return;
 			if (parentSuite == null)
 				throw new InvalidOperationException("Case cannot be started as no open suite was found.");
-			var newCase = parentSuite.AddNewCase(caseName, caseFqn);
-			_lastCaseResult.Value = _lastCaseResultByThread.Value = newCase;
+
+			// if suite already has a case with same FQN then it means the test is being executed multiple times due to Retry or Repeat attributes
+			// therefore we clear previous case and reuse it
+			// (we could have switched from ConcurrentBag (because items cannot be removed from Bag) to ConcurrentDictionary but it's too much effort)
+			var caze = parentSuite.Cases.Where(x => x.Fqn == caseFqn).FirstOrDefault();
+			if (caze != null)
+			{
+                caze.Steps.Clear();
+				caze.Hooks.Clear();
+				caze.Logs.Clear();
+				caze.Arguments.Clear();
+				caze.Attachments.Clear();
+                caze.StartTime = DateTime.UtcNow;
+                caze.EndTime = null;
+                caze.Duration = null;
+                caze.Status = null;
+                caze.Failure = null;
+            }
+			else
+			{
+                caze = parentSuite.AddNewCase(caseName, caseFqn);
+            }
+				
+			_lastCaseResult.Value = _lastCaseResultByThread.Value = caze;
 			if (updateAction != null)
-				updateAction.Invoke(newCase);
+				updateAction.Invoke(caze);
 		}
 
 		public bool EndSuite(string fqn)
@@ -817,7 +839,5 @@ namespace CloudBeat.Kit.Common
 			else if (caseResult != null)
 				caseResult.Logs.Add(logMessage);
 		}
-
-        public CaseResult LastCaseResult => _lastCaseResult.Value;
 	}
 }
