@@ -36,7 +36,7 @@ namespace CloudBeat.Kit.NUnit
         {
             StartSuite(suite.Name, suite.FullName, parentSuite?.FullName, x =>
             {
-                x.Arguments = suite.Arguments?.Select(a => a.ToString()).ToArray();
+                x.Arguments = suite.Arguments?.Select(a => a.ToString()).ToList();
                 ProcessSuiteAttributes(suite, x);
             });
         }
@@ -87,7 +87,7 @@ namespace CloudBeat.Kit.NUnit
                 base.StartCase(test.Name, test.FullName, x =>
                 {
                     var testParams = NUnitHelpers.GenerateTestParametersContext(test.Method, test.Arguments);
-                    x.Arguments = test.Arguments?.Select(a => a.ToString()).ToArray();
+                    x.Arguments = test.Arguments?.Select(a => a.ToString()).ToList();
                     if (x.Context.ContainsKey("params"))
                         x.Context["params"] = testParams;
                     else
