@@ -152,6 +152,8 @@ namespace CloudBeat.Kit.NUnit
                     endedCase.Status = TestStatusEnum.Warning;
                 }
 
+                endedCase.ReRunCount = TestContext.CurrentContext.CurrentRepeatCount;
+
                 WriteCaseResultToFile(endedCase);
             }
         }
