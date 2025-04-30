@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v5.3.0 (2025-04-30)
+
+#### :tada: New Feature
+* Add support for `Retry` and `Repeat` attributes.
+
 ## v5.2.0 (2025-04-24)
 
 #### :tada: New Feature
