@@ -19,6 +19,8 @@ namespace CloudBeat.Kit.Common.Models
         public Dictionary<string, object> Context => _context;
 
         public long? FailureReasonId { get; set; }
+
+        public int? ReRunCount { get; set; }
         
         [JsonIgnore]
         public SuiteResult ParentSuite { get; private set; }
