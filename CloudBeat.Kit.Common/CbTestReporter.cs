@@ -20,7 +20,7 @@ namespace CloudBeat.Kit.Common
 		protected readonly IList<IDisposable> _wrappers = new List<IDisposable>();
 		protected readonly AsyncLocal<CaseResult> _lastCaseResult = new();
 		protected readonly ThreadLocal<CaseResult> _lastCaseResultByThread = new();
-        protected readonly AsyncLocal<SuiteResult> _lastSuiteResult = new();
+        protected SuiteResult _lastSuiteResult = new();
 		protected readonly AsyncLocal<IWebDriver> _currentWebDriver = new();
 		protected readonly AsyncLocal<ICbScreenshotProvider> _screenshotProvider = new();
 		protected readonly ConcurrentDictionary<string, ICbScreenshotProvider> _screenshotProviderByTestId = new();
@@ -88,11 +88,11 @@ namespace CloudBeat.Kit.Common
 			if (_result == null || string.IsNullOrEmpty(fqn))
 				return;
 			SuiteResult newSuite;
-			if (_lastSuiteResult.Value != null && parentFqn != null && _lastSuiteResult.Value.Fqn == parentFqn)
-				newSuite = _lastSuiteResult.Value.AddNewSuite(name, fqn);
+			if (_lastSuiteResult != null && parentFqn != null && _lastSuiteResult.Fqn == parentFqn)
+				newSuite = _lastSuiteResult.AddNewSuite(name, fqn);
 			else
 				newSuite = _result.AddNewSuite(name, fqn);
-			_lastSuiteResult.Value = newSuite;
+			_lastSuiteResult = newSuite;
 			_lastCaseResult.Value = null;
 			_lastCaseResultByThread.Value = null;
 			if (updateAction != null)
@@ -101,7 +101,7 @@ namespace CloudBeat.Kit.Common
 
 		public void StartCase(string name, string fqn, Action<CaseResult> updateAction = null)
 		{
-			StartCase(_lastSuiteResult.Value, name, fqn, updateAction);
+			StartCase(_lastSuiteResult, name, fqn, updateAction);
 		}
 
 		public void StartCase(SuiteResult parentSuite, string caseName, string caseFqn, Action<CaseResult> updateAction = null)
@@ -142,7 +142,7 @@ namespace CloudBeat.Kit.Common
 		{
 			if (_result == null)
 				return false;
-			var suiteResult = _lastSuiteResult.Value?.Fqn == fqn ? _lastSuiteResult.Value : _result.GetSuite(fqn);
+			var suiteResult = _lastSuiteResult?.Fqn == fqn ? _lastSuiteResult : _result.GetSuite(fqn);
 			if (suiteResult == null)
 				return false;
 			suiteResult.End();
@@ -186,7 +186,7 @@ namespace CloudBeat.Kit.Common
 		{
 			if (_result == null)
 				return func.Invoke();
-			var parentSuite = _lastSuiteResult.Value; //_result.Suites?.LastOrDefault();
+			var parentSuite = _lastSuiteResult; //_result.Suites?.LastOrDefault();
 			var parentCase = _lastCaseResult.Value; // parentSuite?.Cases?.LastOrDefault();
 			if (parentCase == null)
 				return func.Invoke();
@@ -194,7 +194,7 @@ namespace CloudBeat.Kit.Common
 		}
 		public TResult Step<TResult>(string caseFqn, string stepName, StepTypeEnum stepType, Func<TResult> func, Action<StepResult> updateStepAction = null)
 		{
-			var parentSuite = _lastSuiteResult.Value;
+			var parentSuite = _lastSuiteResult;
 			var parentCase = parentSuite?.GetCaseByFqn(caseFqn);
 			StepResult newStep = parentCase != null ? StartStep(stepName, StepTypeEnum.General, parentCase) : null;
 			if (newStep == null)
@@ -218,13 +218,13 @@ namespace CloudBeat.Kit.Common
 		}
 		public TResult Step<T, TResult>(string caseFqn, string stepName, StepTypeEnum stepType, Func<T, TResult> func, T arg, Action<StepResult> updateStepAction = null)
 		{
-			var parentSuite = _lastSuiteResult.Value;
+			var parentSuite = _lastSuiteResult;
 			var parentCase = parentSuite?.GetCaseByFqn(caseFqn);
 			return Step(parentCase, stepName, stepType, func, arg, updateStepAction);
 		}
 		public TResult CaseHook<T, TResult>(string caseFqn, string hookName, HookTypeEnum hookType, Func<T, TResult> func, T arg, Action<StepResult> updateStepAction = null)
 		{
-			var parentSuite = _lastSuiteResult.Value;
+			var parentSuite = _lastSuiteResult;
 			var parentCase = parentSuite?.GetCaseByFqn(caseFqn);
 			if (parentCase == null)
 				return func.Invoke(arg);
@@ -259,7 +259,7 @@ namespace CloudBeat.Kit.Common
 		}
 		public TResult SuiteHook<T, TResult>(string suiteFqn, string hookName, HookTypeEnum hookType, Func<T, TResult> func, T arg, Action<StepResult> updateStepAction = null)
 		{
-			var parentSuite = _lastSuiteResult.Value;
+			var parentSuite = _lastSuiteResult;
 			if (parentSuite == null || parentSuite.Fqn != suiteFqn)
 				return func.Invoke(arg);
 			StepResult newStep = StartHook(hookName, hookType, parentSuite);
@@ -293,13 +293,13 @@ namespace CloudBeat.Kit.Common
 		}
         public Task<TResult> StepAsync<TResult>(string caseFqn, string stepName, StepTypeEnum stepType, Func<Task<TResult>> func, Action<StepResult> updateStepAction = null)
         {
-            var parentSuite = _lastSuiteResult.Value;
+            var parentSuite = _lastSuiteResult;
             var parentCase = parentSuite?.GetCaseByFqn(caseFqn);
             return StepAsync(parentCase, stepName, stepType, func, updateStepAction);
         }
         public Task StepAsync(string caseFqn, string stepName, StepTypeEnum stepType, Func<Task> func, Action<StepResult> updateStepAction = null)
         {
-            var parentSuite = _lastSuiteResult.Value;
+            var parentSuite = _lastSuiteResult;
             var parentCase = parentSuite?.GetCaseByFqn(caseFqn);
             return StepAsync(parentCase, stepName, stepType, func, updateStepAction);
         }
@@ -454,9 +454,9 @@ namespace CloudBeat.Kit.Common
 
 		public StepResult Step(string caseFqn, string stepName, Action action)
 		{
-			if (_lastSuiteResult.Value == null)
+			if (_lastSuiteResult == null)
 				return null;
-			var parentCase = _lastSuiteResult.Value.GetCaseByFqn(caseFqn);
+			var parentCase = _lastSuiteResult.GetCaseByFqn(caseFqn);
 			if (parentCase == null)
 				return null;
 			StepResult newStep = StartStep(stepName, StepTypeEnum.General, parentCase);
@@ -547,7 +547,7 @@ namespace CloudBeat.Kit.Common
 		
 		public virtual StepResult StartHook(string stepName, HookTypeEnum type, SuiteResult parentSuite = null)
 		{
-			parentSuite ??= _lastSuiteResult.Value;
+			parentSuite ??= _lastSuiteResult;
 			if (parentSuite == null)
 				return null;
 			return parentSuite.AddNewHook(stepName, type);
@@ -722,7 +722,7 @@ namespace CloudBeat.Kit.Common
                 if (_lastCaseResult.Value != null)
                     resultWithAttachment = _lastCaseResult.Value;
                 else if (_lastSuiteResult != null)
-                    resultWithAttachment = _lastSuiteResult.Value;
+                    resultWithAttachment = _lastSuiteResult;
                 else
                     return;
             }
@@ -768,7 +768,7 @@ namespace CloudBeat.Kit.Common
 			if (_lastCaseResult.Value != null)
 				resultWithAttachment = _lastCaseResult.Value;
 			else if (_lastSuiteResult != null)
-				resultWithAttachment = _lastSuiteResult.Value;
+				resultWithAttachment = _lastSuiteResult;
 			else
 				return;
 
@@ -819,7 +819,7 @@ namespace CloudBeat.Kit.Common
 				else if (_lastCaseResultByThread.Value != null)
                     resultWithAttachment = _lastCaseResultByThread.Value;
                 else if (_lastSuiteResult != null)
-                    resultWithAttachment = _lastSuiteResult.Value;
+                    resultWithAttachment = _lastSuiteResult;
                 else
                     return;
             }
