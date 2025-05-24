@@ -20,7 +20,7 @@ namespace CloudBeat.Kit.Common
 		protected readonly IList<IDisposable> _wrappers = new List<IDisposable>();
 		protected readonly AsyncLocal<CaseResult> _lastCaseResult = new();
 		protected readonly ThreadLocal<CaseResult> _lastCaseResultByThread = new();
-        protected SuiteResult _lastSuiteResult = new();
+        protected static SuiteResult _lastSuiteResult = new();
 		protected readonly AsyncLocal<IWebDriver> _currentWebDriver = new();
 		protected readonly AsyncLocal<ICbScreenshotProvider> _screenshotProvider = new();
 		protected readonly ConcurrentDictionary<string, ICbScreenshotProvider> _screenshotProviderByTestId = new();
