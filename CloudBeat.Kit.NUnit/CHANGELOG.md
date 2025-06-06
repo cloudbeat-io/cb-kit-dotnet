@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v5.4.0 (2025-06-06)
+
+#### :tada: New Feature
+* Add support parallel test execution.
+
 ## v5.3.0 (2025-04-30)
 
 #### :tada: New Feature
