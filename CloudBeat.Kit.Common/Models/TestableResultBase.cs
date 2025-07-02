@@ -15,7 +15,6 @@ namespace CloudBeat.Kit.Common.Models
 		public TestableResultBase(string id)
 		{
 			Id = id;			
-			StartTime = DateTime.UtcNow;
 		}
 		public string Id { get; }
 
@@ -33,7 +32,7 @@ namespace CloudBeat.Kit.Common.Models
 		public IList<string> Arguments { get; set; }
 		public TestStatusEnum? Status { get; set; }
 		public FailureResult Failure { get; set; }
-		public DateTime StartTime { get; set; }
+		public DateTime? StartTime { get; set; }
 		public DateTime? EndTime { get; set; }
 		public long? Duration { get; set; }
 		public bool HasWarnings { get; set; } = false;

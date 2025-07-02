@@ -99,8 +99,7 @@ namespace CloudBeat.Kit.Common.Models
 	        Suites.Add(newSuite = new SuiteResult(this)
 	        {
 		        Name = name,
-		        Fqn = fqn,
-		        StartTime = DateTime.UtcNow
+		        Fqn = fqn
 	        });
 	        return newSuite;
         }

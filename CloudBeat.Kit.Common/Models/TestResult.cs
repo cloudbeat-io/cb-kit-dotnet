@@ -39,23 +39,67 @@ namespace CloudBeat.Kit.Common.Models
 			_suites.Add(newSuite = new SuiteResult()
 			{
 				Name = name,
-				Fqn = fqn,
-				StartTime = DateTime.UtcNow
+				Fqn = fqn
 			});
 			return newSuite;
 		}
 
 		public SuiteResult GetSuite(string fqn)
 		{
-			return _suites.FirstOrDefault(x => x.Fqn == fqn);
-		}
+			return FindSuiteInSuites(_suites, fqn);
+        }
 
-		public SuiteResult GetSuiteByCaseFqn(string caseFqn)
+        private SuiteResult FindSuiteInSuites(ConcurrentBag<SuiteResult> suites, string suiteFqn)
+        {
+            foreach (var suite in suites)
+            {
+                if (suite.Fqn == suiteFqn)
+                {
+                    return suite;
+                }
+
+                var suiteInner = FindSuiteInSuites(suite.Suites, suiteFqn);
+                if (suiteInner != null)
+                {
+                    return suiteInner;
+                }
+            }
+
+            return null;
+        }
+
+        public SuiteResult GetSuiteByCaseFqn(string caseFqn)
 		{
-			return _suites.Where(x => caseFqn.StartsWith(x.Fqn)).FirstOrDefault();
+            var suiteFQN = caseFqn.Substring(0, caseFqn.LastIndexOf('.'));
+            return _suites.Where(x => x.Fqn == suiteFQN).SingleOrDefault();
 		}
 
-		public void End()
+        public CaseResult GetCase(string caseFqn)
+        {
+			return FindCaseInSuite(_suites, caseFqn);
+        }
+
+		private CaseResult FindCaseInSuite(ConcurrentBag<SuiteResult> suites, string caseFqn)
+		{
+            foreach (var suite in suites)
+            {
+                var caze = suite.Cases.Where(x => x.Fqn == caseFqn).SingleOrDefault();
+                if (caze != null)
+                {
+                    return caze;
+                }
+
+				caze = FindCaseInSuite(suite.Suites, caseFqn);
+                if (caze != null)
+                {
+                    return caze;
+                }
+            }
+
+			return null;
+        }
+
+        public void End()
         {
 			EndTime = DateTime.UtcNow;
 			Duration = ModelHelpers.CalculateDuration(StartTime, EndTime);
