@@ -27,8 +27,6 @@ namespace CloudBeat.Kit.NUnit.Attributes
             if (!cbCtx.IsConfigured)
                 return;
 
-            //if (test.IsSuite)
-                //cbCtx.Reporter.StartSuite(test as TestSuite);
             if (!test.IsSuite)
                 cbCtx.Reporter.StartCase(test as Test);
         }
