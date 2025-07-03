@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v5.5.0 (2025-07-03)
+
+#### :beetle: Bug Fix
+* Fix an issue with handling of suite/case results.
+
 ## v5.1.0 (2025-04-18)
 
 #### :beetle: Bug Fix
