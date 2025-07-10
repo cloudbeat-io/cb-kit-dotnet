@@ -1,6 +1,5 @@
 ﻿using CloudBeat.Kit.Common.Enums;
 using System;
-using System.Collections.Generic;
 
 namespace CloudBeat.Kit.Common.Models
 {
@@ -11,7 +10,6 @@ namespace CloudBeat.Kit.Common.Models
 		public LogLevelEnum Level { get; set; }
         public DateTime Time { get; set; }
         public LogSourceEnum Src { get; set; }
-        public IList<object> Args { get; set; }
         public FailureResult Failure { get; set; }
 	}
 }
