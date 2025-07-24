@@ -12,7 +12,7 @@ namespace CloudBeat.Kit.NUnit.Attributes
     public class CbNUnitTestAttribute : PropertyAttribute, ITestAction, IApplyToContext, IWrapSetUpTearDown
     {
         private readonly bool _isWrappedIntoStep;
-        private static object _lock = new object();
+        private static readonly object _lock = new object();
         private readonly ThreadLocal<IList<SetUpFixture>> _setupFixtures = new();
 
         public CbNUnitTestAttribute(bool wrapIntoStep = true)
