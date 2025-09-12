@@ -131,8 +131,8 @@ namespace CloudBeat.Kit.Common
                 caze.Steps.Clear();
                 caze.Hooks.Clear();
                 caze.Logs.Clear();
-                caze.Arguments.Clear();
-                caze.Attachments.Clear();
+                caze.Arguments?.Clear();
+                caze.Attachments?.Clear();
                 caze.StartTime = DateTime.UtcNow;
                 caze.EndTime = null;
                 caze.Duration = null;
