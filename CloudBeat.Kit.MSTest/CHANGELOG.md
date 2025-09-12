@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v5.5.2 (2025-09-12)
+
+#### :beetle: Bug Fix
+* Fix possible null reference exception.
+
 ## v5.5.0 (2025-07-03)
 
 #### :beetle: Bug Fix
