@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v5.5.3 (2025-09-18)
+
+#### :beetle: Bug Fix
+* Fix "collection is read-only" error.
+
 ## v5.5.2 (2025-09-12)
 
 #### :beetle: Bug Fix
