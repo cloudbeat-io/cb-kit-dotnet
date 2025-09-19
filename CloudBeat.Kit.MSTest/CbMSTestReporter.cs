@@ -109,7 +109,7 @@ namespace CloudBeat.Kit.MSTest
                 var categoryAttributes = testMethod.GetAttributes<TestCategoryAttribute>(true);
                 base.StartCase(testName, testFqn, x =>
                 {
-                    x.Arguments = testMethod.Arguments?.Select(a => a.ToString()).ToArray();
+                    x.Arguments = testMethod.Arguments?.Select(a => a.ToString()).ToList();
                     var contextParams = MSTestHelpers.GenerateTestParametersContext(testMethod);
                     if (x.Context.ContainsKey("params"))
                         x.Context["params"] = contextParams;
