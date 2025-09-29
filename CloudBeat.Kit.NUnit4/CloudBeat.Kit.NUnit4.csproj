@@ -17,6 +17,7 @@
     <EmbedAllSources>true</EmbedAllSources>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AspectInjector_UseRosetta>true</AspectInjector_UseRosetta>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0|AnyCPU'">

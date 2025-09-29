@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using CloudBeat.Kit.Common.Client;
@@ -339,7 +340,8 @@ namespace CloudBeat.Kit.Common
             catch (Exception e)
             {
                 EndStep(newStep, TestStatusEnum.Failed, e);
-                throw;
+                ExceptionDispatchInfo.Capture(e).Throw();
+                return default(TResult); // This line will never be reached
             }
         }
         public Task<TResult> StepAsync<TResult>(CaseResult parentCase, string stepName, StepTypeEnum stepType, Func<Task<TResult>> func, Action<StepResult> updateStepAction = null)
