@@ -382,8 +382,8 @@ namespace CloudBeat.Kit.Common
                             tcs.SetResult(task.Result);
                             break;
                         case TaskStatus.Faulted:
-                            //var screenshot = GetScreenshot(page);
-                            EndStep(newStep, TestStatusEnum.Failed, task.Exception);
+                            var exc = new FullStackException(task.Exception, GetCleanedFullStackTrace(Environment.StackTrace, task.Exception.StackTrace, CbTestContext.IsVerboseStackTrace));
+                            EndStep(newStep, TestStatusEnum.Failed, exc);
                             tcs.SetException(task.Exception);
                             break;
                         default:
@@ -395,7 +395,6 @@ namespace CloudBeat.Kit.Common
             }
             catch (Exception e)
             {
-                // TODO: add full stack trace fix?
                 var tcs = new TaskCompletionSource<TResult>();
                 tcs.SetException(e);
                 return tcs.Task;
@@ -423,7 +422,7 @@ namespace CloudBeat.Kit.Common
                 var task = func.Invoke();
                 task.ConfigureAwait(true);
                 TaskCompletionSource tcs = new TaskCompletionSource();
-                // StackCrawlMark stackMark = StackCrawlMark.LookForMyCaller;
+
                 task.ContinueWith(ignored =>
                 {
                     if (testId != null)
@@ -439,8 +438,8 @@ namespace CloudBeat.Kit.Common
                             tcs.SetResult();
                             break;
                         case TaskStatus.Faulted:
-                            //var screenshot = GetScreenshot(page);
-                            EndStep(newStep, TestStatusEnum.Failed, task.Exception);
+                            var exc = new FullStackException(task.Exception, GetCleanedFullStackTrace(Environment.StackTrace, task.Exception.StackTrace, CbTestContext.IsVerboseStackTrace));
+                            EndStep(newStep, TestStatusEnum.Failed, exc);
                             tcs.SetException(task.Exception);
                             break;
                         default:
@@ -562,17 +561,6 @@ namespace CloudBeat.Kit.Common
             if (parentSuite == null)
                 return null;
             return parentSuite.AddNewHook(stepName, type);
-        }
-
-        public StepResult EndLastStep(
-            TestStatusEnum? status = null,
-            Exception exception = null,
-            string screenshot = null)
-        {
-            var parentCase = _lastCaseResult.Value;
-            if (parentCase == null || parentCase.LastOpenStep == null)
-                return null;
-            return EndStep(parentCase.LastOpenStep, status, exception, screenshot);
         }
 
         public StepResult EndStep(string name)
