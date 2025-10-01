@@ -238,5 +238,11 @@ namespace CloudBeat.Kit.NUnit
                 caseResult.Logs.Add(logMsg);
             }
         }
+
+        // based on https://github.com/nunit/nunit/blob/main/src/NUnitFramework/framework/Internal/StackFilter.cs
+        protected override string GetCleanedFullStackTrace(string outerTrace, string innerTrace, bool verbose)
+        {
+            return NUnitHelpers.GetCleanedFullStackTrace(outerTrace, innerTrace, verbose);
+        }
     }
 }
