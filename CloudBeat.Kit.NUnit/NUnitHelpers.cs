@@ -1,10 +1,12 @@
-﻿using CloudBeat.Kit.Common;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
+using CloudBeat.Kit.Common;
 using CloudBeat.Kit.Common.Models;
 using NUnit.Framework.Interfaces;
 using NUnit.Framework.Internal;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
 using static NUnit.Framework.TestContext;
 
 namespace CloudBeat.Kit.NUnit
@@ -13,7 +15,14 @@ namespace CloudBeat.Kit.NUnit
     {
 		private static readonly Regex exceptionTypeRegex = new Regex(@"^[a-zA-Z.]+\.([a-zA-Z]+) *:", RegexOptions.Compiled | RegexOptions.Multiline);
 
-		private static readonly Dictionary<ResultState, TestStatusEnum> TEST_OUTCOME_RESULT_STATUS_MAP =
+        private static readonly Regex stackTraceTopInnerRegex = new Regex(@" NUnit\.Framework\.(Assert|Assume|Warn|CollectionAssert|StringAssert|FileAssert|DirectoryAssert)\.", RegexOptions.Compiled);
+
+        private static readonly Regex stackTraceTopOuterRegex = new Regex(@" System\.Environment\.get_StackTrace", RegexOptions.Compiled);
+        private static readonly Regex stackTraceBottomOuterRegex = new Regex(@" System\.(Reflection|RuntimeMethodHandle|Threading\.ExecutionContext)\.", RegexOptions.Compiled);
+
+        private static readonly Regex stackTraceCBInternalRegex = new Regex(@" CloudBeat\.Kit\.", RegexOptions.Compiled);
+
+        private static readonly Dictionary<ResultState, TestStatusEnum> TEST_OUTCOME_RESULT_STATUS_MAP =
             new Dictionary<ResultState, TestStatusEnum>()
             {
                 { ResultState.Failure, TestStatusEnum.Failed },
@@ -124,5 +133,56 @@ namespace CloudBeat.Kit.NUnit
 			// failure.Location = GetLocationByStackTrace(result.StackTrace);
 			return EXCEPTION_FAILURE_TYPE_MAP[exceptionName];
 		}
-	}
+
+        // based on https://github.com/nunit/nunit/blob/main/src/NUnitFramework/framework/Internal/StackFilter.cs
+        public static string GetCleanedFullStackTrace(string outerTrace, string innerTrace, bool verbose)
+        {
+            var outerTraceCleaned = CleanStackTrace(stackTraceTopOuterRegex, stackTraceBottomOuterRegex, outerTrace, verbose);
+            var innerTraceCleaned = CleanStackTrace(stackTraceTopInnerRegex, null, innerTrace, verbose);
+            return innerTrace + outerTrace;
+        }
+
+        private static string CleanStackTrace(Regex topRegex, Regex bottomRegex, string trace, bool verbose)
+        {
+            if (trace is null)
+                return null;
+
+            StringReader r = new StringReader(trace);
+            StringWriter w = new StringWriter();
+
+            try
+            {
+                var line = r.ReadLine();
+
+                if (topRegex is not null)
+                {
+                    while (line is not null && topRegex.IsMatch(line))
+                    {
+                        line = r.ReadLine();
+                    }
+                }
+
+                while (line is not null)
+                {
+                    if (bottomRegex is not null && bottomRegex.IsMatch(line))
+                    {
+                        break;
+                    }
+
+                    if (verbose || !stackTraceCBInternalRegex.IsMatch(line))
+                    {
+                        w.WriteLine(line);
+                    }
+
+                    line = r.ReadLine();
+                }
+            }
+            catch (Exception)
+            {
+                return trace;
+            }
+
+            return w.ToString();
+        }
+    }
 }

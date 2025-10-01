@@ -221,8 +221,8 @@ namespace CloudBeat.Kit.Common
             }
             catch (Exception e)
             {
-                var failure = CbExceptionHelper.GetFailureFromException(e);
-                newStep.End(failure);
+                var exc = new FullStackException(e, GetCleanedFullStackTrace(Environment.StackTrace, e.StackTrace, CbTestContext.IsVerboseStackTrace));
+                newStep.End(TestStatusEnum.Failed, exc);
                 throw;
             }
         }
@@ -261,7 +261,8 @@ namespace CloudBeat.Kit.Common
             }
             catch (Exception e)
             {
-                EndStep(newStep, TestStatusEnum.Failed, e);
+                var exc = new FullStackException(e, GetCleanedFullStackTrace(Environment.StackTrace, e.StackTrace, CbTestContext.IsVerboseStackTrace));
+                EndStep(newStep, TestStatusEnum.Failed, exc);
                 throw;
             }
         }
@@ -295,7 +296,8 @@ namespace CloudBeat.Kit.Common
             }
             catch (Exception e)
             {
-                EndStep(newStep, TestStatusEnum.Failed, e);
+                var exc = new FullStackException(e, GetCleanedFullStackTrace(Environment.StackTrace, e.StackTrace, CbTestContext.IsVerboseStackTrace));
+                EndStep(newStep, TestStatusEnum.Failed, exc);
                 throw;
             }
         }
@@ -338,7 +340,8 @@ namespace CloudBeat.Kit.Common
             }
             catch (Exception e)
             {
-                EndStep(newStep, TestStatusEnum.Failed, e);
+                var exc = new FullStackException(e, GetCleanedFullStackTrace(Environment.StackTrace, e.StackTrace, CbTestContext.IsVerboseStackTrace));
+                EndStep(newStep, TestStatusEnum.Failed, exc);
                 throw;
             }
         }
@@ -392,6 +395,7 @@ namespace CloudBeat.Kit.Common
             }
             catch (Exception e)
             {
+                // TODO: add full stack trace fix?
                 var tcs = new TaskCompletionSource<TResult>();
                 tcs.SetException(e);
                 return tcs.Task;
@@ -476,7 +480,8 @@ namespace CloudBeat.Kit.Common
             }
             catch (Exception e)
             {
-                EndStep(newStep, TestStatusEnum.Failed, e);
+                var exc = new FullStackException(e, GetCleanedFullStackTrace(Environment.StackTrace, e.StackTrace, CbTestContext.IsVerboseStackTrace));
+                EndStep(newStep, TestStatusEnum.Failed, exc);
                 throw;
             }
             return newStep;
@@ -503,7 +508,8 @@ namespace CloudBeat.Kit.Common
             }
             catch (Exception e)
             {
-                EndStep(newStep, TestStatusEnum.Failed, e);
+                var exc = new FullStackException(e, GetCleanedFullStackTrace(Environment.StackTrace, e.StackTrace, CbTestContext.IsVerboseStackTrace));
+                EndStep(newStep, TestStatusEnum.Failed, exc);
                 throw;
             }
             return newStep;
@@ -525,7 +531,8 @@ namespace CloudBeat.Kit.Common
             }
             catch (Exception e)
             {
-                EndStep(newStep, TestStatusEnum.Failed, e);
+                var exc = new FullStackException(e, GetCleanedFullStackTrace(Environment.StackTrace, e.StackTrace, CbTestContext.IsVerboseStackTrace));
+                EndStep(newStep, TestStatusEnum.Failed, exc);
                 throw;
             }
             return retval;
@@ -561,7 +568,6 @@ namespace CloudBeat.Kit.Common
             TestStatusEnum? status = null,
             Exception exception = null,
             string screenshot = null)
-
         {
             var parentCase = _lastCaseResult.Value;
             if (parentCase == null || parentCase.LastOpenStep == null)
@@ -842,6 +848,11 @@ namespace CloudBeat.Kit.Common
                 lastOpenStep.Logs.Add(logMessage);
             else if (caseResult != null)
                 caseResult.Logs.Add(logMessage);
+        }
+
+        protected virtual string GetCleanedFullStackTrace(string outerTrace, string innerTrace, bool verbose)
+        {
+            return innerTrace + outerTrace;
         }
     }
 }

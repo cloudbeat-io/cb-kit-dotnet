@@ -73,12 +73,6 @@ namespace CloudBeat.Kit.Common.Models
             }
         }
 
-		public void End(FailureResult failure)
-		{
-            End(TestStatusEnum.Failed);
-            Failure = failure;
-		}
-
 		public void End(TestStatusEnum? status = null, Exception exception = null, string screenshot = null)
 		{
             lock (_lock)

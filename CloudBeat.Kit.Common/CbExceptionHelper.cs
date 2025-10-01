@@ -22,11 +22,23 @@ namespace CloudBeat.Kit.Common
 
 			FailureResult failure = new FailureResult();
 
+			// unwrap original exception
+			string stackTrace;
+			if (e is FullStackException fse)
+			{
+				stackTrace = fse.FullStackTrace;
+                e = fse.InnerException;
+			}
+			else
+			{
+				stackTrace = e.StackTrace;
+            }
+
 			failure.Type = GetFailureTypeByExceptionSource(e);
 			failure.Subtype = e.InnerException?.GetType().Name ?? e.GetType().Name;
 			failure.Message = e.Message;
-			failure.Data = e.StackTrace;
-			return failure;
+			failure.Data = stackTrace;
+            return failure;
 		}
 		public static string GetFailureTypeByExceptionSource(Exception e)
 		{
