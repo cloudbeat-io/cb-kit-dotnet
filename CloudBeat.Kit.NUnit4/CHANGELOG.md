@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v5.6.0 (2025-10-03)
+
+#### :beetle: Bug Fix
+* Produce full stack trace for errors.
+* Update dependencies.
+
 ## v5.5.1 (2025-07-25)
 
 #### :beetle: Bug Fix
