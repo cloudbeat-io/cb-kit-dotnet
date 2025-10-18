@@ -17,7 +17,7 @@ namespace CloudBeat.Kit.NUnit
     {
         private static readonly object _lock = new object();
 
-        public CbNUnitTestReporter(CbConfig config) : base(config, TestContext.Progress)
+        public CbNUnitTestReporter(CbConfig config) : base(config, "NUnit", TestContext.Progress)
         {
         }
         
@@ -87,6 +87,7 @@ namespace CloudBeat.Kit.NUnit
                 base.StartCase(test.Name, test.FullName, x =>
                 {
                     var testParams = NUnitHelpers.GenerateTestParametersContext(test.Method, test.Arguments);
+                    x.ReRunCount = TestContext.CurrentContext?.CurrentRepeatCount ?? 0;
                     x.Arguments = test.Arguments?.Select(a => a.ToString()).ToList();
                     if (x.Context.ContainsKey("params"))
                         x.Context["params"] = testParams;

@@ -8,6 +8,8 @@ namespace CloudBeat.Kit.Common
 	{
         public const string CB_API_KEY = "CB_API_KEY";
         public const string CB_API_URL = "CB_API_URL";
+        public const string CB_TEST_MONITOR_URL = "CB_TEST_MONITOR_URL";
+        public const string CB_TEST_MONITOR_TOKEN = "CB_TEST_MONITOR_TOKEN";
         public const string CB_PROJECT_ID = "CB_PROJECT_ID";
         public const string CB_RUN_ID = "CB_RUN_ID";
         public const string CB_AGENT = "CB_AGENT";
@@ -27,9 +29,11 @@ namespace CloudBeat.Kit.Common
         private bool _debugMode;
 
         public void LoadFromEnvironment()
-		{
-            _apiKey = Environment.GetEnvironmentVariable(CB_API_KEY);
-            _apiUrl = Environment.GetEnvironmentVariable(CB_API_URL);
+        {
+            _apiKey = Environment.GetEnvironmentVariable(CB_API_KEY)
+                      ?? Environment.GetEnvironmentVariable(CB_TEST_MONITOR_TOKEN);
+            _apiUrl = Environment.GetEnvironmentVariable(CB_API_URL)
+                      ?? Environment.GetEnvironmentVariable(CB_TEST_MONITOR_URL);
             _runId = Environment.GetEnvironmentVariable(CB_RUN_ID);
             _instanceId = Environment.GetEnvironmentVariable(CB_INSTANCE_ID);
             _projectId = Environment.GetEnvironmentVariable(CB_PROJECT_ID);

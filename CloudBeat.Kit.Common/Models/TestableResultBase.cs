@@ -16,7 +16,7 @@ namespace CloudBeat.Kit.Common.Models
 		{
 			Id = id;			
 		}
-		public string Id { get; }
+		public string Id { get; set; }
 
 		public IList<StepResult> Steps { get; } = new List<StepResult>();
 
