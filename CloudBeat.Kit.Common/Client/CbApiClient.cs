@@ -2,6 +2,10 @@
 {
     public class CbApiClient
 	{
-		public IRuntimeApi RuntimeApi { get; set; }
+		public CbApiClient(CbConfig config)
+		{
+			RuntimeApi = new RuntimeApi(config.ApiUrl, config.ApiKey);
+		}
+		public IRuntimeApi RuntimeApi { get; private set; }
 	}
 }

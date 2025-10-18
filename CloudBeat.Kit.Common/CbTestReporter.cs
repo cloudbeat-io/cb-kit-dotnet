@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CloudBeat.Kit.Common.Client;
+using CloudBeat.Kit.Common.Client.Dto;
 using CloudBeat.Kit.Common.Models;
 using CloudBeat.Kit.Common.Models.Hook;
 using OpenQA.Selenium;
@@ -13,6 +14,7 @@ namespace CloudBeat.Kit.Common
 {
     public class CbTestReporter
     {
+        private const string LANGUAGE_NAME = ".NET";
         protected TestInstance _instance;
         protected TestResult _result;
         protected CbApiClient _client;
@@ -24,10 +26,21 @@ namespace CloudBeat.Kit.Common
         protected readonly AsyncLocal<ICbScreenshotProvider> _screenshotProvider = new();
         protected readonly ConcurrentDictionary<string, ICbScreenshotProvider> _screenshotProviderByTestId = new();
         protected readonly AsyncLocal<string> _currentTestId = new();
+        protected readonly string _frameworkName;
 
         public CbTestReporter(CbConfig config)
         {
             _config = config;
+            if (!string.IsNullOrEmpty(config.ApiKey) && !string.IsNullOrEmpty(config.ApiKey))
+                _client = new CbApiClient(config);
+        }
+        
+        public CbTestReporter(CbConfig config, string frameworkName)
+        {
+            _config = config;
+            _frameworkName = frameworkName;
+            if (!string.IsNullOrEmpty(config.ApiKey) && !string.IsNullOrEmpty(config.ApiKey))
+                _client = new CbApiClient(config);
         }
 
         ~CbTestReporter()
@@ -150,12 +163,31 @@ namespace CloudBeat.Kit.Common
                     parentSuite.StartTime = caze.StartTime;
                 }
             }
-
             _lastCaseResult.Value = _lastCaseResultByThread.Value = caze;
+            // Call updateAction handler before sending runtime status, as additional
+            // information might be added to the test case, such as ReRunCount
             if (updateAction != null)
                 updateAction.Invoke(caze);
             if (_config.DebugMode)
                 Console.WriteLine($"CB:Case:Start: {caseFqn}");
+            // Send runtime status
+            if (caze != null && _client != null)
+                _client.RuntimeApi.UpdateRuntimeCaseStatus(new CaseStatusUpdateRequest()
+                {
+                    Timestamp = DateTime.UtcNow,
+                    RunId = _config.RunId,
+                    InstanceId = _config.InstanceId,
+                    Id = caze.Id,
+                    Fqn = caze.Fqn,
+                    StartTime = caze.StartTime,
+                    Name = caze.Name,
+                    RunStatus = RunStatusEnum.Running,
+                    ParentId = parentSuite.Id,
+                    ParentFqn = parentSuite.Fqn,
+                    ParentName = parentSuite.Name,
+                    Framework = _frameworkName,
+                    Language = LANGUAGE_NAME,
+                });
         }
 
         public bool EndSuite(string fqn)
@@ -187,6 +219,26 @@ namespace CloudBeat.Kit.Common
             if (_config.DebugMode)
                 Console.WriteLine($"CB:Case:End: {fqn}");
             
+            // Send runtime status
+            if (endedCase != null && _client != null)
+                _client.RuntimeApi.UpdateRuntimeCaseStatus(new CaseStatusUpdateRequest()
+                {
+                    Timestamp = DateTime.UtcNow,
+                    RunId = _config.RunId,
+                    InstanceId = _config.InstanceId,
+                    Id = endedCase.Id,
+                    Fqn = endedCase.Fqn,
+                    StartTime = endedCase.StartTime,
+                    EndTime = endedCase.EndTime,
+                    Name = endedCase.Name,
+                    RunStatus = RunStatusEnum.Finished,
+                    TestStatus = endedCase.Status,
+                    ParentId = parentSuite.Id,
+                    ParentFqn = parentSuite.Fqn,
+                    ParentName = parentSuite.Name,
+                    Framework = _frameworkName,
+                    Language = LANGUAGE_NAME,
+                });
             _lastCaseResult.Value = _lastCaseResultByThread.Value = endedCase;
             return endedCase;
         }
@@ -202,6 +254,25 @@ namespace CloudBeat.Kit.Common
                 caseResult.End(status, failure);
             if (_config.DebugMode)
                 Console.WriteLine($"CB:Case:End: {caseResult.Fqn}");
+            // Send runtime status
+            _client?.RuntimeApi.UpdateRuntimeCaseStatus(new CaseStatusUpdateRequest()
+            {
+                Timestamp = DateTime.UtcNow,
+                RunId = _config.RunId,
+                InstanceId = _config.InstanceId,
+                Id = caseResult.Id,
+                Fqn = caseResult.Fqn,
+                StartTime = caseResult.StartTime,
+                EndTime = caseResult.EndTime,
+                Name = caseResult.Name,
+                RunStatus = RunStatusEnum.Finished,
+                TestStatus = caseResult.Status,
+                ParentId = parentSuite?.Id,
+                ParentFqn = parentSuite?.Fqn,
+                ParentName = parentSuite?.Name,
+                Framework = _frameworkName,
+                Language = LANGUAGE_NAME,
+            });
             _lastCaseResult.Value = _lastCaseResultByThread.Value = caseResult;
             return caseResult;
         }

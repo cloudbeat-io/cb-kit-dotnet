@@ -1,4 +1,5 @@
-﻿using CloudBeat.Kit.Common.Models;
+﻿using CloudBeat.Kit.Common.Client.Dto;
+using CloudBeat.Kit.Common.Models;
 
 namespace CloudBeat.Kit.Common.Client
 {
@@ -14,6 +15,9 @@ namespace CloudBeat.Kit.Common.Client
 			string caseName,
 			TestStatusEnum? status,
 			FailureResult failure);
+
+		void UpdateRuntimeCaseStatus(CaseStatusUpdateRequest statusUpdateRequest);
+		void UpdateRuntimeSuiteStatus(SuiteStatusUpdateRequest statusUpdateRequest);
 		void StartRun(string projectId, string runId = null, RunStatusEnum? status = null);
 		void StartInstance(string runId, string instanceId = null, RunStatusEnum? status = null);
         void EndInstance(string runId, string instanceId, TestResult result);     
