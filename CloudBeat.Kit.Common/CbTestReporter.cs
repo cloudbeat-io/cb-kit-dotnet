@@ -106,6 +106,9 @@ namespace CloudBeat.Kit.Common
 
             if (updateAction != null)
                 updateAction.Invoke(newSuite);
+            
+            if (_config.DebugMode)
+                Console.WriteLine($"CB:Suite:Start: ${fqn}");
         }
 
         public void StartCase(string name, string fqn, Action<CaseResult> updateAction = null)
@@ -151,6 +154,8 @@ namespace CloudBeat.Kit.Common
             _lastCaseResult.Value = _lastCaseResultByThread.Value = caze;
             if (updateAction != null)
                 updateAction.Invoke(caze);
+            if (_config.DebugMode)
+                Console.WriteLine($"CB:Case:Start: ${caseFqn}");
         }
 
         public bool EndSuite(string fqn)
@@ -163,6 +168,9 @@ namespace CloudBeat.Kit.Common
                 return false;
 
             suiteResult.End();
+            
+            if (_config.DebugMode)
+                Console.WriteLine($"CB:Suite:End: ${fqn}");
 
             return true;
         }
@@ -176,6 +184,9 @@ namespace CloudBeat.Kit.Common
 
             var endedCase = parentSuite.EndCase(fqn, status, failure);
 
+            if (_config.DebugMode)
+                Console.WriteLine($"CB:Case:End: ${fqn}");
+            
             _lastCaseResult.Value = _lastCaseResultByThread.Value = endedCase;
             return endedCase;
         }
@@ -189,6 +200,8 @@ namespace CloudBeat.Kit.Common
                 parentSuite.EndCase(caseResult, status, failure);
             else
                 caseResult.End(status, failure);
+            if (_config.DebugMode)
+                Console.WriteLine($"CB:Case:End: ${caseResult.Fqn}");
             _lastCaseResult.Value = _lastCaseResultByThread.Value = caseResult;
             return caseResult;
         }
@@ -213,16 +226,22 @@ namespace CloudBeat.Kit.Common
             newStep.Type = stepType;
             // allow the invoker to update the step properties
             updateStepAction?.Invoke(newStep);
+            if (_config.DebugMode)
+                Console.WriteLine($"- CB:Step:Start: ${stepName}");
             try
             {
                 var result = func.Invoke();
                 newStep.End();
+                if (_config.DebugMode)
+                    Console.WriteLine($"- CB:Step:End: ${stepName} - Passed");
                 return result;
             }
             catch (Exception e)
             {
                 var exc = new FullStackException(e, GetCleanedFullStackTrace(Environment.StackTrace, e.StackTrace, CbTestContext.IsVerboseStackTrace));
                 newStep.End(TestStatusEnum.Failed, exc);
+                if (_config.DebugMode)
+                    Console.WriteLine($"- CB:Step:End: ${stepName} - Failed - {e.Message}");
                 throw;
             }
         }

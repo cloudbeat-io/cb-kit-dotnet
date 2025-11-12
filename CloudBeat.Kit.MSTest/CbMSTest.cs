@@ -43,7 +43,7 @@ namespace CloudBeat.Kit.MSTest
                 if (currentCbContext == null)
 				{
                     CbConfig config = new CbConfig();
-                    config.loadFromEnvironment();
+                    config.LoadFromEnvironment();
                     currentCbContext = new CbMSTestContext(config);
 
                     if (currentCbContext.Reporter != null)
