@@ -23,6 +23,9 @@ namespace CloudBeat.Kit.NUnit
         
         private void WriteCaseResultToFile(CaseResult caseResult)
         {
+            // Do not write intermediate case result file if we are in the local debug mode
+            if (_config.DebugMode)
+                return;
             // If no direct API access details were defined, then write case result to local file
             // so CB Logger can pick it up and send it indirectly to CB server
             var cwd = TestContext.CurrentContext.WorkDirectory;

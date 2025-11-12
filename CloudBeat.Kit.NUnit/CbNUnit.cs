@@ -41,7 +41,7 @@ namespace CloudBeat.Kit.NUnit
                 if (currentCbContext == null)
                 {
                     CbConfig config = new CbConfig();
-                    config.loadFromEnvironment();
+                    config.LoadFromEnvironment();
                     currentCbContext = new CbNUnitContext(config);
                 }
                 return currentCbContext;
