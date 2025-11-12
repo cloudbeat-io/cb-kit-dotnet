@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v5.6.1 (2025-11-12)
+
+#### :beetle: Bug Fix
+* Print additional debug information when `CB_DEBUG=true`.
+
 ## v5.6.0 (2025-10-03)
 
 #### :beetle: Bug Fix
