@@ -131,16 +131,7 @@ namespace CloudBeat.Kit.Common
             var caze = parentSuite.Cases.Where(x => x.Fqn == caseFqn).FirstOrDefault();
             if (caze != null)
             {
-                caze.Steps.Clear();
-                caze.Hooks.Clear();
-                caze.Logs.Clear();
-                caze.Arguments?.Clear();
-                caze.Attachments?.Clear();
-                caze.StartTime = DateTime.UtcNow;
-                caze.EndTime = null;
-                caze.Duration = null;
-                caze.Status = null;
-                caze.Failure = null;
+                caze.Clear();
             }
             else
             {

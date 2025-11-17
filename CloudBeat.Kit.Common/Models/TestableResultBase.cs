@@ -138,5 +138,20 @@ namespace CloudBeat.Kit.Common.Models
                 return TestStatusEnum.Passed;
             }
         }
+
+        public void Clear()
+        {
+            Steps.Clear();
+            _openSteps.Clear();
+            Hooks.Clear();
+            Logs.Clear();
+            Arguments?.Clear();
+            Attachments?.Clear();
+            StartTime = DateTime.UtcNow;
+            EndTime = null;
+            Duration = null;
+            Status = null;
+            Failure = null;
+        }
     }
 }
