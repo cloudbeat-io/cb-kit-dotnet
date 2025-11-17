@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v5.6.2 (2025-11-17)
+
+#### :beetle: Bug Fix
+* Fix missing steps on test retry.
+
 ## v5.6.1 (2025-11-12)
 
 #### :beetle: Bug Fix
