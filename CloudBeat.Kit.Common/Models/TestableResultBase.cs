@@ -81,7 +81,7 @@ namespace CloudBeat.Kit.Common.Models
 		public StepResult LastFailedStep => Steps.LastOrDefault(s => s.Status == TestStatusEnum.Failed);
 
 		public StepResult EndStep(
-			StepResult step = null,
+			StepResult step,
 			TestStatusEnum? status = null,
 			Exception exception = null,
 			string screenshot = null)

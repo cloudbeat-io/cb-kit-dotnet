@@ -221,8 +221,11 @@ namespace CloudBeat.Kit.Common
                 Console.WriteLine($"- CB:Step:Start: {stepName}");
             try
             {
+
                 var result = func.Invoke();
-                newStep.End();
+
+                parentCase.EndStep(newStep);
+
                 if (_config.DebugMode)
                     Console.WriteLine($"- CB:Step:End: {stepName} - Passed");
                 return result;
@@ -230,7 +233,9 @@ namespace CloudBeat.Kit.Common
             catch (Exception e)
             {
                 var exc = new FullStackException(e, GetCleanedFullStackTrace(Environment.StackTrace, e.StackTrace, CbTestContext.IsVerboseStackTrace));
-                newStep.End(TestStatusEnum.Failed, exc);
+
+                parentCase.EndStep(newStep, TestStatusEnum.Failed, exc);
+
                 if (_config.DebugMode)
                     Console.WriteLine($"- CB:Step:End: {stepName} - Failed - {e.Message}");
                 throw;
