@@ -17,7 +17,7 @@ namespace CloudBeat.Kit.MSTest
         protected readonly ConcurrentDictionary<string, CaseResult> _startedCasePerThread = new ConcurrentDictionary<string, CaseResult>();
         private static readonly object _lock = new object();
 
-        public CbMSTestReporter(CbConfig config) : base(config)
+        public CbMSTestReporter(CbConfig config) : base(config, null)
         {
         }
 
