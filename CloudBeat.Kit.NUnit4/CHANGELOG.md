@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v5.6.4 (2025-11-28)
+
+#### :beetle: Bug Fix
+* Clear warnings flag on test retry.
+* Print debug information (`CB_DEBUG=true`) to `TestContext.Progress`. 
+
+## v5.6.3 (2025-11-26)
+
+#### :beetle: Bug Fix
+* Fix steps not being closed in certain situations.
+
 ## v5.6.2 (2025-11-17)
 
 #### :beetle: Bug Fix
