@@ -152,6 +152,7 @@ namespace CloudBeat.Kit.Common.Models
             Duration = null;
             Status = null;
             Failure = null;
+            HasWarnings = false;
         }
     }
 }
