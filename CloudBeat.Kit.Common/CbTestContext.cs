@@ -10,13 +10,6 @@ namespace CloudBeat.Kit.Common
         protected readonly CbTestReporter _reporter;
 		protected readonly CbConfig _config;
 
-		public CbTestContext(CbConfig config)
-		{
-			if (config.HasMandatory())
-				_reporter = new CbTestReporter(config);
-			_config = config;
-		}
-
 		public CbTestContext(CbConfig config, CbTestReporter reporter)
         {
 			_reporter = reporter;

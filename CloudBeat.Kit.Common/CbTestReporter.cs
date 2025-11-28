@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,10 +25,12 @@ namespace CloudBeat.Kit.Common
         protected readonly AsyncLocal<ICbScreenshotProvider> _screenshotProvider = new();
         protected readonly ConcurrentDictionary<string, ICbScreenshotProvider> _screenshotProviderByTestId = new();
         protected readonly AsyncLocal<string> _currentTestId = new();
+        protected readonly TextWriter _consoleWriter;
 
-        public CbTestReporter(CbConfig config)
+        public CbTestReporter(CbConfig config, TextWriter consoleWriter)
         {
             _config = config;
+            _consoleWriter = consoleWriter;
         }
 
         ~CbTestReporter()
@@ -108,7 +111,7 @@ namespace CloudBeat.Kit.Common
                 updateAction.Invoke(newSuite);
             
             if (_config.DebugMode)
-                Console.WriteLine($"CB:Suite:Start: {fqn}");
+                _consoleWriter?.WriteLine($"CB:Suite:Start: {fqn}");
         }
 
         public void StartCase(string name, string fqn, Action<CaseResult> updateAction = null)
@@ -146,7 +149,7 @@ namespace CloudBeat.Kit.Common
             if (updateAction != null)
                 updateAction.Invoke(caze);
             if (_config.DebugMode)
-                Console.WriteLine($"CB:Case:Start: {caseFqn}");
+                _consoleWriter?.WriteLine($"CB:Case:Start: {caseFqn}");
         }
 
         public bool EndSuite(string fqn)
@@ -161,7 +164,7 @@ namespace CloudBeat.Kit.Common
             suiteResult.End();
             
             if (_config.DebugMode)
-                Console.WriteLine($"CB:Suite:End: {fqn}");
+                _consoleWriter?.WriteLine($"CB:Suite:End: {fqn}");
 
             return true;
         }
@@ -176,7 +179,7 @@ namespace CloudBeat.Kit.Common
             var endedCase = parentSuite.EndCase(fqn, status, failure);
 
             if (_config.DebugMode)
-                Console.WriteLine($"CB:Case:End: {fqn}");
+                _consoleWriter?.WriteLine($"CB:Case:End: {fqn}");
             
             _lastCaseResult.Value = _lastCaseResultByThread.Value = endedCase;
             return endedCase;
@@ -192,7 +195,7 @@ namespace CloudBeat.Kit.Common
             else
                 caseResult.End(status, failure);
             if (_config.DebugMode)
-                Console.WriteLine($"CB:Case:End: {caseResult.Fqn}");
+                _consoleWriter?.WriteLine($"CB:Case:End: {caseResult.Fqn}");
             _lastCaseResult.Value = _lastCaseResultByThread.Value = caseResult;
             return caseResult;
         }
@@ -218,7 +221,7 @@ namespace CloudBeat.Kit.Common
             // allow the invoker to update the step properties
             updateStepAction?.Invoke(newStep);
             if (_config.DebugMode)
-                Console.WriteLine($"- CB:Step:Start: {stepName}");
+                _consoleWriter?.WriteLine($"- CB:Step:Start: {stepName}");
             try
             {
 
@@ -227,7 +230,7 @@ namespace CloudBeat.Kit.Common
                 parentCase.EndStep(newStep);
 
                 if (_config.DebugMode)
-                    Console.WriteLine($"- CB:Step:End: {stepName} - Passed");
+                    _consoleWriter?.WriteLine($"- CB:Step:End: {stepName} - Passed");
                 return result;
             }
             catch (Exception e)
@@ -237,7 +240,7 @@ namespace CloudBeat.Kit.Common
                 parentCase.EndStep(newStep, TestStatusEnum.Failed, exc);
 
                 if (_config.DebugMode)
-                    Console.WriteLine($"- CB:Step:End: {stepName} - Failed - {e.Message}");
+                    _consoleWriter?.WriteLine($"- CB:Step:End: {stepName} - Failed - {e.Message}");
                 throw;
             }
         }
@@ -343,7 +346,7 @@ namespace CloudBeat.Kit.Common
             updateStepAction?.Invoke(newStep);
 
             if (_config.DebugMode)
-                Console.WriteLine($"- CB:Step:Start: {stepName}");
+                _consoleWriter?.WriteLine($"- CB:Step:Start: {stepName}");
 
             try
             {
@@ -359,7 +362,7 @@ namespace CloudBeat.Kit.Common
                 }
 
                 if (_config.DebugMode)
-                    Console.WriteLine($"- CB:Step:End: {stepName} - Passed");
+                    _consoleWriter?.WriteLine($"- CB:Step:End: {stepName} - Passed");
 
                 return result;
             }
@@ -368,7 +371,7 @@ namespace CloudBeat.Kit.Common
                 var exc = new FullStackException(e, GetCleanedFullStackTrace(Environment.StackTrace, e.StackTrace, CbTestContext.IsVerboseStackTrace));
                 EndStep(newStep, TestStatusEnum.Failed, exc);
                 if (_config.DebugMode)
-                    Console.WriteLine($"- CB:Step:End: {stepName} - Failed - {e.Message}");
+                    _consoleWriter?.WriteLine($"- CB:Step:End: {stepName} - Failed - {e.Message}");
                 throw;
             }
         }
@@ -501,7 +504,7 @@ namespace CloudBeat.Kit.Common
             }
 
             if (_config.DebugMode)
-                Console.WriteLine($"- CB:Step:Start: {stepName}");
+                _consoleWriter?.WriteLine($"- CB:Step:Start: {stepName}");
 
             try
             {
@@ -509,7 +512,7 @@ namespace CloudBeat.Kit.Common
                 EndStep(newStep);
 
                 if (_config.DebugMode)
-                    Console.WriteLine($"- CB:Step:End: {stepName} - Passed");
+                    _consoleWriter?.WriteLine($"- CB:Step:End: {stepName} - Passed");
             }
             catch (Exception e)
             {
@@ -517,7 +520,7 @@ namespace CloudBeat.Kit.Common
                 EndStep(newStep, TestStatusEnum.Failed, exc);
 
                 if (_config.DebugMode)
-                    Console.WriteLine($"- CB:Step:End: {stepName} - Failed - {e.Message}");
+                    _consoleWriter?.WriteLine($"- CB:Step:End: {stepName} - Failed - {e.Message}");
 
                 throw;
             }

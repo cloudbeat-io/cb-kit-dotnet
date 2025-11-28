@@ -17,7 +17,7 @@ namespace CloudBeat.Kit.NUnit
     {
         private static readonly object _lock = new object();
 
-        public CbNUnitTestReporter(CbConfig config) : base(config)
+        public CbNUnitTestReporter(CbConfig config) : base(config, TestContext.Progress)
         {
         }
         
