@@ -5,7 +5,6 @@ namespace CloudBeat.Kit.Common.Models
 {
     public class LogMessage
 	{
-        public string Id { get; set; } = Guid.NewGuid().ToString();
 		public string Message { get; set; }
 		public LogLevelEnum Level { get; set; }
         public DateTime Time { get; set; }
