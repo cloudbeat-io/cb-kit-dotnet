@@ -35,7 +35,7 @@ namespace CloudBeat.Kit.Common
             _config = config;
             _frameworkName = frameworkName;
             _consoleWriter = consoleWriter;
-            if (!string.IsNullOrEmpty(config.ApiKey) && !string.IsNullOrEmpty(config.ApiKey))
+            if (!string.IsNullOrEmpty(config.ApiUrl) && !string.IsNullOrEmpty(config.ApiKey))
                 _client = new CbApiClient(config);
         }
         
