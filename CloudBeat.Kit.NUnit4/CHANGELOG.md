@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v6.0.0 (2025-12-09)
+
+### :tada: New Feature
+* Add runtime status support.
+
 ## v5.6.4 (2025-11-28)
 
 #### :beetle: Bug Fix
