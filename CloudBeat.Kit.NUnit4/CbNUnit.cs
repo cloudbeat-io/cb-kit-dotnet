@@ -195,19 +195,24 @@ namespace CloudBeat.Kit.NUnit
         /// <param name="driver">EventFiringWebDriver to wrap.</param>
         /// <param name="takeFullPageScreenshots">Take full page screenshots. Works only when using ChromeDriver.</param>
         /// <param name="ignoreFindElement">Ignore exceptions produced by IWebDriver.FindElement(s)</param>
-        public static void WrapWebDriver(EventFiringWebDriver driver, bool takeFullPageScreenshots = true, bool ignoreFindElement = true)
+        /// <param name="takePageSourceOnError">Take page source automatically when error occurs.</param>
+        public static void WrapWebDriver(
+            EventFiringWebDriver driver, 
+            bool takeFullPageScreenshots = true, 
+            bool ignoreFindElement = true,
+            bool takePageSourceOnError = false)
         {
             if (!Current.IsConfigured)
                 return;
 
             Current.Reporter?.SetCurrentWebDriver(driver?.WrappedDriver);
-
+            Current.Reporter?.SetScreenshotProvider(new CbNUnitScreenshotProvider(driver?.WrappedDriver, takeFullPageScreenshots));
+            Current.Reporter?.SetPageSourceProvider(new CbNUnitPageSourceProvider(driver?.WrappedDriver, takePageSourceOnError));
+            
             new CbWebDriverWrapper(
                 driver,
                 Current.Reporter,
                 new CbWebDriverWrapper.Options { FullPageScreenshot = takeFullPageScreenshots, IgnoreFindElement = ignoreFindElement });
-
-            Current.Reporter?.SetScreenshotProvider(new CbNUnitScreenshotProvider(driver?.WrappedDriver, takeFullPageScreenshots));
         }
 
         /// <summary>
@@ -263,7 +268,7 @@ namespace CloudBeat.Kit.NUnit
                 try
                 {
                     var screenshot = Current.Reporter?.GetScreenshotProvider()?.TakeScreenshot();
-                    Current.Reporter.AddScreenshot(screenshot);
+                    Current.Reporter?.AddScreenshot(screenshot);
                 }
                 catch
                 {
@@ -325,6 +330,34 @@ namespace CloudBeat.Kit.NUnit
             if (!Current.IsConfigured)
                 return;
             Current.Reporter?.AddLogs(logList);
+        }
+
+        /// <summary>
+        /// Adds page source as attachment, optionally in pair with page screenshot.
+        /// </summary>
+        /// <param name="pageSourceXml">A page source in XML format.</param>
+        /// <param name="screenshotBase64">An optional screenshot image in Base 64 format.</param>
+        public static void AddXmlPageSource(string pageSourceXml, string screenshotBase64 = null)
+        {
+            if (!Current.IsConfigured)
+                return;
+            Current.Reporter?.AddPageSourceAttachment(pageSourceXml, "text/xml");
+            if (!string.IsNullOrEmpty(screenshotBase64))
+                Current.Reporter?.AddScreenshotAttachment(screenshotBase64);
+        }
+        
+        /// <summary>
+        /// Adds page source as attachment, optionally in pair with page screenshot.
+        /// </summary>
+        /// <param name="pageSourceHtml">A page source in HTML format.</param>
+        /// <param name="screenshotBase64">An optional screenshot image in Base 64 format.</param>
+        public static void AddHtmlPageSource(string pageSourceHtml, string screenshotBase64 = null)
+        {
+            if (!Current.IsConfigured)
+                return;
+            Current.Reporter?.AddPageSourceAttachment(pageSourceHtml, "text/html");
+            if (!string.IsNullOrEmpty(screenshotBase64))
+                Current.Reporter?.AddScreenshotAttachment(screenshotBase64);
         }
     }
 }

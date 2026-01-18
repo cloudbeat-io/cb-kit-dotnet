@@ -25,6 +25,7 @@ namespace CloudBeat.Kit.Common
         protected readonly ThreadLocal<CaseResult> _lastCaseResultByThread = new();
         protected readonly AsyncLocal<IWebDriver> _currentWebDriver = new();
         protected readonly AsyncLocal<ICbScreenshotProvider> _screenshotProvider = new();
+        protected readonly AsyncLocal<ICbPageSourceProvider> _pageSourceProvider = new();
         protected readonly ConcurrentDictionary<string, ICbScreenshotProvider> _screenshotProviderByTestId = new();
         protected readonly AsyncLocal<string> _currentTestId = new();
         protected readonly TextWriter _consoleWriter;
@@ -683,13 +684,16 @@ namespace CloudBeat.Kit.Common
             string screenshot = null)
         {
             if (stepResult == null)
-                throw new ArgumentNullException("stepResult");
+                throw new ArgumentNullException(nameof(stepResult));
             var parentContainer = stepResult.ParentContainer;
             if (parentContainer == null)
                 return null;
 
             if (screenshot == null && exception != null)
                 screenshot = GetScreenshotForException(stepResult, exception);
+            var pageSourceAttachment = GetPageSourceAttachmentForException(stepResult, exception);
+            if (pageSourceAttachment != null)
+                stepResult.Attachments.Add(pageSourceAttachment);
 
             return parentContainer.EndStep(stepResult, status, exception, screenshot);
         }
@@ -703,10 +707,20 @@ namespace CloudBeat.Kit.Common
         {
             return _screenshotProvider.Value;
         }
+        
+        public ICbPageSourceProvider GetPageSourceProvider()
+        {
+            return _pageSourceProvider.Value;
+        }
 
         public void SetScreenshotProvider(ICbScreenshotProvider provider)
         {
             _screenshotProvider.Value = provider;
+        }
+        
+        public void SetPageSourceProvider(ICbPageSourceProvider provider)
+        {
+            _pageSourceProvider.Value = provider;
         }
 
         public void SetScreenshotProvider(string testId, ICbScreenshotProvider provider)
@@ -727,28 +741,55 @@ namespace CloudBeat.Kit.Common
             return _currentWebDriver.Value;
         }
 
-        public string GetScreenshotForException(StepResult stepResult, Exception e)
+        private string GetScreenshotForException(StepResult stepResult, Exception e)
         {
             ICbScreenshotProvider screenshotProvider;
-            if (_currentTestId.Value != null && _screenshotProviderByTestId.ContainsKey(_currentTestId.Value))
-                screenshotProvider = _screenshotProviderByTestId[_currentTestId.Value];
+            if (_currentTestId.Value != null && _screenshotProviderByTestId.TryGetValue(_currentTestId.Value, out var value))
+                screenshotProvider = value;
             else
                 screenshotProvider = _screenshotProvider.Value;
 
             if (e == null || screenshotProvider == null)
                 return null;
 
-            // check if we need to take a screenshot or it has been already taken in the child step
+            // check if we need to take a screenshot, or it has been already taken in the child step
             if (stepResult.Steps?.Count > 0)
             {
                 var firstSimilarFailedChildStep = stepResult.Steps.FirstOrDefault(x => x.Status == TestStatusEnum.Failed && x.Failure?.Subtype == e.GetType().Name);
-                if (firstSimilarFailedChildStep != null && firstSimilarFailedChildStep.ScreenShot != null)
+                if (firstSimilarFailedChildStep is { ScreenShot: not null })
                     return null;
             }
 
             try
             {
                 return screenshotProvider.TakeScreenshot();
+            }
+            catch
+            {
+                // ignored
+            }
+
+            return null;
+        }
+        
+        private Attachment GetPageSourceAttachmentForException(StepResult stepResult, Exception e)
+        {
+            if (e == null || _pageSourceProvider.Value == null || !_pageSourceProvider.Value.TakePageSourceOnError)
+                return null;
+            
+            // check if we need to take a page source, or it has been already taken in the child step
+            if (stepResult.Steps?.Count > 0)
+            {
+                var firstSimilarFailedChildStep = stepResult.Steps.FirstOrDefault(x => x.Status == TestStatusEnum.Failed && x.Failure?.Subtype == e.GetType().Name);
+                if (firstSimilarFailedChildStep is { Attachments: not null } && firstSimilarFailedChildStep.Attachments.Any(x => x.Type == AttachmentTypeEnum.Snapshot))
+                    return null;
+            }
+
+            try
+            {
+                var (pageSource, mimeType) = _pageSourceProvider.Value.PageSource();
+                if (pageSource != null)
+                    return CbAttachmentHelper.PreparePageSourceAttachment(pageSource, mimeType);
             }
             catch
             {
@@ -764,11 +805,10 @@ namespace CloudBeat.Kit.Common
             if (caseResult == null)
                 return;
             var dataEntry = new OutputDataEntry(name, data);
-            List<OutputDataEntry> outputDataList = caseResult.Context.ContainsKey("resultData") ?
-                caseResult.Context["resultData"] as List<OutputDataEntry> : new List<OutputDataEntry>();
-            outputDataList.Add(dataEntry);
-            if (!caseResult.Context.ContainsKey("resultData"))
-                caseResult.Context.Add("resultData", outputDataList);
+            List<OutputDataEntry> outputDataList = caseResult.Context.TryGetValue("resultData", out var value) ?
+                value as List<OutputDataEntry> : new List<OutputDataEntry>();
+            outputDataList?.Add(dataEntry);
+            caseResult.Context.TryAdd("resultData", outputDataList);
         }
 
         public void AddTestAttribute(string name, object value)
@@ -878,6 +918,21 @@ namespace CloudBeat.Kit.Common
                 return;
 
             var attachment = CbAttachmentHelper.PrepareScreenshotAttachment(base64Data);
+            // attachment might be null in case of IO exception
+            if (attachment != null && resultWithAttachment != null)
+                resultWithAttachment.Attachments.Add(attachment);
+        }
+        
+        public void AddPageSourceAttachment(string pageSource, string mimeType = "text/plain")
+        {
+            IResultWithAttachment resultWithAttachment;
+
+            if (_lastCaseResult.Value != null)
+                resultWithAttachment = _lastCaseResult.Value;
+            else
+                return;
+
+            var attachment = CbAttachmentHelper.PreparePageSourceAttachment(pageSource);
             // attachment might be null in case of IO exception
             if (attachment != null && resultWithAttachment != null)
                 resultWithAttachment.Attachments.Add(attachment);

@@ -7,7 +7,8 @@
         Test,
         Log,
         Har,
-        Other
+        Other,
+        Snapshot
     }
 }
 

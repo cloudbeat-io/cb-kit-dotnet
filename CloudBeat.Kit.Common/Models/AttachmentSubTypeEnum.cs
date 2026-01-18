@@ -5,7 +5,10 @@
 		Screenshot,
 		Screencast,
 		Har,
-		PlaywrightTrace
+		PlaywrightTrace,
+		Xml,
+		Html,
+		Text
 	}
 }
 
