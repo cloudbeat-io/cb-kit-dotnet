@@ -932,7 +932,7 @@ namespace CloudBeat.Kit.Common
             else
                 return;
 
-            var attachment = CbAttachmentHelper.PreparePageSourceAttachment(pageSource);
+            var attachment = CbAttachmentHelper.PreparePageSourceAttachment(pageSource, mimeType);
             // attachment might be null in case of IO exception
             if (attachment != null && resultWithAttachment != null)
                 resultWithAttachment.Attachments.Add(attachment);
