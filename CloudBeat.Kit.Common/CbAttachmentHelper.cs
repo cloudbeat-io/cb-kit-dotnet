@@ -34,7 +34,7 @@ namespace CloudBeat.Kit.Common
 			var attachment = new Attachment();
 			attachment.Type = AttachmentTypeEnum.Screenshot;
 			attachment.Subtype = AttachmentSubTypeEnum.Screenshot;
-			attachment.FileName = $"{Guid.NewGuid()}.png";
+			attachment.FileName = "screenshot.png";
 			attachment.FilePath = GetAttachmentFilePath(attachment.FileName);
 
 			try
@@ -55,13 +55,22 @@ namespace CloudBeat.Kit.Common
 				Type = AttachmentTypeEnum.Snapshot,
 				MimeType = mimeType
 			};
+			string fileExt = "txt";
 			if (mimeType == "text/html")
+			{
 				attachment.Subtype = AttachmentSubTypeEnum.Html;
-			else if (mimeType == "text/xml" || mimeType == "application/xml")
+				fileExt = "html";
+			}
+			else if (mimeType == "text/xml" 
+			         || mimeType == "application/xml"
+			         || mimeType == "application/x-appium+xml")
+			{
 				attachment.Subtype = AttachmentSubTypeEnum.Xml;
+				fileExt = "xml";
+			}
 			else
 				attachment.Subtype = AttachmentSubTypeEnum.Text;
-			attachment.FileName = $"{Guid.NewGuid()}.png";
+			attachment.FileName = $"source.{fileExt}";
 			attachment.FilePath = GetAttachmentFilePath(attachment.FileName);
 
 			try

@@ -347,6 +347,20 @@ namespace CloudBeat.Kit.NUnit
         }
         
         /// <summary>
+        /// Adds Appium page source as attachment, optionally in pair with page screenshot.
+        /// </summary>
+        /// <param name="pageSourceXml">A page source in XML format.</param>
+        /// <param name="screenshotBase64">An optional screenshot image in Base 64 format.</param>
+        public static void AddAppiumPageSource(string pageSourceXml, string screenshotBase64 = null)
+        {
+            if (!Current.IsConfigured)
+                return;
+            Current.Reporter?.AddPageSourceAttachment(pageSourceXml, "application/x-appium+xml");
+            if (!string.IsNullOrEmpty(screenshotBase64))
+                Current.Reporter?.AddScreenshotAttachment(screenshotBase64);
+        }
+        
+        /// <summary>
         /// Adds page source as attachment, optionally in pair with page screenshot.
         /// </summary>
         /// <param name="pageSourceHtml">A page source in HTML format.</param>

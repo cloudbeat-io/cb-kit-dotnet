@@ -24,7 +24,7 @@ namespace CloudBeat.Kit.NUnit
             {
                 
                 var source = _driver?.TakeScreenshot()?.AsBase64EncodedString;
-                var mimeType = IsAppiumDriver(_driver) ? "application/xml" : "text/html";
+                var mimeType = IsAppiumDriver(_driver) ? "application/x-appium+xml" : "text/html";
                 return (source, mimeType);
             }
             catch (Exception)
