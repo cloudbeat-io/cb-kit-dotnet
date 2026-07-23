@@ -373,5 +373,56 @@ namespace CloudBeat.Kit.NUnit
             if (!string.IsNullOrEmpty(screenshotBase64))
                 Current.Reporter?.AddScreenshotAttachment(screenshotBase64);
         }
+
+        /// <summary>
+        /// Adds page source as an attachment to the currently-executing step (rather than the
+        /// overall case result), optionally in pair with a page screenshot. Use this from inside a
+        /// [CbStep]-decorated method to associate the snapshot with that specific step, e.g. so it
+        /// can be matched against a baseline run's snapshot for the same step.
+        /// </summary>
+        /// <param name="pageSourceXml">A page source in XML format.</param>
+        /// <param name="screenshotBase64">An optional screenshot image in Base 64 format.</param>
+        public static void AddAppiumPageSourceToCurrentStep(string pageSourceXml, string screenshotBase64 = null)
+        {
+            if (!Current.IsConfigured)
+                return;
+            Current.Reporter?.AddPageSourceAttachmentToCurrentStep(pageSourceXml, "application/xml");
+            if (!string.IsNullOrEmpty(screenshotBase64))
+                Current.Reporter?.AddScreenshotAttachment(screenshotBase64);
+        }
+
+        /// <summary>
+        /// Adds page source as an attachment to the currently-executing step (rather than the
+        /// overall case result), optionally in pair with a page screenshot. Use this from inside a
+        /// [CbStep]-decorated method to associate the snapshot with that specific step, e.g. so it
+        /// can be matched against a baseline run's snapshot for the same step.
+        /// </summary>
+        /// <param name="pageSourceHtml">A page source in HTML format.</param>
+        /// <param name="screenshotBase64">An optional screenshot image in Base 64 format.</param>
+        public static void AddHtmlPageSourceToCurrentStep(string pageSourceHtml, string screenshotBase64 = null)
+        {
+            if (!Current.IsConfigured)
+                return;
+            Current.Reporter?.AddPageSourceAttachmentToCurrentStep(pageSourceHtml, "text/html");
+            if (!string.IsNullOrEmpty(screenshotBase64))
+                Current.Reporter?.AddScreenshotAttachment(screenshotBase64);
+        }
+
+        /// <summary>
+        /// Adds page source as an attachment to the currently-executing step (rather than the
+        /// overall case result), optionally in pair with a page screenshot. Use this from inside a
+        /// [CbStep]-decorated method to associate the snapshot with that specific step, e.g. so it
+        /// can be matched against a baseline run's snapshot for the same step.
+        /// </summary>
+        /// <param name="pageSourceXml">A page source in XML format.</param>
+        /// <param name="screenshotBase64">An optional screenshot image in Base 64 format.</param>
+        public static void AddXmlPageSourceToCurrentStep(string pageSourceXml, string screenshotBase64 = null)
+        {
+            if (!Current.IsConfigured)
+                return;
+            Current.Reporter?.AddPageSourceAttachmentToCurrentStep(pageSourceXml, "text/xml");
+            if (!string.IsNullOrEmpty(screenshotBase64))
+                Current.Reporter?.AddScreenshotAttachment(screenshotBase64);
+        }
     }
 }
