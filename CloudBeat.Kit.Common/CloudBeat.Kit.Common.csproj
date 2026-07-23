@@ -38,7 +38,7 @@
     </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="NLog" Version="5.5.1" />
     <PackageReference Include="Selenium.Support" Version="4.16.2" />
     <PackageReference Include="SkiaSharp" Version="2.88.9" />

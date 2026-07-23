@@ -42,9 +42,9 @@
 
     <ItemGroup>
     <PackageReference Include="AspectInjector" Version="2.9.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="NUnit" Version="3.14.0" />
-    <PackageReference Include="NUnit.Engine" Version="3.18.3" />
+    <PackageReference Include="NUnit.Engine" Version="3.22.0" />
   </ItemGroup>
 
   <ItemGroup>
