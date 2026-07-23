@@ -355,11 +355,11 @@ namespace CloudBeat.Kit.NUnit
         {
             if (!Current.IsConfigured)
                 return;
-            Current.Reporter?.AddPageSourceAttachment(pageSourceXml, "application/x-appium+xml");
+            Current.Reporter?.AddPageSourceAttachment(pageSourceXml, "application/xml");
             if (!string.IsNullOrEmpty(screenshotBase64))
                 Current.Reporter?.AddScreenshotAttachment(screenshotBase64);
         }
-        
+
         /// <summary>
         /// Adds page source as attachment, optionally in pair with page screenshot.
         /// </summary>
