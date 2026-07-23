@@ -23,6 +23,9 @@ namespace CloudBeat.Kit.Common
         protected readonly IList<IDisposable> _wrappers = new List<IDisposable>();
         protected readonly AsyncLocal<CaseResult> _lastCaseResult = new();
         protected readonly ThreadLocal<CaseResult> _lastCaseResultByThread = new();
+        // Tracks the chain of currently-executing steps (innermost last), so code running inside a
+        // [CbStep]-decorated method can attach data (e.g. a page-source snapshot) to its own step.
+        protected readonly AsyncLocal<Stack<StepResult>> _currentStepStack = new();
         protected readonly AsyncLocal<IWebDriver> _currentWebDriver = new();
         protected readonly AsyncLocal<ICbScreenshotProvider> _screenshotProvider = new();
         protected readonly AsyncLocal<ICbPageSourceProvider> _pageSourceProvider = new();
@@ -649,7 +652,9 @@ namespace CloudBeat.Kit.Common
                 parentCase = _lastCaseResult.Value;
             if (parentCase == null)
                 return null;
-            return parentCase.AddNewStep(stepName, type);
+            var step = parentCase.AddNewStep(stepName, type);
+            PushCurrentStep(step);
+            return step;
         }
 
         public virtual StepResult StartHook(string stepName, HookTypeEnum type, CaseResult parentCase = null)
@@ -658,7 +663,9 @@ namespace CloudBeat.Kit.Common
                 parentCase = _lastCaseResult.Value;
             if (parentCase == null)
                 return null;
-            return parentCase.AddNewHook(stepName, type);
+            var step = parentCase.AddNewHook(stepName, type);
+            PushCurrentStep(step);
+            return step;
         }
 
         public virtual StepResult StartHook(string suiteFqn, string stepName, HookTypeEnum type, SuiteResult parentSuite = null)
@@ -666,7 +673,52 @@ namespace CloudBeat.Kit.Common
             parentSuite ??= _result.GetSuite(suiteFqn);
             if (parentSuite == null)
                 return null;
-            return parentSuite.AddNewHook(stepName, type);
+            var step = parentSuite.AddNewHook(stepName, type);
+            PushCurrentStep(step);
+            return step;
+        }
+
+        private void PushCurrentStep(StepResult step)
+        {
+            if (step == null)
+                return;
+            var stack = _currentStepStack.Value ??= new Stack<StepResult>();
+            stack.Push(step);
+        }
+
+        private void PopCurrentStep(StepResult step)
+        {
+            var stack = _currentStepStack.Value;
+            // only pop if it matches the top, to stay resilient to any mismatched End calls
+            if (stack != null && stack.Count > 0 && ReferenceEquals(stack.Peek(), step))
+                stack.Pop();
+        }
+
+        /// <summary>
+        /// Returns the StepResult for the step (or hook) currently executing on this async flow, if any.
+        /// Lets code running inside a [CbStep]-decorated method attach data to its own step.
+        /// </summary>
+        public StepResult GetCurrentStep()
+        {
+            var stack = _currentStepStack.Value;
+            return stack != null && stack.Count > 0 ? stack.Peek() : null;
+        }
+
+        /// <summary>
+        /// Attaches a page source snapshot to the currently-executing step (falling back to the
+        /// case result if called outside of any step, e.g. from a non-hook TearDown).
+        /// </summary>
+        public void AddPageSourceAttachmentToCurrentStep(string pageSource, string mimeType = "text/plain")
+        {
+            IResultWithAttachment resultWithAttachment = GetCurrentStep();
+            if (resultWithAttachment == null)
+                resultWithAttachment = _lastCaseResult.Value;
+            if (resultWithAttachment == null)
+                return;
+
+            var attachment = CbAttachmentHelper.PreparePageSourceAttachment(pageSource, mimeType);
+            if (attachment != null)
+                resultWithAttachment.Attachments.Add(attachment);
         }
 
         public StepResult EndStep(string name)
@@ -694,6 +746,8 @@ namespace CloudBeat.Kit.Common
             var pageSourceAttachment = GetPageSourceAttachmentForException(stepResult, exception);
             if (pageSourceAttachment != null)
                 stepResult.Attachments.Add(pageSourceAttachment);
+
+            PopCurrentStep(stepResult);
 
             return parentContainer.EndStep(stepResult, status, exception, screenshot);
         }
