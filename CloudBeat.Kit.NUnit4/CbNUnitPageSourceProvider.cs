@@ -1,7 +1,6 @@
 ﻿using CloudBeat.Kit.Common;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
-using OpenQA.Selenium.Support.Extensions;
 using System;
 
 namespace CloudBeat.Kit.NUnit
@@ -22,9 +21,8 @@ namespace CloudBeat.Kit.NUnit
         {
             try
             {
-                
-                var source = _driver?.TakeScreenshot()?.AsBase64EncodedString;
-                var mimeType = IsAppiumDriver(_driver) ? "application/x-appium+xml" : "text/html";
+                var source = _driver?.PageSource;
+                var mimeType = IsAppiumDriver(_driver) ? "application/xml" : "text/html";
                 return (source, mimeType);
             }
             catch (Exception)
