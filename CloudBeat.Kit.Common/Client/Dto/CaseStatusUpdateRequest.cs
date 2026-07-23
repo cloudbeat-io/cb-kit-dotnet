@@ -56,11 +56,6 @@ public class CaseStatusUpdateRequest
     /// </summary>
     public string Name { get; set; }
 	
-    /// <summary>
-	/// Gets or sets a value indicating the display name of the case.
-	/// </summary>
-	public string DisplayName { get; set; }
-
 	/// <summary>
 	/// Gets or sets a value indicating the order of execution. Nullable.
 	/// </summary>
