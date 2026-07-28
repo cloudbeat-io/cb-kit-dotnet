@@ -29,6 +29,7 @@ namespace CloudBeat.Kit.Common
         protected readonly AsyncLocal<IWebDriver> _currentWebDriver = new();
         protected readonly AsyncLocal<ICbScreenshotProvider> _screenshotProvider = new();
         protected readonly AsyncLocal<ICbPageSourceProvider> _pageSourceProvider = new();
+        protected readonly AsyncLocal<bool> _isBaselineRun = new();
         protected readonly ConcurrentDictionary<string, ICbScreenshotProvider> _screenshotProviderByTestId = new();
         protected readonly AsyncLocal<string> _currentTestId = new();
         protected readonly TextWriter _consoleWriter;
@@ -743,7 +744,9 @@ namespace CloudBeat.Kit.Common
 
             if (screenshot == null && exception != null)
                 screenshot = GetScreenshotForException(stepResult, exception);
-            var pageSourceAttachment = GetPageSourceAttachmentForException(stepResult, exception);
+            var pageSourceAttachment = exception != null
+                ? GetPageSourceAttachmentForException(stepResult, exception)
+                : GetPageSourceAttachmentForBaseline(stepResult);
             if (pageSourceAttachment != null)
                 stepResult.Attachments.Add(pageSourceAttachment);
 
@@ -775,6 +778,11 @@ namespace CloudBeat.Kit.Common
         public void SetPageSourceProvider(ICbPageSourceProvider provider)
         {
             _pageSourceProvider.Value = provider;
+        }
+
+        public void SetBaselineRun(bool isBaselineRun)
+        {
+            _isBaselineRun.Value = isBaselineRun;
         }
 
         public void SetScreenshotProvider(string testId, ICbScreenshotProvider provider)
@@ -838,6 +846,30 @@ namespace CloudBeat.Kit.Common
                 if (firstSimilarFailedChildStep is { Attachments: not null } && firstSimilarFailedChildStep.Attachments.Any(x => x.Type == AttachmentTypeEnum.Snapshot))
                     return null;
             }
+
+            try
+            {
+                var (pageSource, mimeType) = _pageSourceProvider.Value.PageSource();
+                if (pageSource != null)
+                    return CbAttachmentHelper.PreparePageSourceAttachment(pageSource, mimeType);
+            }
+            catch
+            {
+                // ignored
+            }
+
+            return null;
+        }
+
+        private Attachment GetPageSourceAttachmentForBaseline(StepResult stepResult)
+        {
+            if (!_isBaselineRun.Value || _pageSourceProvider.Value == null)
+                return null;
+
+            // a composite step's own snapshot would just duplicate whatever its last child step
+            // already captured, so only leaf steps get one
+            if (stepResult.Steps?.Count > 0)
+                return null;
 
             try
             {

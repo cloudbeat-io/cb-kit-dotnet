@@ -34,7 +34,7 @@ namespace CloudBeat.Kit.Common
 			var attachment = new Attachment();
 			attachment.Type = AttachmentTypeEnum.Screenshot;
 			attachment.Subtype = AttachmentSubTypeEnum.Screenshot;
-			attachment.FileName = "screenshot.png";
+			attachment.FileName = $"screenshot-{Guid.NewGuid()}.png";
 			attachment.FilePath = GetAttachmentFilePath(attachment.FileName);
 
 			try
@@ -70,7 +70,7 @@ namespace CloudBeat.Kit.Common
 			}
 			else
 				attachment.Subtype = AttachmentSubTypeEnum.Text;
-			attachment.FileName = $"source.{fileExt}";
+			attachment.FileName = $"source-{Guid.NewGuid()}.{fileExt}";
 			attachment.FilePath = GetAttachmentFilePath(attachment.FileName);
 
 			try
