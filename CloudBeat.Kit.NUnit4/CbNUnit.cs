@@ -208,7 +208,8 @@ namespace CloudBeat.Kit.NUnit
             Current.Reporter?.SetCurrentWebDriver(driver?.WrappedDriver);
             Current.Reporter?.SetScreenshotProvider(new CbNUnitScreenshotProvider(driver?.WrappedDriver, takeFullPageScreenshots));
             Current.Reporter?.SetPageSourceProvider(new CbNUnitPageSourceProvider(driver?.WrappedDriver, takePageSourceOnError));
-            
+            Current.Reporter?.SetBaselineRun(GetEnvironmentValue("baseline") == "true");
+
             new CbWebDriverWrapper(
                 driver,
                 Current.Reporter,
