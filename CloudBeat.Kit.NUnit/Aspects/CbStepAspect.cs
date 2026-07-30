@@ -134,9 +134,10 @@ namespace CloudBeat.Kit.NUnit.Aspects
                     parameterizedStepName = parameterizedStepName.Replace("{" + paramInfo.Name + "}", "null");
                     continue;
                 }
-                else if (arguments[i].GetType().IsPrimitive || arguments[i] is string)
+                else if (arguments[i].GetType().IsPrimitive || arguments[i] is string || arguments[i].GetType().IsEnum)
                 {
                     parameterizedStepName = parameterizedStepName.Replace("{" + paramInfo.Name + "}", arguments[i].ToString());
+                    continue; // Add continue to skip complex object handling
                 }
 
                 // Try to parametrize complex object (e.g. with public properties)

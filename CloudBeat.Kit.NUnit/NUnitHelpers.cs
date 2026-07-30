@@ -139,7 +139,7 @@ namespace CloudBeat.Kit.NUnit
         {
             var outerTraceCleaned = CleanStackTrace(stackTraceTopOuterRegex, stackTraceBottomOuterRegex, outerTrace, verbose);
             var innerTraceCleaned = CleanStackTrace(stackTraceTopInnerRegex, null, innerTrace, verbose);
-            return innerTrace + outerTrace;
+            return innerTraceCleaned + outerTraceCleaned;
         }
 
         private static string CleanStackTrace(Regex topRegex, Regex bottomRegex, string trace, bool verbose)
