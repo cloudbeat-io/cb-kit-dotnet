@@ -866,11 +866,6 @@ namespace CloudBeat.Kit.Common
             if (!_isBaselineRun.Value || _pageSourceProvider.Value == null)
                 return null;
 
-            // a composite step's own snapshot would just duplicate whatever its last child step
-            // already captured, so only leaf steps get one
-            if (stepResult.Steps?.Count > 0)
-                return null;
-
             try
             {
                 var (pageSource, mimeType) = _pageSourceProvider.Value.PageSource();
