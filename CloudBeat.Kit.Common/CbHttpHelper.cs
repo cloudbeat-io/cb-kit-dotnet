@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.IO.Compression;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -46,21 +48,32 @@ namespace CloudBeat.Kit.Common
             using var httpClient = new HttpClient();
             // Create the content to send
             var content = CreateJsonHttpContent(data);
-            
+
             // Add any headers if needed
             httpClient.DefaultRequestHeaders.Add("User-Agent", "CB-Reporter");
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            
+
             // Send the POST request
             return await httpClient.PostAsync(url, content);
         }
-        
+
         private static HttpContent CreateJsonHttpContent(object content)
         {
             string jsonContentStr = JsonConvert.SerializeObject(content, JsonSerializerSettings);
+            byte[] jsonBytes = Encoding.UTF8.GetBytes(jsonContentStr);
 
-            ByteArrayContent jsonHttpContent = new ByteArrayContent(Encoding.UTF8.GetBytes(jsonContentStr));
+            // Case-result payloads embed screenshots (base64) and page-source snapshots (HTML/XML
+            // text), both of which compress very well - gzip before sending to cut upload size and
+            // time. The server needs request-decompression middleware enabled to accept this.
+            using var compressedStream = new MemoryStream();
+            using (var gzipStream = new GZipStream(compressedStream, CompressionLevel.Fastest, leaveOpen: true))
+            {
+                gzipStream.Write(jsonBytes, 0, jsonBytes.Length);
+            }
+
+            ByteArrayContent jsonHttpContent = new ByteArrayContent(compressedStream.ToArray());
             jsonHttpContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            jsonHttpContent.Headers.ContentEncoding.Add("gzip");
 
             return jsonHttpContent;
         }
