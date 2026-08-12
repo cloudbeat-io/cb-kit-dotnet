@@ -47,6 +47,10 @@ namespace CloudBeat.Kit.Playwright
 
         public IPage Page => locator.Page;
 
+        public IFrameLocator ContentFrame => locator.ContentFrame;
+
+        public string Description => locator.Description;
+
         public Task<IReadOnlyList<ILocator>> AllAsync()
         {
             return locator.AllAsync();
@@ -60,6 +64,11 @@ namespace CloudBeat.Kit.Playwright
         public Task<IReadOnlyList<string>> AllTextContentsAsync()
         {
             return locator.AllTextContentsAsync();
+        }
+
+        public Task<string> AriaSnapshotAsync(LocatorAriaSnapshotOptions options = null)
+        {
+            return locator.AriaSnapshotAsync(options);
         }
 
         public ILocator And(ILocator locator)
@@ -114,6 +123,11 @@ namespace CloudBeat.Kit.Playwright
             var step = reporter.StartStep($"Double click on {label}");
             var task = locator.DblClickAsync(options);
             return Helper.WrapStepTask(task, step, page, reporter);
+        }
+
+        public ILocator Describe(string description)
+        {
+            return locator.Describe(description);
         }
 
         public Task DispatchEventAsync(string type, object eventInit = null, LocatorDispatchEventOptions options = null)
