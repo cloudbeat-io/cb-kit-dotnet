@@ -1,6 +1,7 @@
 ﻿using CloudBeat.Kit.Common.Models;
 using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace CloudBeat.Kit.Common
 {
@@ -37,9 +38,32 @@ namespace CloudBeat.Kit.Common
 			failure.Type = GetFailureTypeByExceptionSource(e);
 			failure.Subtype = e.InnerException?.GetType().Name ?? e.GetType().Name;
 			failure.Message = e.Message;
-			failure.Data = stackTrace;
+			failure.Stacktrace = stackTrace;
+			failure.Location = GetLocationFromStackTraceText(stackTrace);
             return failure;
 		}
+
+		private static readonly Regex StackTraceLocationRegex =
+			new Regex(@"at\s+(.+?)\s+in\s+(.+):line\s+(\d+)", RegexOptions.Compiled);
+
+		// Parses location out of the stack trace TEXT rather than walking the live Exception via
+		// reflection (new StackTrace(e, true).GetFrames()) - that reflection-based approach turned out
+		// to be unreliable in practice: GetFileName()/GetFileLineNumber() came back empty for frames
+		// where the exception's own e.StackTrace string clearly had "in <file>:line <N>" info (verified
+		// against a real MSTest AssertFailedException). The text is always there; parsing it is the
+		// approach that's actually proven to work, for both a live Exception's .StackTrace and for
+		// NUnit/MSTest result objects (TestContext.ResultAdapter, TestResult) that only ever expose
+		// the stack trace as pre-formatted text in the first place, with no Exception object at all.
+		public static string GetLocationFromStackTraceText(string stackTraceText)
+		{
+			if (string.IsNullOrEmpty(stackTraceText))
+				return null;
+			var match = StackTraceLocationRegex.Match(stackTraceText);
+			if (!match.Success)
+				return null;
+			return $"{match.Groups[1].Value.Trim()}({match.Groups[2].Value.Trim()}:{match.Groups[3].Value.Trim()})";
+		}
+
 		public static string GetFailureTypeByExceptionSource(Exception e)
 		{
 			if (e.Source == "nunit.framework")

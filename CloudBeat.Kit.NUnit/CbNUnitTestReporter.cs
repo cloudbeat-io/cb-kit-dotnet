@@ -170,7 +170,8 @@ namespace CloudBeat.Kit.NUnit
             {
                 Type = NUnitHelpers.GetFailureType(result),
                 Message = result.Message,
-                Data = result.StackTrace
+                Stacktrace = result.StackTrace,
+                Location = CbExceptionHelper.GetLocationFromStackTraceText(result.StackTrace)
             };
             return failure;
         }
