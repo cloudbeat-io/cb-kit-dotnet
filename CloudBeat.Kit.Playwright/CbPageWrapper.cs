@@ -26,9 +26,6 @@ namespace CloudBeat.Kit.Playwright
             return page;
         }
 
-        [Obsolete]
-        IAccessibility IPage.Accessibility => page.Accessibility;
-
         IBrowserContext IPage.Context => page.Context;
 
         IReadOnlyList<IFrame> IPage.Frames => page.Frames;
@@ -48,6 +45,8 @@ namespace CloudBeat.Kit.Playwright
         string IPage.Url => page.Url;
 
         IVideo IPage.Video => page.Video;
+
+        IClock IPage.Clock => page.Clock;
 
         PageViewportSizeResult IPage.ViewportSize => page.ViewportSize;
 
@@ -304,6 +303,31 @@ namespace CloudBeat.Kit.Playwright
         {
             return page.UnrouteAllAsync(options);
         }
+
+        Task IPage.RequestGCAsync() => page.RequestGCAsync();
+
+        Task<IReadOnlyList<IConsoleMessage>> IPage.ConsoleMessagesAsync() => page.ConsoleMessagesAsync();
+
+        Task<IReadOnlyList<string>> IPage.PageErrorsAsync() => page.PageErrorsAsync();
+
+        Task<IReadOnlyList<IRequest>> IPage.RequestsAsync() => page.RequestsAsync();
+
+        private static ILocator UnwrapLocator(ILocator locator)
+            => locator is CbLocatorWrapper wrapper ? wrapper.GetBaseLocator() : locator;
+
+        Task IPage.AddLocatorHandlerAsync(ILocator locator, Func<ILocator, Task> handler, PageAddLocatorHandlerOptions options)
+            => page.AddLocatorHandlerAsync(UnwrapLocator(locator), handler, options);
+
+        Task IPage.AddLocatorHandlerAsync(ILocator locator, Func<Task> handler, PageAddLocatorHandlerOptions options)
+            => page.AddLocatorHandlerAsync(UnwrapLocator(locator), handler, options);
+
+        Task IPage.RemoveLocatorHandlerAsync(ILocator locator) => page.RemoveLocatorHandlerAsync(UnwrapLocator(locator));
+
+        Task IPage.RouteWebSocketAsync(string url, Action<IWebSocketRoute> handler) => page.RouteWebSocketAsync(url, handler);
+
+        Task IPage.RouteWebSocketAsync(Regex url, Action<IWebSocketRoute> handler) => page.RouteWebSocketAsync(url, handler);
+
+        Task IPage.RouteWebSocketAsync(Func<string, bool> url, Action<IWebSocketRoute> handler) => page.RouteWebSocketAsync(url, handler);
 
         Task IPage.AddInitScriptAsync(string script, string scriptPath)
         {
