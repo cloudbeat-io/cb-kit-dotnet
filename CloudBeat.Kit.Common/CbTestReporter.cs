@@ -207,6 +207,7 @@ namespace CloudBeat.Kit.Common
                 return null;
 
             var endedCase = parentSuite.EndCase(fqn, status, failure);
+            AddAutomationInfo(endedCase);
 
             if (_config.DebugMode)
                 _consoleWriter?.WriteLine($"CB:Case:End: {fqn}");
@@ -244,6 +245,7 @@ namespace CloudBeat.Kit.Common
                 parentSuite.EndCase(caseResult, status, failure);
             else
                 caseResult.End(status, failure);
+            AddAutomationInfo(caseResult);
             if (_config.DebugMode)
                 _consoleWriter?.WriteLine($"CB:Case:End: {caseResult.Fqn}");
             // Send runtime status
@@ -758,6 +760,16 @@ namespace CloudBeat.Kit.Common
         public void SetCurrentWebDriver(IWebDriver driver)
         {
             _currentWebDriver.Value = driver;
+        }
+
+        /// <summary>Records which engine the test drove (Appium or Selenium, platform, device): context entry "automation".</summary>
+        private void AddAutomationInfo(CaseResult caseResult)
+        {
+            if (caseResult == null || caseResult.Context.ContainsKey("automation"))
+                return;
+            var info = CbAutomationInfo.Describe(_currentWebDriver.Value);
+            if (info != null)
+                caseResult.Context["automation"] = info;
         }
 
         public ICbScreenshotProvider GetScreenshotProvider()
